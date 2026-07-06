@@ -1,0 +1,1436 @@
+{% load static %}
+<!doctype html>
+<html class="no-js"  lang="en">
+
+	<head>
+		<!-- META DATA -->
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+		<!--font-family-->
+		<link href="https://fonts.googleapis.com/css?family=Rufina:400,700" rel="stylesheet" />
+
+		<link href="https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900" rel="stylesheet" />
+
+		<!-- TITLE OF SITE -->
+		<title>TourNest 旅游预订平台</title>
+
+		<!-- favicon img -->
+		<link rel="shortcut icon" type="image/icon" href="{% static 'vendor/favicon.png' %}"/>
+
+		<!--font-awesome.min.css-->
+		<link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" />
+
+		<!--animate.css-->
+		<link rel="stylesheet" href="{% static 'css/animate.css' %}" />
+
+		<!--hover.css-->
+		<link rel="stylesheet" href="{% static 'css/hover-min.css' %}">
+
+		<!--datepicker.css-->
+		<link rel="stylesheet"  href="{% static 'css/datepicker.css' %}" >
+
+		<!--owl.carousel.css-->
+        <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+		<link rel="stylesheet" href="{% static 'css/owl.theme.default.min.css' %}"/>
+
+		<!-- range css-->
+        <link rel="stylesheet" href="{% static 'css/jquery-ui.min.css' %}" />
+
+		<!--bootstrap.min.css-->
+		<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+
+		<!-- bootsnav -->
+		<link rel="stylesheet" href="{% static 'css/bootsnav.css' %}"/>
+
+		<!--style.css-->
+		<link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+		<!--responsive.css-->
+		<link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
+
+		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+
+		<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+	</head>
+
+	<body>
+		<!--[if lte IE 9]>
+		<p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade
+			your browser</a> to improve your experience and security.</p>
+		<![endif]-->
+
+		<!-- main-menu Start -->
+		<header class="top-area">
+			<div class="header-area">
+				<div class="container">
+					<div class="row">
+						<div class="col-sm-2">
+							<div class="logo">
+								<a href="/">
+									tour<span>Nest</span>
+								</a>
+							</div><!-- /.logo-->
+						</div><!-- /.col-->
+						<div class="col-sm-10">
+							<div class="main-menu">
+							
+								<!-- Brand and toggle get grouped for better mobile display -->
+								<div class="navbar-header">
+									<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+										<i class="fa fa-bars"></i>
+									</button><!-- / button-->
+								</div><!-- /.navbar-header-->
+								<div class="collapse navbar-collapse">		  
+									<ul class="nav navbar-nav navbar-right">
+										<li class="smooth-menu"><a href="#home">首页</a></li>
+										<li class="smooth-menu"><a href="#gallery">目的地</a></li>
+										<li class="smooth-menu"><a href="#pack">精选套餐 </a></li>
+										<li class="smooth-menu"><a href="#spo">特惠活动</a></li>
+										<li class="smooth-menu"><a href="#blog">旅游攻略</a></li>
+										<li class="smooth-menu"><a href="#subs">订阅我们</a></li>
+										<li>
+											<button class="book-btn">立即预订
+											</button>
+										</li><!--/.project-btn--> 
+									</ul>
+								</div><!-- /.navbar-collapse -->
+							</div><!-- /.main-menu-->
+						</div><!-- /.col-->
+					</div><!-- /.row -->
+					<div class="home-border"></div><!-- /.home-border-->
+				</div><!-- /.container-->
+			</div><!-- /.header-area -->
+
+		</header><!-- /.top-area-->
+		<!-- main-menu End -->
+
+		
+		<!--about-us start -->
+		<section id="home" class="about-us">
+			<div class="container">
+				<div class="about-us-content">
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="single-about-us">
+								<div class="about-us-txt">
+									<h2>
+										探索美丽世界的无限风光 
+									</h2>
+									<div class="about-btn">
+										<button  class="about-view">
+											立刻出发
+										</button>
+									</div><!--/.about-btn-->
+								</div><!--/.about-us-txt-->
+							</div><!--/.single-about-us-->
+						</div><!--/.col-->
+						<div class="col-sm-0">
+							<div class="single-about-us">
+								
+							</div><!--/.single-about-us-->
+						</div><!--/.col-->
+					</div><!--/.row-->
+				</div><!--/.about-us-content-->
+			</div><!--/.container-->
+
+		</section><!--/.about-us-->
+		<!--about-us end -->
+
+		<!--travel-box start-->
+		<section  class="travel-box">
+        	<div class="container">
+        		<div class="row">
+        			<div class="col-md-12">
+        				<div class="single-travel-boxes">
+        					<div id="desc-tabs" class="desc-tabs">
+
+								<ul class="nav nav-tabs" role="tablist">
+
+									<li role="presentation" class="active">
+									 	<a href="#tours" aria-controls="tours" role="tab" data-toggle="tab">
+									 		<i class="fa fa-tree"></i>
+									 		旅游套餐
+									 	</a>
+									</li>
+
+									<li role="presentation">
+										<a href="#hotels" aria-controls="hotels" role="tab" data-toggle="tab">
+											<i class="fa fa-building"></i>
+											精选酒店
+										</a>
+									</li>
+
+									<li role="presentation">
+									 	<a href="#flights" aria-controls="flights" role="tab" data-toggle="tab">
+									 		<i class="fa fa-plane"></i>
+									 		特价机票
+									 	</a>
+									</li>
+								</ul>
+
+								<!-- Tab panes -->
+								<div class="tab-content">
+
+									<div role="tabpanel" class="tab-pane active fade in" id="tours">
+										<div class="tab-para">
+
+											<div class="row">
+												<div class="col-lg-4 col-md-4 col-sm-12">
+													<div class="single-tab-select-box">
+
+														<h2>目的地</h2>
+
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">输入您想去的国家</option><!-- /.option-->
+
+															  	<option value="turkey">土耳其</option><!-- /.option-->
+
+															  	<option value="russia">俄罗斯</option><!-- /.option-->
+															  	<option value="egept">埃及</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">输入目标城市</option><!-- /.option-->
+
+															  	<option value="istambul">伊斯坦布尔</option><!-- /.option-->
+
+															  	<option value="mosko">莫斯科</option><!-- /.option-->
+															  	<option value="cairo">开罗</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-3 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>出发日期</h2>
+														<div class="travel-check-icon">
+															<form action="#">
+																<input type="text" name="check_in" class="form-control" data-toggle="datepicker" placeholder="12 -01 - 2026 ">
+															</form>
+														</div><!-- /.travel-check-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-3 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>返回日期</h2>
+														<div class="travel-check-icon">
+															<form action="#">
+																<input type="text" name="check_out" class="form-control"  data-toggle="datepicker" placeholder="22 -01 - 2026 ">
+															</form>
+														</div><!-- /.travel-check-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-1 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>出行天数</h2>
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">5 天</option><!-- /.option-->
+
+															  	<option value="10">10 天</option><!-- /.option-->
+
+															  	<option value="15">15 天</option><!-- /.option-->
+															  	<option value="20">20 天</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-1 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>出行人数</h2>
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">1 人</option><!-- /.option-->
+
+															  	<option value="2">2 人</option><!-- /.option-->
+
+															  	<option value="4">4 人</option><!-- /.option-->
+															  	<option value="8">8 人</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+											</div><!--/.row-->
+
+											<div class="row">
+												<div class="col-sm-5">
+													<div class="travel-budget">
+														<div class="row">
+															<div class="col-md-3 col-sm-4">
+																<h3>预算范围 : </h3>
+															</div><!--/.col-->
+															<div class="co-md-9 col-sm-8">
+																<div class="travel-filter">
+																	<div class="info_widget">
+																		<div class="price_filter">
+																			
+																			<div id="slider-range"></div><!--/.slider-range-->
+
+																			<div class="price_slider_amount">
+																				<input type="text" id="amount" name="price"  placeholder="设置您的预算" />
+																			</div><!--/.price_slider_amount-->
+																		</div><!--/.price-filter-->
+																	</div><!--/.info_widget-->
+								</div><!--/.travel-filter-->
+															</div><!--/.col-->
+														</div><!--/.row-->
+													</div><!--/.travel-budget-->
+												</div><!--/.col-->
+												<div class="clo-sm-7">
+													<div class="about-btn travel-mrt-0 pull-right">
+														<button  class="about-view travel-btn">
+															搜索路线	
+														</button><!--/.travel-btn-->
+													</div><!--/.about-btn-->
+												</div><!--/.col-->
+
+											</div><!--/.row-->
+
+										</div><!--/.tab-para-->
+
+									</div><!--/.tabpannel-->
+
+									<div role="tabpanel" class="tab-pane fade in" id="hotels">
+										<div class="tab-para">
+
+											<div class="row">
+												<div class="col-lg-4 col-md-4 col-sm-12">
+													<div class="single-tab-select-box">
+
+														<h2>目的地酒店</h2>
+
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">输入您想去的国家</option><!-- /.option-->
+
+															  	<option value="turkey">土耳其</option><!-- /.option-->
+
+															  	<option value="russia">俄罗斯</option><!-- /.option-->
+															  	<option value="egept">埃及</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">输入目标城市</option><!-- /.option-->
+
+															  	<option value="istambul">伊斯坦布尔</option><!-- /.option-->
+
+															  	<option value="mosko">莫斯科</option><!-- /.option-->
+															  	<option value="cairo">开罗</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-3 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>入住日期</h2>
+														<div class="travel-check-icon">
+															<form action="#">
+																<input type="text" name="check_in" class="form-control" data-toggle="datepicker" placeholder="12 -01 - 2026 ">
+															</form>
+														</div><!-- /.travel-check-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-3 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>退房日期</h2>
+														<div class="travel-check-icon">
+															<form action="#">
+																<input type="text" name="check_out" class="form-control"  data-toggle="datepicker" placeholder="22 -01 - 2026 ">
+															</form>
+														</div><!-- /.travel-check-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-1 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>房间数</h2>
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">1 间</option><!-- /.option-->
+
+															  	<option value="2">2 间</option><!-- /.option-->
+
+															  	<option value="3">3 间</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-1 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>入住人数</h2>
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">1 人</option><!-- /.option-->
+
+															  	<option value="2">2 人</option><!-- /.option-->
+
+															  	<option value="4">4 人</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+											</div><!--/.row-->
+
+											<div class="row">
+												<div class="col-sm-5"></div><!--/.col-->
+												<div class="clo-sm-7">
+													<div class="about-btn travel-mrt-0 pull-right">
+														<button  class="about-view travel-btn">
+															搜索酒店	
+														</button><!--/.travel-btn-->
+													</div><!--/.about-btn-->
+												</div><!--/.col-->
+
+											</div><!--/.row-->
+
+										</div><!--/.tab-para-->
+
+									</div><!--/.tabpannel-->
+
+									<div role="tabpanel" class="tab-pane fade in" id="flights">
+										<div class="tab-para">
+											<div class="trip-circle">
+												<div class="single-trip-circle">
+													<input type="radio" id="radio01" name="radio" />
+  													<label for="radio01">
+  														<span class="round-boarder">
+  															<span class="round-boarder1"></span>
+  														</span>往返机票
+  													</label>
+												</div><!--/.single-trip-circle-->
+												<div class="single-trip-circle">
+													<input type="radio" id="radio02" name="radio" />
+  													<label for="radio02">
+  														<span class="round-boarder">
+  															<span class="round-boarder1"></span>
+  														</span>单程机票
+  													</label>
+												</div><!--/.single-trip-circle-->
+											</div><!--/.trip-circle-->
+											<div class="row">
+												<div class="col-lg-4 col-md-4 col-sm-12">
+													<div class="single-tab-select-box">
+
+														<h2>出发城市</h2>
+
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">选择您的出发地</option><!-- /.option-->
+
+															  	<option value="china">中国 (北京)</option><!-- /.option-->
+
+															  	<option value="china2">中国 (上海)</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-3 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>出发时间</h2>
+														<div class="travel-check-icon">
+															<form action="#">
+																<input type="text" name="departure" class="form-control" data-toggle="datepicker"
+																placeholder="12 -01 - 2026 ">
+															</form>
+														</div><!-- /.travel-check-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-3 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>返回时间</h2>
+														<div class="travel-check-icon">
+															<form action="#">
+																<input type="text" name="return" class="form-control" data-toggle="datepicker" placeholder="22 -01 - 2026 ">
+															</form>
+														</div><!-- /.travel-check-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-1 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>成人</h2>
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">1</option><!-- /.option-->
+
+															  	<option value="2">2</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+												<div class="col-lg-2 col-md-1 col-sm-4">
+													<div class="single-tab-select-box">
+														<h2>儿童</h2>
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">0</option><!-- /.option-->
+
+															  	<option value="1">1</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+
+											</div><!--/.row-->
+
+											<div class="row">
+												<div class="col-lg-4 col-md-4 col-sm-12">
+													<div class="single-tab-select-box">
+
+														<h2>到达城市</h2>
+
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">输入您的目的地</option><!-- /.option-->
+
+															  	<option value="istambul">伊斯坦布尔</option><!-- /.option-->
+
+															  	<option value="mosko">莫斯科</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+												<div class="col-lg-3 col-md-3 col-sm-4">
+													<div class="single-tab-select-box">
+
+														<h2>舱位等级</h2>
+														<div class="travel-select-icon">
+															<select class="form-control ">
+
+															  	<option value="default">选择舱位</option><!-- /.option-->
+
+															  	<option value="A">经济舱</option><!-- /.option-->
+
+															  	<option value="B">商务舱</option><!-- /.option-->
+															  	<option value="C">头等舱</option><!-- /.option-->
+
+															</select><!-- /.select-->
+														</div><!-- /.travel-select-icon -->
+													</div><!--/.single-tab-select-box-->
+												</div><!--/.col-->
+												<div class="clo-sm-5">
+													<div class="about-btn pull-right">
+														<button  class="about-view travel-btn">
+															搜索机票	
+														</button><!--/.travel-btn-->
+													</div><!--/.about-btn-->
+												</div><!--/.col-->
+												
+											</div><!--/.row-->
+
+										</div>
+
+									</div><!--/.tabpannel-->
+
+								</div><!--/.tab content-->
+							</div><!--/.desc-tabs-->
+        				</div><!--/.single-travel-box-->
+        			</div><!--/.col-->
+        		</div><!--/.row-->
+        	</div><!--/.container-->
+
+        </section><!--/.travel-box-->
+		<!--travel-box end-->
+
+        <!--service start-->
+		<section id="service" class="service">
+			<div class="container">
+
+				<div class="service-counter text-center">
+
+					<div class="col-md-4 col-sm-4">
+						<div class="single-service-box">
+							<div class="service-img">
+								<img src="{% static 'images/service/s1.png' %}" alt="service-icon" />
+							</div><!--/.service-img-->
+							<div class="service-content">
+								<h2>
+									<a href="#">
+									绝佳旅行度假套餐
+									</a>
+								</h2>
+								<p>我们为您精心挑选了全球最棒的跟团游与自由行路线。</p>
+							</div><!--/.service-content-->
+						</div><!--/.single-service-box-->
+					</div><!--/.col-->
+
+					<div class="col-md-4 col-sm-4">
+						<div class="single-service-box">
+							<div class="service-img">
+								<img src="{% static 'images/service/s2.png' %}" alt="service-icon" />
+							</div><!--/.service-img-->
+							<div class="service-content">
+								<h2>
+									<a href="#">
+										预订顶级奢华酒店
+									</a>
+								</h2>
+								<p>全网比价，尊享豪华五星级酒店及高性价比民宿优惠。</p>
+							</div><!--/.service-content-->
+						</div><!--/.single-service-box-->
+					</div><!--/.col-->
+
+					<div class="col-md-4 col-sm-4">
+						<div class="single-service-box">
+							<div class="statistics-img">
+								<img src="{% static 'images/service/s3.png' %}" alt="service-icon" />
+							</div><!--/.service-img-->
+							<div class="service-content">
+
+								<h2>
+									<a href="#">
+										高效在线机票预订
+									</a>
+								</h2>
+								<p>实时航班监控，一键对比各航空公司最优惠的底价机票。</p>
+							</div><!--/.service-content-->
+						</div><!--/.single-service-box-->
+					</div><!--/.col-->
+
+				</div><!--/.statistics-counter-->	
+			</div><!--/.container-->
+
+		</section><!--/.service-->
+		<!--service end-->
+
+		<!--galley start-->
+		<section id="gallery" class="gallery">
+			<div class="container">
+				<div class="gallery-details">
+					<div class="gallary-header text-center">
+						<h2>
+							热门旅游目的地
+						</h2>
+						<p>
+							世界那么大，跟着最受欢迎的旅行打卡地出发吧！
+						</p>
+					</div><!--/.gallery-header-->
+					<div class="gallery-box">
+						<div class="gallery-content">
+						  	<div class="filtr-container">
+						  		<div class="row">
+
+						  			<div class="col-md-6">
+						  				<div class="filtr-item">
+											<img src="{% static 'images/gallary/g1.jpg' %}" alt="portfolio image"/>
+											<div class="item-title">
+												<a href="#">
+													中国
+												</a>
+												<p><span>20 路线</span><span>15 景点</span></p>
+											</div><!-- /.item-title -->
+										</div><!-- /.filtr-item -->
+						  			</div><!-- /.col -->
+
+						  			<div class="col-md-6">
+						  				<div class="filtr-item">
+											<img src="{% static 'images/gallary/g2.jpg' %}" alt="portfolio image"/>
+											<div class="item-title">
+												<a href="#">
+													委内瑞拉
+												</a>
+												<p><span>12 路线</span><span>9 景点</span></p>
+											</div> <!-- /.item-title-->
+										</div><!-- /.filtr-item -->
+						  			</div><!-- /.col -->
+
+						  			<div class="col-md-4">
+						  				<div class="filtr-item">
+											<img src="{% static 'images/gallary/g3.jpg' %}" alt="portfolio image"/>
+											<div class="item-title">
+												<a href="#">
+													巴西
+												</a>
+												<p><span>25 路线</span><span>10 景点</span></p>
+											</div><!-- /.item-title -->
+										</div><!-- /.filtr-item -->
+						  			</div><!-- /.col -->
+
+						  			<div class="col-md-4">
+						  				<div class="filtr-item">
+											<img src="{% static 'images/gallary/g4.jpg' %}" alt="portfolio image"/>
+											<div class="item-title">
+												<a href="#">
+													澳大利亚 
+												</a>
+												<p><span>18 路线</span><span>9 景点</span></p>
+											</div> <!-- /.item-title-->
+										</div><!-- /.filtr-item -->
+						  			</div><!-- /.col -->
+
+						  			<div class="col-md-4">
+						  				<div class="filtr-item">
+											<img src="{% static 'images/gallary/g5.jpg' %}" alt="portfolio image"/>
+											<div class="item-title">
+												<a href="#">
+													荷兰
+												</a>
+												<p><span>14 路线</span><span>12 景点</span></p>
+											</div> <!-- /.item-title-->
+										</div><!-- /.filtr-item -->
+						  			</div><!-- /.col -->
+
+						  			<div class="col-md-8">
+						  				<div class="filtr-item">
+											<img src="{% static 'images/gallary/g6.jpg' %}" alt="portfolio image"/>
+											<div class="item-title">
+												<a href="#">
+													土耳其
+												</a>
+												<p><span>14 路线</span><span>6 景点</span></p>
+											</div> <!-- /.item-title-->
+										</div><!-- /.filtr-item -->
+						  			</div><!-- /.col -->
+
+						  		</div><!-- /.row -->
+
+						  	</div><!-- /.filtr-container-->
+						</div><!-- /.gallery-content -->
+					</div><!--/.galley-box-->
+				</div><!--/.gallery-details-->
+			</div><!--/.container-->
+
+		</section><!--/.gallery-->
+		<!--gallery end-->
+
+
+		<!--discount-offer start-->
+		<section class="discount-offer">
+			<div class="container">
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="dicount-offer-content text-center">
+							<h2>限时早鸟优惠：即日起至本周内下单，尊享全场最高 40% 折扣！</h2>
+							<div class="campaign-timer">
+								<div id="timer">
+									<div class="time time-after" id="days">
+										<span></span>
+									</div><!--/.time-->
+									<div class="time time-after" id="hours">
+
+									</div><!--/.time-->
+									<div class="time time-after" id="minutes">
+
+									</div><!--/.time-->
+									<div class="time" id="seconds">
+
+									</div><!--/.time-->
+								</div><!--/.timer-->
+							</div><!--/.campaign-timer-->
+							<div class="about-btn">
+								<button  class="about-view discount-offer-btn">
+									立即抢购
+								</button>
+							</div><!--/.about-btn-->
+
+
+						</div><!-- /.dicount-offer-content-->
+					</div><!-- /.col-->
+				</div><!-- /.row-->
+			</div><!-- /.container-->
+
+		</section><!-- /.discount-offer-->
+		<!--discount-offer end-->
+
+		<!--packages start-->
+		<section id="pack" class="packages">
+			<div class="container">
+				<div class="gallary-header text-center">
+					<h2>
+						超值特惠套餐
+					</h2>
+					<p>
+						跟团安心，自由随心！精选全包式旅行服务。
+					</p>
+				</div><!--/.gallery-header-->
+				<div class="packages-content">
+					<div class="row">
+
+						<div class="col-md-4 col-sm-6">
+							<div class="single-package-item">
+								<img src="{% static 'images/packages/p1.jpg' %}" alt="package-place">
+								<div class="single-package-item-txt">
+									<h3>意大利浪漫游 <span class="pull-right">$499</span></h3>
+									<div class="packages-para">
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 5 天 6 晚
+											</span>
+											<i class="fa fa-angle-right"></i> 5星级住宿标准
+										</p>
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 豪华往返交通
+											</span>
+											<i class="fa fa-angle-right"></i> 赠送当地特色美食
+										 </p>
+									</div><!--/.packages-para-->
+									<div class="packages-review">
+										<p>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<span>2544 条好评</span>
+										</p>
+									</div><!--/.packages-review-->
+									<div class="about-btn">
+										<button  class="about-view packages-btn">
+											立即订购
+										</button>
+									</div><!--/.about-btn-->
+								</div><!--/.single-package-item-txt-->
+							</div><!--/.single-package-item-->
+
+						</div><!--/.col-->
+
+						<div class="col-md-4 col-sm-6">
+							<div class="single-package-item">
+								<img src="{% static 'images/packages/p2.jpg' %}" alt="package-place">
+								<div class="single-package-item-txt">
+									<h3>英国风情深度游 <span class="pull-right">$1499</span></h3>
+									<div class="packages-para">
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 5 天 6 晚
+											</span>
+											<i class="fa fa-angle-right"></i> 5星级住宿标准
+										</p>
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 豪华往返交通
+											</span>
+											<i class="fa fa-angle-right"></i> 赠送当地特色美食
+										 </p>
+									</div><!--/.packages-para-->
+									<div class="packages-review">
+										<p>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<span>2544 条好评</span>
+										</p>
+									</div><!--/.packages-review-->
+									<div class="about-btn">
+										<button  class="about-view packages-btn">
+											立即订购
+										</button>
+									</div><!--/.about-btn-->
+								</div><!--/.single-package-item-txt-->
+							</div><!--/.single-package-item-->
+
+						</div><!--/.col-->
+						
+						<div class="col-md-4 col-sm-6">
+							<div class="single-package-item">
+								<img src="{% static 'images/packages/p3.jpg' %}" alt="package-place">
+								<div class="single-package-item-txt">
+									<h3>法国蔚蓝海岸游 <span class="pull-right">$1199</span></h3>
+									<div class="packages-para">
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 5 天 6 晚
+											</span>
+											<i class="fa fa-angle-right"></i> 5星级住宿标准
+										</p>
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 豪华往返交通
+											</span>
+											<i class="fa fa-angle-right"></i> 赠送当地特色美食
+										 </p>
+									</div><!--/.packages-para-->
+									<div class="packages-review">
+										<p>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<span>2544 条好评</span>
+										</p>
+									</div><!--/.packages-review-->
+									<div class="about-btn">
+										<button  class="about-view packages-btn">
+											立即订购
+										</button>
+									</div><!--/.about-btn-->
+								</div><!--/.single-package-item-txt-->
+							</div><!--/.single-package-item-->
+
+						</div><!--/.col-->
+						
+						<div class="col-md-4 col-sm-6">
+							<div class="single-package-item">
+								<img src="{% static 'images/packages/p4.jpg' %}" alt="package-place">
+								<div class="single-package-item-txt">
+									<h3>印度古文明探索 <span class="pull-right">$799</span></h3>
+									<div class="packages-para">
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 5 天 6 晚
+											</span>
+											<i class="fa fa-angle-right"></i> 5星级住宿标准
+										</p>
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 豪华往返交通
+											</span>
+											<i class="fa fa-angle-right"></i> 赠送当地特色美食
+										 </p>
+									</div><!--/.packages-para-->
+									<div class="packages-review">
+										<p>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<span>2544 条好评</span>
+										</p>
+									</div><!--/.packages-review-->
+									<div class="about-btn">
+										<button  class="about-view packages-btn">
+											立即订购
+										</button>
+									</div><!--/.about-btn-->
+								</div><!--/.single-package-item-txt-->
+							</div><!--/.single-package-item-->
+
+						</div><!--/.col-->
+						
+						<div class="col-md-4 col-sm-6">
+							<div class="single-package-item">
+								<img src="{% static 'images/packages/p5.jpg' %}" alt="package-place">
+								<div class="single-package-item-txt">
+									<h3>西班牙阳光沙滩游 <span class="pull-right">$999</span></h3>
+									<div class="packages-para">
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 5 天 6 晚
+											</span>
+											<i class="fa fa-angle-right"></i> 5星级住宿标准
+										</p>
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 豪华往返交通
+											</span>
+											<i class="fa fa-angle-right"></i> 赠送当地特色美食
+										 </p>
+									</div><!--/.packages-para-->
+									<div class="packages-review">
+										<p>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<span>2544 条好评</span>
+										</p>
+									</div><!--/.packages-review-->
+									<div class="about-btn">
+										<button  class="about-view packages-btn">
+											立即订购
+										</button>
+									</div><!--/.about-btn-->
+								</div><!--/.single-package-item-txt-->
+							</div><!--/.single-package-item-->
+
+						</div><!--/.col-->
+						
+						<div class="col-md-4 col-sm-6">
+							<div class="single-package-item">
+								<img src="{% static 'images/packages/p6.jpg' %}" alt="package-place">
+								<div class="single-package-item-txt">
+									<h3>泰国狂欢海岛游 <span class="pull-right">$799</span></h3>
+									<div class="packages-para">
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 5 天 6 晚
+											</span>
+											<i class="fa fa-angle-right"></i> 5星级住宿标准
+										</p>
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 豪华往返交通
+											</span>
+											<i class="fa fa-angle-right"></i> 赠送当地特色美食
+										 </p>
+									</div><!--/.packages-para-->
+									<div class="packages-review">
+										<p>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<span>2544 条好评</span>
+										</p>
+									</div><!--/.packages-review-->
+									<div class="about-btn">
+										<button  class="about-view packages-btn">
+											立即订购
+										</button>
+									</div><!--/.about-btn-->
+								</div><!--/.single-package-item-txt-->
+							</div><!--/.single-package-item-->
+
+						</div><!--/.col-->
+
+					</div><!--/.row-->
+				</div><!--/.packages-content-->
+			</div><!--/.container-->
+
+		</section><!--/.packages-->
+		<!--packages end-->
+
+		<!-- testemonial Start -->
+		<section   class="testemonial">
+			<div class="container">
+
+				<div class="gallary-header text-center">
+					<h2>
+						真实旅客评价
+					</h2>
+					<p>
+						听听来自全球各地的游客对我们服务的真实心声。
+					</p>
+
+				</div><!--/.gallery-header-->
+
+				<div class="owl-carousel owl-theme" id="testemonial-carousel">
+
+					<div class="home1-testm item">
+						<div class="home1-testm-single text-center">
+							<div class="home1-testm-img">
+								<img src="{% static 'images/client/testimonial1.jpg' %}" alt="img"/>
+							</div><!--/.home1-testm-img-->
+							<div class="home1-testm-txt">
+								<span class="icon section-icon">
+									<i class="fa fa-quote-left" aria-hidden="true"></i>
+								</span>
+								<p>
+									这次旅行体验太棒了！导游非常专业，机票和五星级酒店的比价帮我省了一大笔钱。 
+								</p>
+								<h3>
+									<a href="#">
+										凯文·沃森
+									</a>
+								</h3>
+								<h4>英国，伦敦</h4>
+							</div><!--/.home1-testm-txt-->	
+						</div><!--/.home1-testm-single-->
+
+					</div><!--/.item-->
+
+					<div class="home1-testm item">
+						<div class="home1-testm-single text-center">
+							<div class="home1-testm-img">
+								<img src="{% static 'images/client/testimonial2.jpg' %}" alt="img"/>
+							</div><!--/.home1-testm-img-->
+							<div class="home1-testm-txt">
+								<span class="icon section-icon">
+									<i class="fa fa-quote-left" aria-hidden="true"></i>
+								</span>
+								<p>
+									非常高效的在线机票预订服务，酒店的位置也极好。全五星好评！
+								</p>
+								<h3>
+									<a href="#">
+										珍妮·苏
+									</a>
+								</h3>
+								<h4>美国，纽约</h4>
+							</div><!--/.home1-testm-txt-->	
+						</div><!--/.home1-testm-single-->
+
+					</div><!--/.item-->
+
+				</div><!--/.testemonial-carousel-->
+			</div><!--/.container-->
+
+		</section><!--/.testimonial-->	
+		<!-- testemonial End -->
+
+
+		<!--special-offer start-->
+		<section id="spo" class="special-offer">
+			<div class="container">
+				<div class="special-offer-content">
+					<div class="row">
+						<div class="col-sm-8">
+							<div class="single-special-offer">
+								<div class="single-special-offer-txt">
+									<h2>神秘泰兰德风情游</h2>
+									<div class="packages-review special-offer-review">
+										<p>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<span>2544 条真实评价</span>
+										</p>
+									</div><!--/.packages-review-->
+									<div class="packages-para special-offer-para">
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 5 天 6 晚
+											</span>
+											<span>
+												<i class="fa fa-angle-right"></i> 2 人同行
+											</span>
+											<span>
+												<i class="fa fa-angle-right"></i> 入住五星级高奢酒店
+											</span>
+										</p>
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> 机场专属接送接驳
+											</span>
+											<span>
+												<i class="fa fa-angle-right"></i> 赠送海鲜饕餮大餐
+											</span>  
+										</p>
+										<p class="offer-para">
+											享受最纯正的阳光沙滩与热带风情，这条全包式独家度假路线将为您扫清一切出游烦恼。现在两人成团即可立享专属优惠加成。 
+										</p>
+									</div><!--/.packages-para-->
+									<div class="offer-btn-group">
+										<div class="about-btn">
+											<button  class="about-view packages-btn offfer-btn">
+												定制行程
+											</button>
+										</div><!--/.about-btn-->
+										<div class="about-btn">
+											<button  class="about-view packages-btn">
+												立即预订
+											</button>
+										</div><!--/.about-btn-->
+									</div><!--/.offer-btn-group-->
+								</div><!--/.single-special-offer-txt-->
+							</div><!--/.single-special-offer-->
+						</div><!--/.col-->
+						<div class="col-sm-4">
+							<div class="single-special-offer">
+								<div class="single-special-offer-bg">
+									<img src="{% static 'images/offer/offer-shape.png' %}" alt="offer-shape">
+								</div><!--/.single-special-offer-bg-->
+								<div class="single-special-shape-txt">
+									<h3>超级特惠</h3>
+									<h4><span>6.0折</span><br>特享</h4>
+									<p><span>$999</span><br>原价 $ 1450</p>
+								</div><!--/.single-special-shape-txt-->
+							</div><!--/.single-special-offer-->
+						</div><!--/.col-->
+					</div><!--/.row-->
+				</div><!--/.special-offer-content-->
+			</div><!--/.container-->
+
+		</section><!--/.special-offer end-->
+		<!--special-offer end-->
+
+		<!--blog start-->
+		<section id="blog" class="blog">
+			<div class="container">
+				<div class="blog-details">
+						<div class="gallary-header text-center">
+							<h2>
+								最新旅行攻略与新闻
+							</h2>
+							<p>
+								带你领略全球最新的风土人情与第一手行业资讯
+							</p>
+						</div><!--/.gallery-header-->
+						<div class="blog-content">
+							<div class="row">
+
+								<div class="col-sm-4 col-md-4">
+									<div class="thumbnail">
+										<h2>探索足迹 <span>15 十一月 2025</span></h2>
+										<div class="thumbnail-img">
+											<img src="{% static 'images/blog/b1.jpg' %}" alt="blog-img">
+											<div class="thumbnail-img-overlay"></div><!--/.thumbnail-img-overlay-->
+										
+										</div><!--/.thumbnail-img-->
+									  
+										<div class="caption">
+											<div class="blog-txt">
+												<h3>
+													<a href="#">
+														漫步布拉格：温和的气候、绝赞的传统美食与古老历史建筑的完美交融
+													</a>
+												</h3>
+												<p>
+													捷克的秋天别有一番风味。在查理大桥看日落，去品尝街头香脆的肉桂卷……
+												</p>
+												<a href="#">阅读全文</a>
+											</div><!--/.blog-txt-->
+										</div><!--/.caption-->
+									</div><!--/.thumbnail-->
+
+								</div><!--/.col-->
+
+								<div class="col-sm-4 col-md-4">
+									<div class="thumbnail">
+										<h2>探索足迹 <span>15 十一月 2025</span></h2>
+										<div class="thumbnail-img">
+											<img src="{% static 'images/blog/b2.jpg' %}" alt="blog-img">
+											<div class="thumbnail-img-overlay"></div><!--/.thumbnail-img-overlay-->
+										
+										</div><!--/.thumbnail-img-->
+										<div class="caption">
+											<div class="blog-txt">
+												<h3>
+													<a href="#">
+														不可错过的印度奇幻色彩之旅：探寻泰姬陵背后的浪漫与绝美落日
+													</a>
+												</h3>
+												<p>
+													古老的文明在恒河畔延绵不绝。为你奉上最全面的避坑旅游安全指南与打卡攻略。
+												</p>
+												<a href="#">阅读全文</a>
+											</div><!--/.blog-txt-->
+										</div><!--/.caption-->
+									</div><!--/.thumbnail-->
+
+								</div><!--/.col-->
+
+								<div class="col-sm-4 col-md-4">
+									<div class="thumbnail">
+										<h2>探索足迹 <span>15 十一月 2025</span></h2>
+										<div class="thumbnail-img">
+											<img src="{% static 'images/blog/b3.jpg' %}" alt="blog-img">
+											<div class="thumbnail-img-overlay"></div><!--/.thumbnail-img-overlay-->
+										
+										</div><!--/.thumbnail-img-->
+										<div class="caption">
+											<div class="blog-txt">
+												<h3><a href="#">此生必去：全球10大宛如天堂的野生自然景观目的地</a></h3>
+												<p>
+													远离喧嚣的钢铁森林，向着广袤的大草原、纯净的冰川和热带雨林出发吧。
+												</p>
+												<a href="#">阅读全文</a>
+											</div><!--/.blog-txt-->
+										</div><!--/.caption-->
+									</div><!--/.thumbnail-->
+
+								</div><!--/.col-->
+
+							</div><!--/.row-->
+						</div><!--/.blog-content-->
+					</div><!--/.blog-details-->
+				</div><!--/.container-->
+
+		</section><!--/.blog-->
+		<!--blog end-->
+
+		
+		<!--subscribe start-->
+		<section id="subs" class="subscribe">
+			<div class="container">
+				<div class="subscribe-title text-center">
+					<h2>
+						加入我们的邮件订阅俱乐部
+					</h2>
+					<p>
+						我们将定期为您推送独家特价机票和酒店隐藏款早鸟优惠价！
+					</p>
+				</div>
+				<form>
+					<div class="row">
+						<div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+							<div class="custom-input-group">
+								<input type="email" class="form-control" placeholder="在此输入您的邮箱地址">
+								<button class="appsLand-btn subscribe-btn">立即订阅</button>
+								<div class="clearfix"></div>
+								<i class="fa fa-envelope"></i>
+							</div>
+
+						</div>
+					</div>
+				</form>
+			</div>
+
+		</section>
+		<!--subscribe end-->
+
+		<!-- footer-copyright start -->
+		<footer  class="footer-copyright">
+			<div class="container">
+				<div class="footer-content">
+					<div class="row">
+
+						<div class="col-sm-3">
+							<div class="single-footer-item">
+								<div class="footer-logo">
+									<a href="/">
+										tour<span>Nest</span>
+									</a>
+									<p>
+										您身边最贴心的全网比价旅游管家
+									</p>
+								</div>
+							</div><!--/.single-footer-item-->
+						</div><!--/.col-->
+
+						<div class="col-sm-3">
+							<div class="single-footer-item">
+								<h2>快速导航</h2>
+								<div class="single-footer-txt">
+									<p><a href="#">平台首页</a></p>
+									<p><a href="#">全球目的地</a></p>
+									<p><a href="#">精选旅游特惠</a></p>
+									<p><a href="#">早鸟限时优惠</a></p>
+									<p><a href="#">驴友独家攻略</a></p>
+									<p><a href="#">联系客服</a></p>
+								</div><!--/.single-footer-txt-->
+							</div><!--/.single-footer-item-->
+
+						</div><!--/.col-->
+
+						<div class="col-sm-3">
+							<div class="single-footer-item">
+								<h2>热门打卡地</h2>
+								<div class="single-footer-txt">
+									<p><a href="#">中国 (北京)</a></p>
+									<p><a href="#">委内瑞拉</a></p>
+									<p><a href="#">巴西</a></p>
+									<p><a href="#">澳大利亚</a></p>
+									<p><a href="#">英国 (伦敦)</a></p>
+								</div><!--/.single-footer-txt-->
+							</div><!--/.single-footer-item-->
+						</div><!--/.col-->
+
+						<div class="col-sm-3">
+							<div class="single-footer-item text-center">
+								<h2 class="text-left">联系我们</h2>
+								<div class="single-footer-txt text-left">
+									<p>+1 (300) 1234 6543</p>
+									<p class="foot-email"><a href="#">info@tournest.com</a></p>
+									<p>武汉大学弘毅研发中心大楼 336/A</p>
+									<p>湖北, 中国</p>
+								</div><!--/.single-footer-txt-->
+							</div><!--/.single-footer-item-->
+						</div><!--/.col-->
+
+					</div><!--/.row-->
+
+				</div><!--/.footer-content-->
+				<hr>
+				<div class="foot-icons ">
+					<ul class="footer-social-links list-inline list-unstyled">
+		                <li><a href="#" target="_blank" class="foot-icon-bg-1"><i class="fa fa-facebook"></i></a></li>
+		                <li><a href="#" target="_blank" class="foot-icon-bg-2"><i class="fa fa-twitter"></i></a></li>
+		                <li><a href="#" target="_blank" class="foot-icon-bg-3"><i class="fa fa-instagram"></i></a></li>
+		        	</ul>
+		        	<p>&copy; 2026 TourNest 开发小组. 保留所有期末答辩权利</p>
+
+		        </div><!--/.foot-icons-->
+				<div id="scroll-Top">
+					<i class="fa fa-angle-double-up return-to-top" id="scroll-top" data-toggle="tooltip" data-placement="top" title="" data-original-title="Back to Top" aria-hidden="true"></i>
+				</div><!--/.scroll-Top-->
+			</div><!-- /.container-->
+
+		</footer><!-- /.footer-copyright-->
+		<!-- footer-copyright end -->
+
+
+
+
+		<script src="{% static 'js/jquery.js' %}"></script>
+		<!-- Include all compiled plugins (below), or include individual files as needed -->
+
+		<!--modernizr.min.js-->
+		<script  src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+
+
+		<!--bootstrap.min.js-->
+		<script  src="{% static 'js/bootstrap.min.js' %}"></script>
+
+		<!-- bootsnav js -->
+		<script src="{% static 'js/bootsnav.js' %}"></script>
+
+		<!-- jquery.filterizr.min.js -->
+		<script src="{% static 'js/jquery.filterizr.min.js' %}"></script>
+
+		<script  src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+
+		<!--jquery-ui.min.js-->
+        <script src="{% static 'js/jquery-ui.min.js' %}"></script>
+
+        <!-- counter js -->
+		<script src="{% static 'js/jquery.counterup.min.js' %}"></script>
+		<script src="{% static 'js/waypoints.min.js' %}"></script>
+
+		<!--owl.carousel.js-->
+        <script  src="{% static 'js/owl.carousel.min.js' %}"></script>
+
+        <!-- jquery.sticky.js -->
+		<script src="{% static 'js/jquery.sticky.js' %}"></script>
+
+        <!--datepicker.js-->
+        <script  src="{% static 'js/datepicker.js' %}"></script>
+
+		<!--Custom JS-->
+		<script src="{% static 'js/custom.js' %}"></script>
+
+
+	</body>
+
+</html>
