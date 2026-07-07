@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}登录 - TourNest{% endblock %}
+{% block content %}
+<section class="tn-auth">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5 col-md-offset-7">
+                <div class="tn-auth-card">
+                    <h2>用户登录</h2>
+                    <p>登录后可预订、收藏、支付订单并发表旅行评价。</p>
+                    <form method="post" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}">
+                        {% csrf_token %}
+                        <div class="form-group"><label>用户名</label><input class="tn-input" type="text" name="username" required></div>
+                        <div class="form-group"><label>密码</label><input class="tn-input" type="password" name="password" required></div>
+                        <button class="tn-btn" type="submit" style="width:100%;">登录</button>
+                    </form>
+                    <p style="margin-top:18px;">还没有账号？<a href="{% url 'register' %}">立即注册</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

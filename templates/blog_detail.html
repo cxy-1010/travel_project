@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}{{ post.title }} - TourNest{% endblock %}
+{% block content %}
+<section style="padding:150px 0 80px;background:#f9f9f9;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="single-package-item-txt" style="padding:40px;border:1px solid #eee;border-radius:5px;background:#fff;">
+                    <h2>{{ post.title }}</h2>
+                    <p style="color:#999;">
+                        {{ post.published_date|date:"Y-m-d" }} | {{ post.get_category_display }}
+                        {% if post.author %} | {{ post.author }}{% endif %}
+                        | 浏览 {{ post.view_count }} 次
+                        {% if post.destination %} | <a href="{% url 'destination_detail' post.destination.pk %}">{{ post.destination.name }}</a>{% endif %}
+                    </p>
+                    <hr>
+                    <img src="{% static post.image_url %}" alt="{{ post.title }}" style="width:100%;border-radius:5px;margin-bottom:20px;">
+                    <div style="font-size:16px;line-height:1.8;white-space:pre-line;">{{ post.content|default:post.excerpt }}</div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="{% url 'blog_list' %}" class="about-view packages-btn">返回攻略列表</a>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            {% if user.is_authenticated %}
+                            <form method="POST" action="{% url 'toggle_favorite' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="favorite_type" value="blog">
+                                <input type="hidden" name="item_id" value="{{ post.pk }}">
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button type="submit" class="about-view" style="background:{% if is_favorited %}#d9534f{% else %}#5bc0de{% endif %};">
+                                    {% if is_favorited %}取消收藏{% else %}<i class="fa fa-heart"></i> 收藏攻略{% endif %}
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if related_posts %}
+                <div style="margin-top:30px;">
+                    <h3>相关攻略</h3>
+                    <div class="row">
+                        {% for rp in related_posts %}
+                        <div class="col-md-4">
+                            <div class="single-package-item-txt" style="padding:15px;border:1px solid #eee;border-radius:5px;background:#fff;">
+                                <h4><a href="{% url 'blog_detail' rp.pk %}">{{ rp.title }}</a></h4>
+                                <p style="color:#999;font-size:13px;">{{ rp.published_date|date:"Y-m-d" }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

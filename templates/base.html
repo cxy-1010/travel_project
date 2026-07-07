@@ -1,0 +1,128 @@
+{% load static currency_tags %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}TourNest 旅游预订平台{% endblock %}</title>
+    <link rel="shortcut icon" type="image/icon" href="{% static 'logo/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tournest-app.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<header class="tn-nav">
+    <div class="container">
+        <div class="tn-nav-inner">
+            <a class="tn-logo" href="{% url 'index' %}">tour<span>Nest</span></a>
+            <ul class="tn-menu">
+                <li><a href="{% url 'index' %}"><i class="fa fa-home"></i> 首页</a></li>
+                <li><a href="{% url 'package_list' %}"><i class="fa fa-suitcase"></i> 套餐</a></li>
+                <li><a href="{% url 'flight_list' %}"><i class="fa fa-plane"></i> 机票</a></li>
+                <li><a href="{% url 'hotel_list' %}"><i class="fa fa-building"></i> 酒店</a></li>
+                <li><a href="{% url 'custom_package' %}"><i class="fa fa-sliders"></i> 定制</a></li>
+                <li><a href="{% url 'destination_list' %}"><i class="fa fa-map-marker"></i> 目的地</a></li>
+                <li><a href="{% url 'blog_list' %}"><i class="fa fa-book"></i> 攻略</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ currency_symbol }} 货币 <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'change_currency' %}?currency=CNY&next={{ request.get_full_path|urlencode }}">人民币 ¥</a></li>
+                        <li><a href="{% url 'change_currency' %}?currency=USD&next={{ request.get_full_path|urlencode }}">美元 $</a></li>
+                        <li><a href="{% url 'change_currency' %}?currency=EUR&next={{ request.get_full_path|urlencode }}">欧元 €</a></li>
+                    </ul>
+                </li>
+                {% if user.is_authenticated %}
+                <li><a class="tn-primary-link" href="{% url 'my_bookings' %}"><i class="fa fa-list"></i> 我的预订</a></li>
+                <li><a href="{% url 'my_favorites' %}"><i class="fa fa-heart"></i> 收藏</a></li>
+                <li><a href="{% url 'user_profile' %}"><i class="fa fa-user"></i> {{ user.username }}</a></li>
+                <li><a href="{% url 'logout' %}">注销</a></li>
+                {% else %}
+                <li><a href="{% url 'login' %}">登录</a></li>
+                <li><a class="tn-primary-link" href="{% url 'register' %}">注册</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</header>
+
+{% if messages %}
+<div class="container tn-alerts">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade in" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main class="tn-page">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer-copyright">
+    <div class="container">
+        <div class="footer-content">
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="single-footer-item">
+                        <div class="footer-logo">
+                            <a href="{% url 'index' %}">tour<span>Nest</span></a>
+                            <p>您身边最贴心的全网比价旅游管家</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="single-footer-item">
+                        <h2>快速导航</h2>
+                        <div class="single-footer-txt">
+                            <p><a href="{% url 'package_list' %}">精选套餐</a></p>
+                            <p><a href="{% url 'flight_list' %}">航班比价</a></p>
+                            <p><a href="{% url 'hotel_list' %}">酒店预订</a></p>
+                            <p><a href="{% url 'custom_package' %}">定制套餐</a></p>
+                            <p><a href="{% url 'blog_list' %}">旅行攻略</a></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="single-footer-item">
+                        <h2>服务支持</h2>
+                        <div class="single-footer-txt">
+                            <p><a href="{% url 'my_bookings' %}">订单管理</a></p>
+                            <p><a href="{% url 'my_favorites' %}">我的收藏</a></p>
+                            <p><a href="{% url 'destination_list' %}">热门目的地</a></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="single-footer-item">
+                        <h2>联系我们</h2>
+                        <div class="single-footer-txt text-left">
+                            <p>+86 (027) 1234 5678</p>
+                            <p class="foot-email"><a href="#">info@tournest.com</a></p>
+                            <p>武汉大学信息学部</p>
+                            <p>湖北, 中国</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="foot-icons">
+            <ul class="footer-social-links list-inline list-unstyled">
+                <li><a href="#" class="foot-icon-bg-1"><i class="fa fa-facebook"></i></a></li>
+                <li><a href="#" class="foot-icon-bg-2"><i class="fa fa-twitter"></i></a></li>
+                <li><a href="#" class="foot-icon-bg-3"><i class="fa fa-instagram"></i></a></li>
+            </ul>
+            <p>&copy; 2026 TourNest 开发小组. 保留所有权利</p>
+        </div>
+    </div>
+</footer>
+
+<script src="{% static 'js/jquery.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

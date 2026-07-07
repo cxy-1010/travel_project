@@ -1,0 +1,442 @@
+{% extends "base.html" %}
+
+{% load static currency_tags %}
+
+{% block title %}定制套餐 - TourNest{% endblock %}
+
+{% block content %}
+
+<section style="padding:150px 0 80px;background:#f9f9f9;">
+
+    <div class="container">
+
+        <div class="gallary-header text-center">
+
+            <h2>定制您的旅行套餐</h2>
+
+            <p>自由组合机票 + 酒店，选择舱位/房型，享受打包优惠（立减5%）</p>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-10 col-md-offset-1">
+
+                <div class="single-package-item-txt" style="padding:40px;border:1px solid #eee;border-radius:5px;background:#fff;">
+
+                    <form method="POST" action="{% url 'custom_package' %}" id="custom-form">
+
+                        {% csrf_token %}
+
+                        <input type="hidden" name="booking_type" value="custom">
+
+
+
+                        <h4><i class="fa fa-plane"></i> 选择航班</h4>
+
+                        <div class="form-group">
+
+                            <select name="flight_id" class="form-control" id="flight-select">
+
+                                <option value="">-- 不选航班 --</option>
+
+                                {% for flight in flights %}
+
+                                <option value="{{ flight.pk }}">
+
+                                    {{ flight.airline }} {{ flight.flight_number }} | {{ flight.origin_city }} → {{ flight.destination_city }} | {{ flight.departure_time|date:"m-d H:i" }}
+
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                        <div class="form-group" id="seat-class-group" style="display:none;">
+
+                            <label>选择舱位</label>
+
+                            <select name="seat_class_id" class="form-control" id="seat-class-select">
+
+                                <option value="">-- 默认经济舱价格 --</option>
+
+                            </select>
+
+                        </div>
+
+
+
+                        <h4><i class="fa fa-bed"></i> 选择酒店</h4>
+
+                        <div class="form-group">
+
+                            <select name="hotel_id" class="form-control" id="hotel-select">
+
+                                <option value="">-- 不选酒店 --</option>
+
+                                {% for hotel in hotels %}
+
+                                <option value="{{ hotel.pk }}">
+
+                                    {{ hotel.name }} | {{ hotel.city }} | {{ hotel.price_per_night|currency_price:current_currency }}/晚
+
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                        <div class="form-group" id="room-type-group" style="display:none;">
+
+                            <label>选择房型</label>
+
+                            <select name="room_type_id" class="form-control" id="room-type-select">
+
+                                <option value="">-- 默认标准房价格 --</option>
+
+                            </select>
+
+                        </div>
+
+
+
+                        <div class="row">
+
+                            <div class="col-md-4">
+
+                                <div class="form-group">
+
+                                    <label>入住日期</label>
+
+                                    <input type="date" name="check_in" class="form-control">
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <div class="form-group">
+
+                                    <label>退房日期</label>
+
+                                    <input type="date" name="check_out" class="form-control">
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <div class="form-group">
+
+                                    <label>入住晚数</label>
+
+                                    <input type="number" name="nights" class="form-control" value="3" min="1" id="nights-input">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="form-group">
+
+                            <label>出行人数</label>
+
+                            <select name="guest_count" class="form-control" id="guest-count-select">
+
+                                <option value="1">1 人</option>
+
+                                <option value="2" selected>2 人</option>
+
+                                <option value="3">3 人</option>
+
+                                <option value="4">4 人</option>
+
+                            </select>
+
+                        </div>
+
+
+
+                        <h4><i class="fa fa-plus-circle"></i> 额外服务（可选）</h4>
+
+                        <div class="row">
+
+                            {% for service in extra_services %}
+
+                            <div class="col-md-6">
+
+                                <label style="font-weight:normal;display:block;padding:8px 0;">
+
+                                    <input type="checkbox" name="extra_services" value="{{ service.pk }}" data-price="{{ service.price }}">
+
+                                    {{ service.name }} — {{ service.price|currency_price:current_currency }}
+
+                                    <small style="color:#999;display:block;">{{ service.description|truncatechars:50 }}</small>
+
+                                </label>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+
+
+                        <hr>
+
+                        <div class="alert alert-info">
+
+                            <strong>预估价格：</strong><span id="price-estimate">请选择航班或酒店</span>
+
+                            <br><small>打包组合可享5%折扣，额外服务费用另计</small>
+
+                        </div>
+
+
+
+                        <button type="submit" class="about-view packages-btn" style="width:100%;">确认预订</button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script>
+
+(function() {
+
+    var form = document.getElementById('custom-form');
+
+    var symbol = '{{ currency_symbol }}';
+
+    var flightOptions = {{ flight_options_json|safe }};
+
+    var hotelOptions = {{ hotel_options_json|safe }};
+
+
+
+    function populateSelect(selectEl, items, placeholder) {
+
+        selectEl.innerHTML = '<option value="">' + placeholder + '</option>';
+
+        items.forEach(function(item) {
+
+            var opt = document.createElement('option');
+
+            opt.value = item.id;
+
+            opt.dataset.price = item.price;
+
+            opt.textContent = item.label + ' — ' + symbol + item.price;
+
+            selectEl.appendChild(opt);
+
+        });
+
+    }
+
+
+
+    function getFlightPrice() {
+
+        var flightId = form.querySelector('#flight-select').value;
+
+        if (!flightId) return 0;
+
+        var seatSelect = form.querySelector('#seat-class-select');
+
+        if (seatSelect.value) {
+
+            var opt = seatSelect.options[seatSelect.selectedIndex];
+
+            return parseFloat(opt.dataset.price) || 0;
+
+        }
+
+        return flightOptions[flightId] ? flightOptions[flightId].price : 0;
+
+    }
+
+
+
+    function getHotelPrice() {
+
+        var hotelId = form.querySelector('#hotel-select').value;
+
+        if (!hotelId) return 0;
+
+        var roomSelect = form.querySelector('#room-type-select');
+
+        if (roomSelect.value) {
+
+            var opt = roomSelect.options[roomSelect.selectedIndex];
+
+            return parseFloat(opt.dataset.price) || 0;
+
+        }
+
+        return hotelOptions[hotelId] ? hotelOptions[hotelId].price : 0;
+
+    }
+
+
+
+    function onFlightChange() {
+
+        var flightId = form.querySelector('#flight-select').value;
+
+        var group = document.getElementById('seat-class-group');
+
+        var select = form.querySelector('#seat-class-select');
+
+        if (flightId && flightOptions[flightId] && flightOptions[flightId].seats.length) {
+
+            populateSelect(select, flightOptions[flightId].seats, '-- 默认经济舱价格 --');
+
+            group.style.display = 'block';
+
+        } else {
+
+            select.innerHTML = '<option value="">-- 默认经济舱价格 --</option>';
+
+            group.style.display = 'none';
+
+        }
+
+        updatePrice();
+
+    }
+
+
+
+    function onHotelChange() {
+
+        var hotelId = form.querySelector('#hotel-select').value;
+
+        var group = document.getElementById('room-type-group');
+
+        var select = form.querySelector('#room-type-select');
+
+        if (hotelId && hotelOptions[hotelId] && hotelOptions[hotelId].rooms.length) {
+
+            populateSelect(select, hotelOptions[hotelId].rooms, '-- 默认标准房价格 --');
+
+            group.style.display = 'block';
+
+        } else {
+
+            select.innerHTML = '<option value="">-- 默认标准房价格 --</option>';
+
+            group.style.display = 'none';
+
+        }
+
+        updatePrice();
+
+    }
+
+
+
+    function updatePrice() {
+
+        var nights = parseInt(form.querySelector('#nights-input').value) || 1;
+
+        var guestCount = parseInt(form.querySelector('#guest-count-select').value) || 1;
+
+        var flightId = form.querySelector('#flight-select').value;
+
+        var hotelId = form.querySelector('#hotel-select').value;
+
+        var total = 0;
+
+
+
+        if (flightId) {
+
+            total += getFlightPrice() * guestCount;
+
+        }
+
+        if (hotelId) {
+
+            total += getHotelPrice() * nights;
+
+        }
+
+
+
+        var hasBoth = flightId && hotelId;
+
+        var discount = hasBoth ? total * 0.05 : 0;
+
+
+
+        form.querySelectorAll('[name=extra_services]:checked').forEach(function(cb) {
+
+            total += parseFloat(cb.dataset.price);
+
+        });
+
+
+
+        total -= discount;
+
+
+
+        var el = document.getElementById('price-estimate');
+
+        if (total > 0) {
+
+            el.textContent = symbol + total.toFixed(0) + (discount > 0 ? ' (已优惠 ' + symbol + discount.toFixed(0) + ')' : '');
+
+        } else {
+
+            el.textContent = '请选择航班或酒店';
+
+        }
+
+    }
+
+
+
+    form.querySelector('#flight-select').addEventListener('change', onFlightChange);
+
+    form.querySelector('#hotel-select').addEventListener('change', onHotelChange);
+
+    form.querySelector('#seat-class-select').addEventListener('change', updatePrice);
+
+    form.querySelector('#room-type-select').addEventListener('change', updatePrice);
+
+    form.addEventListener('change', updatePrice);
+
+    updatePrice();
+
+})();
+
+</script>
+
+{% endblock %}
+

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}我的收藏 - TourNest{% endblock %}
+{% block content %}
+<section style="padding:150px 0 80px;background:#f9f9f9;">
+    <div class="container">
+        <div class="gallary-header text-center">
+            <h2>我的收藏</h2>
+            <p>您收藏的旅游产品</p>
+        </div>
+        <div class="row">
+            {% for fav in favorites %}
+            <div class="col-md-4 col-sm-6">
+                <div class="single-package-item-txt" style="padding:20px;margin-bottom:15px;border:1px solid #eee;border-radius:5px;background:#fff;">
+                    <span class="badge">{{ fav.get_favorite_type_display }}</span>
+                    <h4 style="margin-top:10px;">
+                        {% if fav.package %}{{ fav.package.name }}
+                        {% elif fav.hotel %}{{ fav.hotel.name }}
+                        {% elif fav.flight %}{{ fav.flight.airline }} {{ fav.flight.flight_number }}
+                        {% elif fav.blog_post %}{{ fav.blog_post.title }}
+                        {% elif fav.destination %}{{ fav.destination.name }}
+                        {% endif %}
+                    </h4>
+                    <p style="color:#999;">收藏于 {{ fav.created_at|date:"Y-m-d" }}</p>
+                    <div style="margin-top:10px;">
+                        {% if fav.package %}
+                        <a href="{% url 'package_detail' fav.package.pk %}" class="about-view packages-btn" style="padding:5px 15px;font-size:14px;">查看</a>
+                        {% elif fav.hotel %}
+                        <a href="{% url 'hotel_detail' fav.hotel.pk %}" class="about-view packages-btn" style="padding:5px 15px;font-size:14px;">查看</a>
+                        {% elif fav.flight %}
+                        <a href="{% url 'flight_detail' fav.flight.pk %}" class="about-view packages-btn" style="padding:5px 15px;font-size:14px;">查看</a>
+                        {% elif fav.blog_post %}
+                        <a href="{% url 'blog_detail' fav.blog_post.pk %}" class="about-view packages-btn" style="padding:5px 15px;font-size:14px;">查看</a>
+                        {% elif fav.destination %}
+                        <a href="{% url 'destination_detail' fav.destination.pk %}" class="about-view packages-btn" style="padding:5px 15px;font-size:14px;">查看</a>
+                        {% endif %}
+                        <form method="POST" action="{% url 'toggle_favorite' %}" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="favorite_type" value="{{ fav.favorite_type }}">
+                            <input type="hidden" name="item_id" value="{% if fav.package %}{{ fav.package.pk }}{% elif fav.hotel %}{{ fav.hotel.pk }}{% elif fav.flight %}{{ fav.flight.pk }}{% elif fav.blog_post %}{{ fav.blog_post.pk }}{% elif fav.destination %}{{ fav.destination.pk }}{% endif %}">
+                            <input type="hidden" name="next" value="{% url 'my_favorites' %}">
+                            <button type="submit" class="about-view" style="padding:5px 15px;font-size:14px;background:#d9534f;">取消收藏</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-12 text-center">
+                <h3>暂无收藏</h3>
+                <p><a href="{% url 'index' %}" class="about-view packages-btn">去发现精彩内容</a></p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

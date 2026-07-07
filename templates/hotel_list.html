@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}酒店搜索 - TourNest{% endblock %}
+{% block content %}
+<section class="tn-list-page">
+    <div class="container">
+        <div class="tn-section-head">
+            <div>
+                <h2>酒店搜索与预订</h2>
+                <p>按城市、日期、价格和星级筛选酒店。</p>
+            </div>
+            <a class="tn-btn tn-btn-muted" href="{% url 'custom_package' %}"><i class="fa fa-plus"></i> 加入定制套餐</a>
+        </div>
+
+        <form class="tn-panel tn-filter" method="get" action="{% url 'hotel_list' %}">
+            <div class="tn-filter-grid">
+                <div><label>城市/酒店</label><input class="tn-input" type="text" name="city" value="{{ city }}" placeholder="城市或酒店名"></div>
+                <div><label>入住</label><input class="tn-input" type="date" name="check_in" value="{{ check_in }}"></div>
+                <div><label>退房</label><input class="tn-input" type="date" name="check_out" value="{{ check_out }}"></div>
+                <div><label>星级</label><select class="tn-select" name="stars"><option value="">全部</option>{% for s in "34567" %}<option value="{{ s }}" {% if stars == s %}selected{% endif %}>{{ s }}星</option>{% endfor %}</select></div>
+                <div><label>排序</label><select class="tn-select" name="sort"><option value="">默认</option><option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>价格低到高</option><option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>价格高到低</option><option value="rating" {% if sort == 'rating' %}selected{% endif %}>评分最高</option></select></div>
+                <div><button class="tn-btn" type="submit"><i class="fa fa-search"></i> 搜索</button></div>
+            </div>
+        </form>
+
+        <div class="row" style="margin-bottom:18px;">
+            {% if best_deal %}<div class="col-md-6"><div class="alert alert-success"><i class="fa fa-tag"></i> 低价推荐：{{ best_deal.name }} {{ best_deal.price_per_night|currency_price:current_currency }}/晚</div></div>{% endif %}
+            {% if best_value %}<div class="col-md-6"><div class="alert alert-info"><i class="fa fa-star"></i> 性价比之选：{{ best_value.name }} 评分 {{ best_value.rating }}</div></div>{% endif %}
+        </div>
+
+        <div class="row">
+            {% for hotel in hotels %}
+            <div class="col-md-4 col-sm-6" style="margin-bottom:24px;">
+                <div class="tn-card">
+                    <img class="tn-card-img" src="{% static hotel.image_url %}" alt="{{ hotel.name }}">
+                    <div class="tn-card-body">
+                        {% if best_deal and hotel.pk == best_deal.pk %}<span class="tn-badge tn-badge-green">最低价</span>{% endif %}
+                        {% if best_value and hotel.pk == best_value.pk %}<span class="tn-badge">性价比</span>{% endif %}
+                        <h3 class="tn-card-title">{{ hotel.name }}</h3>
+                        <div class="tn-card-meta">
+                            <span><i class="fa fa-map-marker"></i> {{ hotel.city }}</span>
+                            <span>{{ hotel.stars }}星</span>
+                            <span>评分 {{ hotel.rating }}</span>
+                        </div>
+                        <div class="tn-card-actions">
+                            <span class="tn-price">{{ hotel.price_per_night|currency_price:current_currency }}/晚</span>
+                            <a class="tn-btn" href="{% url 'hotel_detail' hotel.pk %}">选房</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-12"><div class="tn-empty">未找到符合条件的酒店</div></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}注册 - TourNest{% endblock %}
+{% block content %}
+<section class="tn-auth">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5 col-md-offset-7">
+                <div class="tn-auth-card">
+                    <h2>创建账号</h2>
+                    <p>注册后即可保存收藏、提交预订和管理订单。</p>
+                    <form method="post" action="{% url 'register' %}">
+                        {% csrf_token %}
+                        <div class="form-group"><label>用户名</label><input class="tn-input" type="text" name="username" required></div>
+                        <div class="form-group"><label>邮箱</label><input class="tn-input" type="email" name="email" required></div>
+                        <div class="form-group"><label>密码</label><input class="tn-input" type="password" name="password1" required></div>
+                        <div class="form-group"><label>确认密码</label><input class="tn-input" type="password" name="password2" required></div>
+                        <button class="tn-btn" type="submit" style="width:100%;">注册</button>
+                    </form>
+                    <p style="margin-top:18px;">已有账号？<a href="{% url 'login' %}">立即登录</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

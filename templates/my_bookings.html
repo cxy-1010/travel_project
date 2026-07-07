@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}我的预订 - TourNest{% endblock %}
+{% block content %}
+<section style="padding:150px 0 80px;background:#f9f9f9;">
+    <div class="container">
+        <div class="gallary-header text-center">
+            <h2>我的预订</h2>
+            <p>查看和管理您的所有预订订单</p>
+        </div>
+
+        <form method="GET" style="margin-bottom:25px;">
+            <div class="row">
+                <div class="col-md-4 col-md-offset-4">
+                    <select name="status" class="form-control" style="height:45px;" onchange="this.form.submit()">
+                        <option value="">全部状态</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </form>
+
+        <div class="row">
+            {% for booking in bookings %}
+            <div class="col-md-12">
+                <div class="single-package-item-txt" style="padding:25px;margin-bottom:15px;border:1px solid #eee;border-radius:5px;background:#fff;">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>{{ booking.get_booking_type_display }}</strong>
+                            <p style="margin:5px 0 0;color:#666;">{{ booking.get_item_name }}</p>
+                            {% if booking.room_type %}<small>房型: {{ booking.room_type.name }}</small>{% endif %}
+                            {% if booking.seat_class %}<small>舱位: {{ booking.seat_class.get_class_type_display }}</small>{% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <span style="color:#ffcc00;font-size:18px;">{{ booking.total_price|currency_price:current_currency }}</span>
+                            {% if booking.discount_amount %}<br><small style="color:#5cb85c;">已优惠 {{ booking.discount_amount|currency_price:current_currency }}</small>{% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            {% if booking.status == 'pending' %}<span class="badge" style="background:#f0ad4e;">{% elif booking.status == 'paid' %}<span class="badge" style="background:#5bc0de;">{% elif booking.status == 'confirmed' %}<span class="badge" style="background:#5cb85c;">{% elif booking.status == 'cancelled' %}<span class="badge" style="background:#999;">{% else %}<span class="badge">{% endif %}
+                            {{ booking.get_status_display }}</span>
+                        </div>
+                        <div class="col-md-2">
+                            <small>{{ booking.created_at|date:"Y-m-d H:i" }}</small>
+                            {% if booking.check_in %}<br><small>日期: {{ booking.check_in|date:"Y-m-d" }}{% if booking.check_out %} ~ {{ booking.check_out|date:"Y-m-d" }}{% endif %}</small>{% endif %}
+                        </div>
+                        <div class="col-md-1"><small>{{ booking.guest_count }} 人</small></div>
+                        <div class="col-md-2">
+                            {% if booking.status == 'pending' %}
+                            <a href="{% url 'pay_booking' booking.pk %}" class="about-view packages-btn" style="padding:5px 12px;font-size:13px;display:inline-block;margin-bottom:5px;">去支付</a>
+                            <a href="{% url 'cancel_booking' booking.pk %}" class="about-view" style="padding:5px 12px;font-size:13px;background:#d9534f;color:#fff;border-radius:3px;text-decoration:none;display:inline-block;">取消</a>
+                            {% elif booking.status == 'paid' %}
+                            <a href="{% url 'pay_booking' booking.pk %}" class="about-view packages-btn" style="padding:5px 12px;font-size:13px;display:inline-block;">确认订单</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if booking.extra_services.exists %}
+                    <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #eee;">
+                        <small><i class="fa fa-plus-circle"></i> 额外服务：
+                        {% for svc in booking.extra_services.all %}{{ svc.name }}{% if not forloop.last %}、{% endif %}{% endfor %}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-12 text-center">
+                <h3>暂无预订记录</h3>
+                <p><a href="{% url 'index' %}" class="about-view packages-btn">去预订旅行</a></p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

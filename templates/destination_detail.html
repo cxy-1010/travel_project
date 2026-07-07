@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}{{ destination.name }} - TourNest{% endblock %}
+{% block content %}
+<section style="padding:150px 0 80px;background:#f9f9f9;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="single-package-item">
+                    <img src="{% static destination.image_url %}" alt="{{ destination.name }}" style="width:100%;border-radius:5px;">
+                    <div class="single-package-item-txt" style="padding:30px;">
+                        <h2>{{ destination.name }}</h2>
+                        <p><i class="fa fa-map-marker"></i> {{ destination.city }}，{{ destination.country }}</p>
+                        <p style="line-height:1.8;">{{ destination.description|default:"探索这个令人向往的目的地，开启一段难忘的旅程。" }}</p>
+                    </div>
+                </div>
+
+                {% if packages %}
+                <div style="margin-top:30px;">
+                    <h3>相关旅游套餐</h3>
+                    <div class="row">
+                        {% for pkg in packages %}
+                        <div class="col-md-6">
+                            <div class="single-package-item-txt" style="padding:15px;border:1px solid #eee;border-radius:5px;background:#fff;margin-bottom:15px;">
+                                <h4><a href="{% url 'package_detail' pkg.pk %}">{{ pkg.name }}</a></h4>
+                                <p style="color:#ffcc00;">{{ pkg.price|currency_price:current_currency }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if hotels %}
+                <div style="margin-top:30px;">
+                    <h3>推荐酒店</h3>
+                    <div class="row">
+                        {% for hotel in hotels %}
+                        <div class="col-md-6">
+                            <div class="single-package-item-txt" style="padding:15px;border:1px solid #eee;border-radius:5px;background:#fff;margin-bottom:15px;">
+                                <h4><a href="{% url 'hotel_detail' hotel.pk %}">{{ hotel.name }}</a></h4>
+                                <p>{{ hotel.stars }}星级 | {{ hotel.price_per_night|currency_price:current_currency }}/晚</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if blog_posts %}
+                <div style="margin-top:30px;">
+                    <h3>目的地攻略</h3>
+                    {% for post in blog_posts %}
+                    <div class="single-package-item-txt" style="padding:15px;border:1px solid #eee;border-radius:5px;background:#fff;margin-bottom:10px;">
+                        <h4><a href="{% url 'blog_detail' post.pk %}">{{ post.title }}</a></h4>
+                        <p style="color:#999;">{{ post.excerpt|truncatechars:100 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if reviews %}
+                <div style="margin-top:30px;">
+                    <h3>旅行者评价</h3>
+                    {% for review in reviews %}
+                    <div class="single-package-item-txt" style="padding:15px;border:1px solid #eee;border-radius:5px;background:#fff;margin-bottom:10px;">
+                        <strong>{{ review.user.username }}</strong> <span class="badge">{{ review.rating }} 星</span>
+                        <h5>{{ review.title }}</h5>
+                        <p>{{ review.content }}</p>
+                        {% if review.image %}
+                        <img src="{{ review.image.url }}" alt="晒图" style="max-width:200px;border-radius:5px;">
+                        {% elif review.image_url %}
+                        <img src="{% static review.image_url %}" alt="晒图" style="max-width:200px;border-radius:5px;">
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                <div style="margin-top:30px;">
+                    <h3>分享您的旅行体验</h3>
+                    <div class="single-package-item-txt" style="padding:20px;border:1px solid #eee;border-radius:5px;background:#fff;">
+                        <form method="POST" action="{% url 'submit_review' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="review_type" value="destination">
+                            <input type="hidden" name="item_id" value="{{ destination.pk }}">
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <div class="form-group"><input type="text" name="title" class="form-control" placeholder="评价标题" required></div>
+                            <div class="form-group">
+                                <select name="rating" class="form-control">
+                                    <option value="5">5 星</option><option value="4">4 星</option><option value="3">3 星</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><textarea name="content" class="form-control" rows="3" required placeholder="分享您对目的地的感受"></textarea></div>
+                            <div class="form-group"><input type="file" name="image" class="form-control" accept="image/*"></div>
+                            <button type="submit" class="about-view packages-btn">提交评价</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <div class="single-package-item-txt" style="padding:30px;border:1px solid #eee;border-radius:5px;background:#fff;">
+                    <h4>快速预订</h4>
+                    <p><a href="{% url 'flight_list' %}?destination={{ destination.city|default:destination.name }}" class="about-view packages-btn" style="width:100%;display:block;text-align:center;margin-bottom:10px;">搜索机票</a></p>
+                    <p><a href="{% url 'hotel_list' %}?city={{ destination.city|default:destination.name }}" class="about-view packages-btn" style="width:100%;display:block;text-align:center;margin-bottom:10px;">搜索酒店</a></p>
+                    <p><a href="{% url 'custom_package' %}" class="about-view packages-btn" style="width:100%;display:block;text-align:center;margin-bottom:10px;">定制套餐</a></p>
+                    {% if user.is_authenticated %}
+                    <form method="POST" action="{% url 'toggle_favorite' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="favorite_type" value="destination">
+                        <input type="hidden" name="item_id" value="{{ destination.pk }}">
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button type="submit" class="about-view" style="width:100%;background:{% if is_favorited %}#d9534f{% else %}#5bc0de{% endif %};">
+                            {% if is_favorited %}取消收藏{% else %}<i class="fa fa-heart"></i> 收藏目的地{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'destination_list' %}" class="about-view" style="width:100%;display:block;text-align:center;margin-top:10px;background:#999;">返回列表</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

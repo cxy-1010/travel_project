@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}{{ package.name }} - TourNest{% endblock %}
+{% block content %}
+<section class="tn-detail-hero">
+    <div class="container">
+        <h1>{{ package.name }}</h1>
+        <p><i class="fa fa-star"></i> {{ package.rating }} 分 · {{ package.review_count }} 条评价 · {{ package.duration_days }}天{{ package.duration_nights }}晚</p>
+    </div>
+</section>
+<section class="tn-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <img class="tn-detail-img" src="{% static package.image_url %}" alt="{{ package.name }}">
+                <div class="tn-panel" style="padding:24px;margin-top:24px;">
+                    <h2>套餐亮点</h2>
+                    <div class="row">
+                        {% for feature in package.feature_list %}
+                        <div class="col-sm-6"><p><i class="fa fa-check-circle" style="color:#2a8750;"></i> {{ feature }}</p></div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="tn-panel" style="padding:24px;margin-top:24px;">
+                    <h2>用户评价</h2>
+                    {% for review in reviews %}
+                    <div style="border-bottom:1px solid #edf1f6;padding:14px 0;">
+                        <strong>{{ review.user.username }}</strong> <span class="tn-badge">{{ review.rating }} 星</span>
+                        <h4>{{ review.title }}</h4>
+                        <p>{{ review.content }}</p>
+                    </div>
+                    {% empty %}
+                    <p>暂无用户评价，完成旅行后可以回来分享体验。</p>
+                    {% endfor %}
+                </div>
+                {% if user.is_authenticated %}
+                <div class="tn-panel" style="padding:24px;margin-top:24px;">
+                    <h2>发表评价</h2>
+                    <form method="post" action="{% url 'submit_review' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="review_type" value="package">
+                        <input type="hidden" name="item_id" value="{{ package.pk }}">
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <div class="form-group"><input class="tn-input" name="title" placeholder="评价标题" required></div>
+                        <div class="form-group"><select class="tn-select" name="rating"><option value="5">5 星</option><option value="4">4 星</option><option value="3">3 星</option></select></div>
+                        <div class="form-group"><textarea class="form-control" name="content" rows="4" placeholder="分享您的旅行体验" required></textarea></div>
+                        <div class="form-group"><input class="form-control" type="file" name="image" accept="image/*"></div>
+                        <button class="tn-btn" type="submit">提交评价</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <div class="tn-panel tn-sidebar">
+                    <span class="tn-badge tn-badge-green">推荐套餐</span>
+                    <h2 class="tn-price">{{ package.price|currency_price:current_currency }}</h2>
+                    {% if package.original_price %}<p><del>{{ package.original_price|currency_price:current_currency }}</del></p>{% endif %}
+                    <p>价格为每人起价，提交后进入我的预订。</p>
+                    {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'create_booking' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="booking_type" value="package">
+                        <input type="hidden" name="item_id" value="{{ package.pk }}">
+                        <div class="form-group">
+                            <label>出行人数</label>
+                            <select class="tn-select" name="guest_count">
+                                <option value="1">1 人</option>
+                                <option value="2" selected>2 人</option>
+                                <option value="3">3 人</option>
+                                <option value="4">4 人</option>
+                            </select>
+                        </div>
+                        <button class="tn-btn" type="submit" style="width:100%;">立即预订</button>
+                    </form>
+                    <form method="post" action="{% url 'toggle_favorite' %}" style="margin-top:12px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="favorite_type" value="package">
+                        <input type="hidden" name="item_id" value="{{ package.pk }}">
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button class="tn-btn tn-btn-muted" type="submit" style="width:100%;">{% if is_favorited %}取消收藏{% else %}<i class="fa fa-heart"></i> 收藏套餐{% endif %}</button>
+                    </form>
+                    {% else %}
+                    <a class="tn-btn" style="width:100%;" href="{% url 'login' %}?next={{ request.path }}">登录后预订</a>
+                    {% endif %}
+                    <a class="tn-btn tn-btn-muted" style="width:100%;margin-top:12px;" href="{% url 'package_list' %}">返回套餐列表</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

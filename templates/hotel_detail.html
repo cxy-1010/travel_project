@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}{{ hotel.name }} - TourNest{% endblock %}
+{% block content %}
+<section class="tn-detail-hero">
+    <div class="container">
+        <h1>{{ hotel.name }}</h1>
+        <p><i class="fa fa-map-marker"></i> {{ hotel.city }} · {{ hotel.stars }}星级 · 评分 {{ hotel.rating }}</p>
+    </div>
+</section>
+<section class="tn-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <img class="tn-detail-img" src="{% static hotel.image_url %}" alt="{{ hotel.name }}">
+                <div class="tn-panel" style="padding:24px;margin-top:24px;">
+                    <h2>酒店介绍</h2>
+                    <p>{{ hotel.description|default:"舒适住宿、便捷位置和完善服务，适合旅行与度假。" }}</p>
+                    <div class="row">
+                        {% for amenity in hotel.amenity_list %}
+                        <div class="col-sm-6"><p><i class="fa fa-check-circle" style="color:#2a8750;"></i> {{ amenity }}</p></div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="tn-panel" style="padding:24px;margin-top:24px;">
+                    <h2>可选房型</h2>
+                    <div class="row">
+                        {% for room in room_types %}
+                        <div class="col-sm-6" style="margin-bottom:16px;">
+                            <div class="tn-card-body" style="border:1px solid #edf1f6;border-radius:8px;">
+                                <h3 class="tn-card-title" style="min-height:0;">{{ room.name }}</h3>
+                                <p>{{ room.description }}</p>
+                                <p>可住 {{ room.capacity }} 人 · 剩余 {{ room.available_rooms }} 间</p>
+                                <strong class="tn-price">{{ room.price_per_night|currency_price:current_currency }}/晚</strong>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p>暂无房型，将按酒店基础价格预订。</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="tn-panel tn-sidebar">
+                    <h2 class="tn-price">{{ hotel.price_per_night|currency_price:current_currency }}/晚</h2>
+                    {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'create_booking' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="booking_type" value="hotel">
+                        <input type="hidden" name="item_id" value="{{ hotel.pk }}">
+                        <div class="form-group">
+                            <label>房型</label>
+                            <select class="tn-select" name="room_type_id">
+                                <option value="">基础房价</option>
+                                {% for room in room_types %}
+                                <option value="{{ room.pk }}">{{ room.name }} - {{ room.price_per_night|currency_price:current_currency }}/晚</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group"><label>入住</label><input class="tn-input" type="date" name="check_in"></div>
+                        <div class="form-group"><label>退房</label><input class="tn-input" type="date" name="check_out"></div>
+                        <div class="form-group"><label>人数</label><select class="tn-select" name="guest_count"><option value="1">1 人</option><option value="2" selected>2 人</option><option value="3">3 人</option></select></div>
+                        <button class="tn-btn" type="submit" style="width:100%;">立即订房</button>
+                    </form>
+                    {% else %}
+                    <a class="tn-btn" style="width:100%;" href="{% url 'login' %}?next={{ request.path }}">登录后订房</a>
+                    {% endif %}
+                    <a class="tn-btn tn-btn-muted" style="width:100%;margin-top:12px;" href="{% url 'hotel_list' %}">返回酒店列表</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

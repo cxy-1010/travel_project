@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}搜索结果 - {{ query }} - TourNest{% endblock %}
+{% block content %}
+<section class="tn-list-page">
+    <div class="container">
+        <div class="tn-section-head">
+            <div>
+                <h2>搜索 "{{ query }}" 的结果</h2>
+                <p>同时匹配目的地、套餐、酒店与航班。</p>
+            </div>
+            <a class="tn-btn tn-btn-muted" href="{% url 'index' %}">返回首页</a>
+        </div>
+        <form class="tn-panel tn-filter" method="get" action="{% url 'search' %}">
+            <div class="tn-filter-grid">
+                <div style="grid-column:span 4;"><label>关键词</label><input class="tn-input" name="q" value="{{ query }}"></div>
+                <div><label>排序</label><select class="tn-select" name="sort"><option value="">默认</option><option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>价格低到高</option><option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>价格高到低</option></select></div>
+                <div><button class="tn-btn" type="submit">重新搜索</button></div>
+            </div>
+        </form>
+
+        {% if destinations %}
+        <h3>目的地</h3>
+        <div class="row">
+            {% for d in destinations %}
+            <div class="col-md-4 col-sm-6" style="margin-bottom:20px;">
+                <a class="tn-destination-card" href="{% url 'destination_detail' d.pk %}" style="display:block;">
+                    <img src="{% static d.image_url %}" alt="{{ d.name }}">
+                    <div class="tn-destination-overlay"><h3>{{ d.name }}</h3><p>{{ d.city }} · {{ d.country }}</p></div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if packages %}
+        <h3>旅游套餐</h3>
+        <div class="row">
+            {% for p in packages %}
+            <div class="col-md-4 col-sm-6" style="margin-bottom:20px;">
+                <div class="tn-card">
+                    <img class="tn-card-img" src="{% static p.image_url %}" alt="{{ p.name }}">
+                    <div class="tn-card-body">
+                        <h3 class="tn-card-title">{{ p.name }}</h3>
+                        <div class="tn-card-actions"><span class="tn-price">{{ p.price|currency_price:current_currency }}</span><a class="tn-btn" href="{% url 'package_detail' p.pk %}">查看</a></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if hotels %}
+        <h3>酒店</h3>
+        <div class="row">
+            {% for h in hotels %}
+            <div class="col-md-4 col-sm-6" style="margin-bottom:20px;">
+                <div class="tn-card">
+                    <img class="tn-card-img" src="{% static h.image_url %}" alt="{{ h.name }}">
+                    <div class="tn-card-body">
+                        <h3 class="tn-card-title">{{ h.name }}</h3>
+                        <p>{{ h.city }} · {{ h.stars }}星</p>
+                        <div class="tn-card-actions"><span class="tn-price">{{ h.price_per_night|currency_price:current_currency }}/晚</span><a class="tn-btn" href="{% url 'hotel_detail' h.pk %}">订房</a></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if flights %}
+        <h3>航班</h3>
+        <div class="row">
+            {% for f in flights %}
+            <div class="col-md-6" style="margin-bottom:16px;">
+                <div class="tn-card"><div class="tn-card-body">
+                    <span class="tn-badge"><i class="fa fa-plane"></i> {{ f.get_flight_type_display }}</span>
+                    <h3 class="tn-card-title" style="min-height:0;">{{ f.airline }} {{ f.flight_number }}</h3>
+                    <p>{{ f.origin_city }} → {{ f.destination_city }} · {{ f.departure_time|date:"Y-m-d" }}</p>
+                    <div class="tn-card-actions"><span class="tn-price">{{ f.price|currency_price:current_currency }}</span><a class="tn-btn" href="{% url 'flight_detail' f.pk %}">选座</a></div>
+                </div></div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if not packages and not hotels and not flights and not destinations %}
+        <div class="tn-empty">未找到与 "{{ query }}" 相关的结果</div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

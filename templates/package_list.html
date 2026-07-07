@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}旅游套餐 - TourNest{% endblock %}
+{% block content %}
+<section class="tn-list-page">
+    <div class="container">
+        <div class="tn-section-head">
+            <div>
+                <h2>精选旅游套餐</h2>
+                <p>按目的地、价格和评分筛选，快速找到合适路线。</p>
+            </div>
+            <a class="tn-btn tn-btn-muted" href="{% url 'custom_package' %}"><i class="fa fa-sliders"></i> 定制套餐</a>
+        </div>
+
+        <form class="tn-panel tn-filter" method="get" action="{% url 'package_list' %}">
+            <div class="tn-filter-grid">
+                <div style="grid-column:span 3;">
+                    <label>目的地/城市</label>
+                    <input class="tn-input" type="text" name="destination" value="{{ destination }}" placeholder="如：土耳其、巴黎、曼谷">
+                </div>
+                <div style="grid-column:span 2;">
+                    <label>排序</label>
+                    <select class="tn-select" name="sort">
+                        <option value="">默认推荐</option>
+                        <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>价格从低到高</option>
+                        <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>价格从高到低</option>
+                        <option value="rating" {% if sort == 'rating' %}selected{% endif %}>评分最高</option>
+                    </select>
+                </div>
+                <div><button class="tn-btn" type="submit"><i class="fa fa-search"></i> 搜索</button></div>
+            </div>
+        </form>
+
+        <div class="row" style="margin-bottom:18px;">
+            {% if best_deal %}
+            <div class="col-md-6"><div class="alert alert-success"><i class="fa fa-tag"></i> 低价推荐：{{ best_deal.name }} {{ best_deal.price|currency_price:current_currency }}</div></div>
+            {% endif %}
+            {% if best_value %}
+            <div class="col-md-6"><div class="alert alert-info"><i class="fa fa-star"></i> 性价比之选：{{ best_value.name }} 评分 {{ best_value.rating }}</div></div>
+            {% endif %}
+        </div>
+
+        <div class="row">
+            {% for package in packages %}
+            <div class="col-md-4 col-sm-6" style="margin-bottom:24px;">
+                <div class="tn-card">
+                    <img class="tn-card-img" src="{% static package.image_url %}" alt="{{ package.name }}">
+                    <div class="tn-card-body">
+                        {% if best_deal and package.pk == best_deal.pk %}<span class="tn-badge tn-badge-green">最低价</span>{% endif %}
+                        {% if best_value and package.pk == best_value.pk %}<span class="tn-badge">性价比</span>{% endif %}
+                        <h3 class="tn-card-title">{{ package.name }}</h3>
+                        <div class="tn-card-meta">
+                            <span><i class="fa fa-clock-o"></i> {{ package.duration_days }}天{{ package.duration_nights }}晚</span>
+                            <span><i class="fa fa-star"></i> {{ package.rating }}</span>
+                            <span>{{ package.review_count }}条评价</span>
+                        </div>
+                        <div class="tn-card-actions">
+                            <span class="tn-price">{{ package.price|currency_price:current_currency }}</span>
+                            <a class="tn-btn" href="{% url 'package_detail' package.pk %}">查看预订</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-12"><div class="tn-empty">未找到符合条件的套餐</div></div>
+            {% endfor %}
+        </div>
+
+        {% if packages.has_other_pages %}
+        <div class="text-center" style="margin-top:20px;">
+            {% if packages.has_previous %}<a class="tn-btn tn-btn-muted" href="?page={{ packages.previous_page_number }}&destination={{ destination }}&sort={{ sort }}">上一页</a>{% endif %}
+            <span style="margin:0 15px;">第 {{ packages.number }} / {{ packages.paginator.num_pages }} 页</span>
+            {% if packages.has_next %}<a class="tn-btn tn-btn-muted" href="?page={{ packages.next_page_number }}&destination={{ destination }}&sort={{ sort }}">下一页</a>{% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

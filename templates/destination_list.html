@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}热门目的地 - TourNest{% endblock %}
+{% block content %}
+<section class="tn-list-page">
+    <div class="container">
+        <div class="tn-section-head">
+            <div>
+                <h2>热门旅游目的地</h2>
+                <p>查看目的地图片、相关套餐、酒店和攻略。</p>
+            </div>
+        </div>
+        <form class="tn-panel tn-filter" method="get" action="{% url 'destination_list' %}">
+            <div class="tn-filter-grid">
+                <div style="grid-column:span 5;"><label>目的地搜索</label><input class="tn-input" name="q" value="{{ query }}" placeholder="国家、城市或目的地"></div>
+                <div><button class="tn-btn" type="submit"><i class="fa fa-search"></i> 搜索</button></div>
+            </div>
+        </form>
+        <div class="row">
+            {% for dest in destinations %}
+            <div class="col-md-4 col-sm-6" style="margin-bottom:24px;">
+                <a class="tn-destination-card" href="{% url 'destination_detail' dest.pk %}" style="display:block;">
+                    <img src="{% static dest.image_url %}" alt="{{ dest.name }}">
+                    <div class="tn-destination-overlay">
+                        <h3>{{ dest.name }}</h3>
+                        <p>{{ dest.city|default:dest.country }} · {{ dest.country }}</p>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-md-12"><div class="tn-empty">未找到相关目的地</div></div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
