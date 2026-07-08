@@ -1,0 +1,31 @@
+{% extends 'auth_base.html' %}
+
+{% block title %}用户注册 - TourNest{% endblock %}
+{% block kicker %}创建账号{% endblock %}
+{% block heading %}开启你的旅行预订账户{% endblock %}
+
+{% block content %}
+    <form class="auth-form" method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <p class="auth-help">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                    <p class="auth-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <button class="auth-submit" type="submit">
+            <i class="fa fa-user-plus"></i>
+            注册并登录
+        </button>
+        <p class="auth-switch">已有账号？<a href="{% url 'login' %}">返回登录</a></p>
+    </form>
+{% endblock %}
