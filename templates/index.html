@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 <!doctype html>
 <html class="no-js"  lang="en">
 
@@ -798,239 +798,63 @@
 				<div class="packages-content">
 					<div class="row">
 
+						{% for p in packages %}
 						<div class="col-md-4 col-sm-6">
 							<div class="single-package-item">
-								<img src="{% static 'images/packages/p1.jpg' %}" alt="package-place">
+								<img src="{% static p.image %}|{% static p.image %}" alt="{{ p.name }}">
 								<div class="single-package-item-txt">
-									<h3>意大利浪漫游 <span class="pull-right">$499</span></h3>
+									<h3>{{ p.name }} <span class="pull-right">¥{{ p.current_price }}</span></h3>
 									<div class="packages-para">
 										<p>
 											<span>
-												<i class="fa fa-angle-right"></i> 5 天 6 晚
+												<i class="fa fa-angle-right"></i> {{ p.duration }}
 											</span>
-											<i class="fa fa-angle-right"></i> 5星级住宿标准
+											
+											<i class="fa fa-angle-right"></i> {{ p.destination }}
+											
 										</p>
 										<p>
+											
 											<span>
-												<i class="fa fa-angle-right"></i> 豪华往返交通
+												<i class="fa fa-angle-right"></i> 
 											</span>
-											<i class="fa fa-angle-right"></i> 赠送当地特色美食
+											
+											
+											<i class="fa fa-angle-right"></i> 
+											
 										 </p>
 									</div><!--/.packages-para-->
 									<div class="packages-review">
 										<p>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<span>2544 条好评</span>
+											{% for i in "12345"|make_list %}
+											{% if forloop.counter <= p.rating %}
+											<i class="fa fa-star" style="color:#f1c40f"></i>
+											{% else %}
+											<i class="fa fa-star" style="color:#ddd"></i>
+											{% endif %}
+											{% endfor %}
+											<span>{{ p.rating }} 分</span>
 										</p>
 									</div><!--/.packages-review-->
 									<div class="about-btn">
-										<button  class="about-view packages-btn">
-											立即订购
+										<button  class="about-view packages-btn" onclick="window.location.href='/book/{{ p.id }}/'">
+											立即预订
 										</button>
 									</div><!--/.about-btn-->
 								</div><!--/.single-package-item-txt-->
 							</div><!--/.single-package-item-->
 
 						</div><!--/.col-->
-
-						<div class="col-md-4 col-sm-6">
+						{% empty %}
+						<div class="col-md-12 text-center">
 							<div class="single-package-item">
-								<img src="{% static 'images/packages/p2.jpg' %}" alt="package-place">
 								<div class="single-package-item-txt">
-									<h3>英国风情深度游 <span class="pull-right">$1499</span></h3>
-									<div class="packages-para">
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 5 天 6 晚
-											</span>
-											<i class="fa fa-angle-right"></i> 5星级住宿标准
-										</p>
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 豪华往返交通
-											</span>
-											<i class="fa fa-angle-right"></i> 赠送当地特色美食
-										 </p>
-									</div><!--/.packages-para-->
-									<div class="packages-review">
-										<p>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<span>2544 条好评</span>
-										</p>
-									</div><!--/.packages-review-->
-									<div class="about-btn">
-										<button  class="about-view packages-btn">
-											立即订购
-										</button>
-									</div><!--/.about-btn-->
-								</div><!--/.single-package-item-txt-->
-							</div><!--/.single-package-item-->
-
-						</div><!--/.col-->
-						
-						<div class="col-md-4 col-sm-6">
-							<div class="single-package-item">
-								<img src="{% static 'images/packages/p3.jpg' %}" alt="package-place">
-								<div class="single-package-item-txt">
-									<h3>法国蔚蓝海岸游 <span class="pull-right">$1199</span></h3>
-									<div class="packages-para">
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 5 天 6 晚
-											</span>
-											<i class="fa fa-angle-right"></i> 5星级住宿标准
-										</p>
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 豪华往返交通
-											</span>
-											<i class="fa fa-angle-right"></i> 赠送当地特色美食
-										 </p>
-									</div><!--/.packages-para-->
-									<div class="packages-review">
-										<p>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<span>2544 条好评</span>
-										</p>
-									</div><!--/.packages-review-->
-									<div class="about-btn">
-										<button  class="about-view packages-btn">
-											立即订购
-										</button>
-									</div><!--/.about-btn-->
-								</div><!--/.single-package-item-txt-->
-							</div><!--/.single-package-item-->
-
-						</div><!--/.col-->
-						
-						<div class="col-md-4 col-sm-6">
-							<div class="single-package-item">
-								<img src="{% static 'images/packages/p4.jpg' %}" alt="package-place">
-								<div class="single-package-item-txt">
-									<h3>印度古文明探索 <span class="pull-right">$799</span></h3>
-									<div class="packages-para">
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 5 天 6 晚
-											</span>
-											<i class="fa fa-angle-right"></i> 5星级住宿标准
-										</p>
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 豪华往返交通
-											</span>
-											<i class="fa fa-angle-right"></i> 赠送当地特色美食
-										 </p>
-									</div><!--/.packages-para-->
-									<div class="packages-review">
-										<p>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<span>2544 条好评</span>
-										</p>
-									</div><!--/.packages-review-->
-									<div class="about-btn">
-										<button  class="about-view packages-btn">
-											立即订购
-										</button>
-									</div><!--/.about-btn-->
-								</div><!--/.single-package-item-txt-->
-							</div><!--/.single-package-item-->
-
-						</div><!--/.col-->
-						
-						<div class="col-md-4 col-sm-6">
-							<div class="single-package-item">
-								<img src="{% static 'images/packages/p5.jpg' %}" alt="package-place">
-								<div class="single-package-item-txt">
-									<h3>西班牙阳光沙滩游 <span class="pull-right">$999</span></h3>
-									<div class="packages-para">
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 5 天 6 晚
-											</span>
-											<i class="fa fa-angle-right"></i> 5星级住宿标准
-										</p>
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 豪华往返交通
-											</span>
-											<i class="fa fa-angle-right"></i> 赠送当地特色美食
-										 </p>
-									</div><!--/.packages-para-->
-									<div class="packages-review">
-										<p>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<span>2544 条好评</span>
-										</p>
-									</div><!--/.packages-review-->
-									<div class="about-btn">
-										<button  class="about-view packages-btn">
-											立即订购
-										</button>
-									</div><!--/.about-btn-->
-								</div><!--/.single-package-item-txt-->
-							</div><!--/.single-package-item-->
-
-						</div><!--/.col-->
-						
-						<div class="col-md-4 col-sm-6">
-							<div class="single-package-item">
-								<img src="{% static 'images/packages/p6.jpg' %}" alt="package-place">
-								<div class="single-package-item-txt">
-									<h3>泰国狂欢海岛游 <span class="pull-right">$799</span></h3>
-									<div class="packages-para">
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 5 天 6 晚
-											</span>
-											<i class="fa fa-angle-right"></i> 5星级住宿标准
-										</p>
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 豪华往返交通
-											</span>
-											<i class="fa fa-angle-right"></i> 赠送当地特色美食
-										 </p>
-									</div><!--/.packages-para-->
-									<div class="packages-review">
-										<p>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<span>2544 条好评</span>
-										</p>
-									</div><!--/.packages-review-->
-									<div class="about-btn">
-										<button  class="about-view packages-btn">
-											立即订购
-										</button>
-									</div><!--/.about-btn-->
-								</div><!--/.single-package-item-txt-->
-							</div><!--/.single-package-item-->
-
-						</div><!--/.col-->
+									<h3>暂无套餐</h3>
+									<p>敬请期待更多超值套餐上线！</p>
+								</div>
+							</div>
+						</div>
+						{% endfor %}
 
 					</div><!--/.row-->
 				</div><!--/.packages-content-->
@@ -1119,11 +943,13 @@
 									<h2>神秘泰兰德风情游</h2>
 									<div class="packages-review special-offer-review">
 										<p>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
+											{% for i in "12345"|make_list %}
+											{% if forloop.counter <= p.rating %}
+											<i class="fa fa-star" style="color:#f1c40f"></i>
+											{% else %}
+											<i class="fa fa-star" style="color:#ddd"></i>
+											{% endif %}
+											{% endfor %}
 											<span>2544 条真实评价</span>
 										</p>
 									</div><!--/.packages-review-->
@@ -1434,3 +1260,4 @@
 	</body>
 
 </html>
+

@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的预订 - TourNest 旅游预订平台</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <style>
+        body { background: #f5f7fa; font-family: 'Poppins', sans-serif; }
+        .container { max-width: 960px; margin-top: 40px; }
+        .header { text-align: center; margin-bottom: 32px; }
+        .header h2 { font-weight: 700; color: #333; }
+        .booking-card { background: #fff; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.06); display: flex; align-items: center; justify-content: space-between; }
+        .booking-card .info h5 { margin: 0 0 4px; font-weight: 600; }
+        .booking-card .info .meta { color: #888; font-size: 14px; }
+        .booking-card .amount { font-size: 22px; font-weight: 700; color: #e74c3c; }
+        .badge-pending { background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+        .badge-confirmed { background: #d4edda; color: #155724; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+        .badge-cancelled { background: #e2e3e5; color: #6c757d; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; }
+        .nav-bar { background: #fff; padding: 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+        .nav-bar .logo { font-size: 22px; font-weight: 700; color: #333; text-decoration: none; }
+        .nav-bar .logo span { color: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="container">
+            <a href="/" class="logo">tour<span>Nest</span></a>
+            <span class="float-end"><a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-sign-out"></i> 退出</a></span>
+        </div>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h2><i class="fa fa-suitcase"></i> 我的预订</h2>
+            <p class="text-muted">查看和管理您的旅游套餐预订记录</p>
+        </div>
+        {% if bookings %}
+        {% for b in bookings %}
+        <div class="booking-card">
+            <div class="info">
+                <h5>{{ b.package.name }}</h5>
+                <div class="meta">
+                    <i class="fa fa-calendar"></i> {{ b.travel_date|date:"Y-m-d" }}
+                    &nbsp;|&nbsp; <i class="fa fa-users"></i> {{ b.num_people }}人
+                    &nbsp;|&nbsp; {{ b.contact_name }} | {{ b.contact_phone }}
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="amount">¥{{ b.total_price }}</div>
+                {% if b.status == 'pending' %}
+                <span class="badge-pending">待确认</span>
+                <form method="post" action="{% url 'cancel_booking' b.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger ms-2 mt-1" onclick="return confirm('确定取消此预订？')"><i class="fa fa-times"></i> 取消</button>
+                </form>
+                {% elif b.status == 'confirmed' %}
+                <span class="badge-confirmed">已确认</span>
+                {% else %}
+                <span class="badge-cancelled">已取消</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fa fa-suitcase"></i>
+            <h4 class="text-muted">暂无预订记录</h4>
+            <p>去浏览套餐，开始您的旅行吧！</p>
+            <a href="/" class="btn btn-primary"><i class="fa fa-search"></i> 浏览套餐</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
