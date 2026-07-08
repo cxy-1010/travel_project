@@ -5,90 +5,117 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>TourNest AI 旅行助手</title>
+	<title>TourNest AI 路线规划器</title>
 	<link rel="shortcut icon" type="image/icon" href="{% static 'vendor/favicon.png' %}"/>
 	<link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" />
 	<link rel="stylesheet" href="{% static 'css/ai_assistant.css' %}" />
 </head>
 <body>
-	<div class="assistant-shell">
-		<header class="assistant-topbar">
-			<a class="brand-link" href="/">
-				tour<span>Nest</span>
-			</a>
-			<div class="assistant-title">
-				<div class="window-dots"><span></span><span></span><span></span></div>
-				<div>
-					<h1>AI 旅行助手</h1>
-					<p id="assistant-status">正在准备您的专属旅程</p>
-				</div>
+	<div class="trip-planner">
+		<header class="planner-topbar">
+			<a class="brand-link" href="/">tour<span>Nest</span></a>
+			<div class="top-search">
+				<i class="fa fa-search"></i>
+				<input id="top-search-input" type="text" placeholder="搜索任何旅游相关">
 			</div>
-			<a class="back-link" href="/"><i class="fa fa-angle-left"></i> 返回首页</a>
+			<div class="top-actions">
+				<button type="button"><i class="fa fa-calendar"></i> 设置出发日期</button>
+				<a href="/"><i class="fa fa-home"></i> 首页</a>
+			</div>
 		</header>
 
-		<main class="assistant-grid">
-			<section class="destination-panel">
-				<div class="destination-hero">
-					<img id="destination-img" src="" alt="目的地图片">
-					<div class="destination-overlay">
-						<p>目的地灵感</p>
-						<h2 id="destination-title">正在读取目的地</h2>
+		<div class="route-titlebar">
+			<div>
+				<h1 id="route-title">AI 路线规划</h1>
+				<p id="route-subtitle">正在读取您的旅行需求</p>
+			</div>
+			<div class="route-actions">
+				<button type="button" id="save-route-btn"><i class="fa fa-download"></i> 保存路线</button>
+				<button type="button" id="reset-route-btn"><i class="fa fa-refresh"></i> 重新生成</button>
+			</div>
+		</div>
+
+		<main class="planner-layout">
+			<aside class="ai-sidebar">
+				<div class="ai-head">
+					<div class="spark">✦</div>
+					<div>
+						<h2>AI助手</h2>
+						<p id="assistant-status">深度思考中</p>
 					</div>
+				</div>
+
+				<div class="ai-steps">
+					<div class="step-item done"><i class="fa fa-check"></i><span>了解你的需求</span></div>
+					<div class="step-item active"><i class="fa fa-spinner"></i><span>规划每日路线</span></div>
+					<div class="step-item"><i class="fa fa-bed"></i><span>生成住宿建议</span></div>
+				</div>
+
+				<div id="ai-reasoning-card" class="thinking-card" style="display:none;">
+					<h3>正在思考</h3>
+					<div id="ai-reasoning-content"></div>
+				</div>
+
+				<div id="chat-log" class="chat-log">
+					<div class="chat-bubble assistant">我会先生成路线。之后你可以直接告诉我“第2天轻松一点”“加美食”“预算降低”，我会自动改路线。</div>
+				</div>
+
+				<form id="chat-form" class="chat-input">
+					<input id="chat-message" type="text" placeholder="输入修改要求：如第2天轻松一点">
+					<button type="submit"><i class="fa fa-paper-plane"></i></button>
+				</form>
+			</aside>
+
+			<section class="route-panel">
+				<div id="route-tabs" class="route-tabs">
+					<button class="active" type="button" data-tab="overview">总览</button>
+					<button type="button" data-tab="pending">待安排</button>
 				</div>
 
 				<div id="trip-summary" class="trip-summary"></div>
 
-				<div class="map-card">
-					<div class="card-title">
-						<i class="fa fa-map-marker"></i>
-						<span>当地旅游地图</span>
+				<div id="route-loading" class="route-loading">
+					<div class="skeleton-card">
+						<strong>待安排</strong>
+						<span></span><span></span>
 					</div>
-					<iframe id="destination-map" title="目的地地图" loading="lazy"></iframe>
+					<div class="skeleton-card day"></div>
+					<div class="skeleton-card day"></div>
+					<div class="skeleton-card day"></div>
 				</div>
 
-				<div class="intro-card">
-					<div class="card-title">
-						<i class="fa fa-external-link"></i>
-						<span>目的地介绍</span>
+				<div id="ai-response" class="route-output" style="display:none;">
+					<div id="ai-response-content"></div>
+				</div>
+
+				<div id="hotel-next-step" class="hotel-next-step" style="display:none;">
+					<div class="next-title">
+						<i class="fa fa-bed"></i>
+						<div>
+							<h3>下一步：选择住宿</h3>
+							<p>基于路线自动推荐，不需要用户记住 AI 内容。</p>
+						</div>
 					</div>
-					<p>图片和地图无法覆盖所有细节时，可以直接查看目的地介绍页面。</p>
-					<a id="intro-link" class="intro-link" href="#" target="_blank" rel="noopener">
-						查看目的地介绍
-					</a>
+					<div id="hotel-cards" class="hotel-cards"></div>
+				</div>
+
+				<div id="ai-error" class="error-card" style="display:none;">
+					<h3><i class="fa fa-exclamation-triangle"></i> 生成失败</h3>
+					<div id="ai-error-content"></div>
 				</div>
 			</section>
 
-			<section class="planner-panel">
-				<div class="planner-header">
-					<div class="thinking-dots"><span></span><span></span><span></span></div>
-					<div>
-						<h2>定制行程方案</h2>
-						<p id="planner-subtitle">AI 正在分析路线、住宿、交通和预算</p>
-					</div>
+			<section class="map-panel">
+				<div class="map-tools">
+					<button type="button"><i class="fa fa-tree"></i> 景点</button>
+					<button type="button"><i class="fa fa-bed"></i> 酒店</button>
+					<button type="button"><i class="fa fa-cutlery"></i> 美食</button>
+					<button type="button"><i class="fa fa-shopping-bag"></i> 购物</button>
+					<button type="button"><i class="fa fa-plane"></i> 机场</button>
 				</div>
-
-				<div id="ai-reasoning" class="ai-section reasoning-section" style="display:none;">
-					<div class="section-heading">
-						<i class="fa fa-lightbulb-o"></i>
-						AI 思考过程
-					</div>
-					<div id="ai-reasoning-content" class="reasoning-content"></div>
-				</div>
-
-				<div id="ai-response" class="ai-section response-section" style="display:none;">
-					<div class="section-heading">
-						<i class="fa fa-compass"></i>
-						行程建议
-					</div>
-					<div id="ai-response-content" class="response-content"></div>
-				</div>
-
-				<div id="ai-error" class="ai-section error-section" style="display:none;">
-					<div class="section-heading">
-						<i class="fa fa-exclamation-triangle"></i>
-						生成失败
-					</div>
-					<div id="ai-error-content" class="error-content"></div>
+				<iframe id="destination-map" title="目的地地图" loading="lazy"></iframe>
+				<div class="map-float">
+					<a id="intro-link" href="#" target="_blank" rel="noopener">目的地介绍</a>
 				</div>
 			</section>
 		</main>

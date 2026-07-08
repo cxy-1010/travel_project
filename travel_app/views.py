@@ -79,11 +79,13 @@ def search_ai(request):
         days = _s(data.get('days'))
         people = _s(data.get('people'))
         budget = _s(data.get('budget'))
+        message = _s(data.get('message'))
+        previous_plan = _s(data.get('previous_plan'))
 
         prompt_parts = [
-            "你是一位专业的旅游规划顾问。请根据用户的出行需求，详细规划一份旅游行程方案。",
+            "你是旅游路线规划助手。请用中文，简洁清楚地规划路线。",
             "",
-            "=== 用户出行需求 ===",
+            "用户需求：",
         ]
         if country:
             prompt_parts.append(f"- 目标国家/地区：{country}")
@@ -98,18 +100,20 @@ def search_ai(request):
         if people:
             prompt_parts.append(f"- 出行人数：{people}")
         if budget:
-            prompt_parts.append(f"- 预算范围：{budget}")
+            prompt_parts.append(f"- 预算：{budget}")
+        if previous_plan:
+            prompt_parts.extend(["", "上一版方案：", previous_plan[:4000]])
+        if message:
+            prompt_parts.extend(["", "用户修改要求：", message])
 
         prompt_parts.extend([
             "",
-            "=== 请提供以下方面建议 ===",
-            "1. 行程安排 - 按天逐日规划，含每日景点和活动",
-            "2. 住宿推荐 - 2~3 个适合预算的酒店",
-            "3. 景点推荐 - 必去和备选景点",
-            "4. 美食推荐 - 当地特色美食和餐厅",
-            "5. 交通建议 - 出行交通方案",
-            "6. 预算分配 - 按类别分配",
-            "7. 出行小贴士 - 气候、签证、安全等",
+            "输出格式：",
+            "1. 先给 1 段总览。",
+            "2. 按“第1天 / 第2天...”列行程。",
+            "3. 每个景点后加一个可访问的介绍网址，格式必须是：[景点介绍](https://...)。",
+            "4. 最后给住宿区域、交通和预算提醒。",
+            "5. 如果用户要求修改路线，请直接输出修改后的新版方案，不要解释太多。",
         ])
 
         prompt = "\n".join(prompt_parts)
