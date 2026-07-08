@@ -1499,7 +1499,11 @@
 					people: people || '',
 					budget: budget || ''
 				});
-				window.location.href = '/ai-assistant/?' + assistantParams.toString();
+				var assistantUrl = '/ai-assistant/?' + assistantParams.toString();
+				var assistantWindow = window.open(assistantUrl, '_blank');
+				if (!assistantWindow) {
+					window.location.href = assistantUrl;
+				}
 				return;
 				
 				// Show result panel
