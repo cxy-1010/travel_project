@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
+from .models import UserProfile
+
 
 class AuthFlowTests(TestCase):
     def test_register_creates_user_and_logs_in(self):
@@ -67,3 +69,37 @@ class AuthFlowTests(TestCase):
         user = User.objects.get(username='hashed')
         self.assertNotEqual(user.password, 'SafePass12345')
         self.assertTrue(user.password.startswith('pbkdf2_'))
+
+    def test_profile_requires_login(self):
+        response = self.client.get(reverse('profile'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('login'), response['Location'])
+
+    def test_profile_page_can_update_email_and_phone(self):
+        user = User.objects.create_user(
+            username='profile_user',
+            email='old@example.com',
+            password='SafePass12345',
+        )
+        self.client.login(username='profile_user', password='SafePass12345')
+
+        response = self.client.post(reverse('profile'), {
+            'email': 'new@example.com',
+            'phone': '138 0000 0000',
+        }, follow=True)
+
+        self.assertContains(response, '个人信息已更新')
+        user.refresh_from_db()
+        self.assertEqual(user.email, 'new@example.com')
+        self.assertEqual(user.profile.phone, '138 0000 0000')
+
+    def test_profile_is_created_for_existing_user(self):
+        user = User.objects.create_user(username='legacy', password='SafePass12345')
+        self.assertFalse(UserProfile.objects.filter(user=user).exists())
+        self.client.login(username='legacy', password='SafePass12345')
+
+        response = self.client.get(reverse('profile'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(UserProfile.objects.filter(user=user).exists())

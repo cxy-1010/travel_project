@@ -14,9 +14,9 @@
         <link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
         <link rel="stylesheet" href="{% static 'css/auth.css' %}" />
     </head>
-    <body class="auth-page">
+    <body class="{% block body_class %}auth-page{% endblock %}">
         <main class="auth-shell">
-            <section class="auth-panel">
+            <section class="{% block panel_class %}auth-panel{% endblock %}">
                 <a class="auth-logo" href="{% url 'index' %}">tour<span>Nest</span></a>
                 <p class="auth-kicker">{% block kicker %}{% endblock %}</p>
                 <h1>{% block heading %}{% endblock %}</h1>

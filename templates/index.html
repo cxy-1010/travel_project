@@ -99,7 +99,14 @@
 										<li class="smooth-menu"><a href="#subs">订阅我们</a></li>
 										{% if user.is_authenticated %}
 											<li class="user-menu-item">
-												<span class="nav-user"><i class="fa fa-user-circle"></i>{{ user.username }}</span>
+												<a class="nav-user" href="{% url 'profile' %}" title="查看或编辑个人信息">
+													{% if user.profile.avatar %}
+														<img class="nav-avatar" src="{{ user.profile.avatar.url }}" alt="{{ user.username }} 的头像">
+													{% else %}
+														<i class="fa fa-user-circle"></i>
+													{% endif %}
+													{{ user.username }}
+												</a>
 											</li>
 											<li>
 												<a class="book-btn nav-action-btn" href="{% url 'logout' %}">退出</a>

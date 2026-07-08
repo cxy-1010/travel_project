@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, ProfileForm, RegisterForm
+from .models import UserProfile
 
 # Create your views here.
 
@@ -46,3 +48,19 @@ def user_logout(request):
     logout(request)
     messages.success(request, '您已安全退出登录。')
     return redirect(reverse_lazy('index'))
+
+
+@login_required
+def profile(request):
+    user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=user_profile, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '个人信息已更新。')
+            return redirect('profile')
+    else:
+        form = ProfileForm(instance=user_profile, user=request.user)
+
+    return render(request, 'profile.html', {'form': form, 'profile': user_profile})
