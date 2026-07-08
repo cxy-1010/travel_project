@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+import httpx
 from openai import OpenAI
 
 
@@ -32,6 +33,28 @@ def index(request):
 
 def ai_assistant(request):
     return render(request, 'ai_assistant.html')
+
+
+def create_deepseek_stream(api_key, prompt, ignore_system_proxy=False):
+    http_client = None
+    if ignore_system_proxy:
+        http_client = httpx.Client(timeout=60.0, trust_env=False)
+
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.deepseek.com",
+        http_client=http_client,
+    )
+    return client.chat.completions.create(
+        model="deepseek-v4-pro",
+        messages=[
+            {"role": "system", "content": "你是一位专业的旅游规划顾问，请用中文回复。"},
+            {"role": "user", "content": prompt}
+        ],
+        stream=True,
+        reasoning_effort="high",
+        extra_body={"thinking": {"type": "enabled"}}
+    )
 
 
 @csrf_exempt
@@ -97,19 +120,11 @@ def search_ai(request):
                 yield "data: " + json.dumps({"type": "error", "content": "未配置 DEEPSEEK_API_KEY，请在项目根目录 .env 中填写"}) + "\n\n"
                 return
 
-            client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
-
             try:
-                response = client.chat.completions.create(
-                    model="deepseek-v4-pro",
-                    messages=[
-                        {"role": "system", "content": "你是一位专业的旅游规划顾问，请用中文回复。"},
-                        {"role": "user", "content": prompt}
-                    ],
-                    stream=True,
-                    reasoning_effort="high",
-                    extra_body={"thinking": {"type": "enabled"}}
-                )
+                try:
+                    response = create_deepseek_stream(api_key, prompt)
+                except Exception as first_error:
+                    response = create_deepseek_stream(api_key, prompt, ignore_system_proxy=True)
 
                 yield "data: " + json.dumps({"type": "start"}) + "\n\n"
 
@@ -127,9 +142,15 @@ def search_ai(request):
                 yield "data: " + json.dumps({"type": "done"}) + "\n\n"
 
             except Exception as e:
-                import traceback
-                tb = traceback.format_exc()
-                yield "data: " + json.dumps({"type": "error", "content": f"AI 调用失败：{e}\n详情：{tb}"}) + "\n\n"
+                hint = (
+                    "AI 调用失败：无法连接 DeepSeek。\n"
+                    "这通常不是 API key 错误，而是当前设备的网络/代理/VPN 无法完成 HTTPS 连接。\n"
+                    "请检查：1. 浏览器能否访问 https://api.deepseek.com；"
+                    "2. 系统代理或 VPN 是否允许 Python 访问；"
+                    "3. 如使用 Clash/代理软件，请开启 TUN 或为 Python 配置正确代理。\n"
+                    f"原始错误：{e}"
+                )
+                yield "data: " + json.dumps({"type": "error", "content": hint}) + "\n\n"
 
         resp = StreamingHttpResponse(
             streaming_content=event_stream(),
