@@ -1,0 +1,99 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>TourNest AI 旅行助手</title>
+	<link rel="shortcut icon" type="image/icon" href="{% static 'vendor/favicon.png' %}"/>
+	<link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" />
+	<link rel="stylesheet" href="{% static 'css/ai_assistant.css' %}" />
+</head>
+<body>
+	<div class="assistant-shell">
+		<header class="assistant-topbar">
+			<a class="brand-link" href="/">
+				tour<span>Nest</span>
+			</a>
+			<div class="assistant-title">
+				<div class="window-dots"><span></span><span></span><span></span></div>
+				<div>
+					<h1>AI 旅行助手</h1>
+					<p id="assistant-status">正在准备您的专属旅程</p>
+				</div>
+			</div>
+			<a class="back-link" href="/"><i class="fa fa-angle-left"></i> 返回首页</a>
+		</header>
+
+		<main class="assistant-grid">
+			<section class="destination-panel">
+				<div class="destination-hero">
+					<img id="destination-img" src="" alt="目的地图片">
+					<div class="destination-overlay">
+						<p>目的地灵感</p>
+						<h2 id="destination-title">正在读取目的地</h2>
+					</div>
+				</div>
+
+				<div id="trip-summary" class="trip-summary"></div>
+
+				<div class="map-card">
+					<div class="card-title">
+						<i class="fa fa-map-marker"></i>
+						<span>当地旅游地图</span>
+					</div>
+					<iframe id="destination-map" title="目的地地图" loading="lazy"></iframe>
+				</div>
+
+				<div class="intro-card">
+					<div class="card-title">
+						<i class="fa fa-external-link"></i>
+						<span>目的地介绍</span>
+					</div>
+					<p>图片和地图无法覆盖所有细节时，可以直接查看目的地介绍页面。</p>
+					<a id="intro-link" class="intro-link" href="#" target="_blank" rel="noopener">
+						查看目的地介绍
+					</a>
+				</div>
+			</section>
+
+			<section class="planner-panel">
+				<div class="planner-header">
+					<div class="thinking-dots"><span></span><span></span><span></span></div>
+					<div>
+						<h2>定制行程方案</h2>
+						<p id="planner-subtitle">AI 正在分析路线、住宿、交通和预算</p>
+					</div>
+				</div>
+
+				<div id="ai-reasoning" class="ai-section reasoning-section" style="display:none;">
+					<div class="section-heading">
+						<i class="fa fa-lightbulb-o"></i>
+						AI 思考过程
+					</div>
+					<div id="ai-reasoning-content" class="reasoning-content"></div>
+				</div>
+
+				<div id="ai-response" class="ai-section response-section" style="display:none;">
+					<div class="section-heading">
+						<i class="fa fa-compass"></i>
+						行程建议
+					</div>
+					<div id="ai-response-content" class="response-content"></div>
+				</div>
+
+				<div id="ai-error" class="ai-section error-section" style="display:none;">
+					<div class="section-heading">
+						<i class="fa fa-exclamation-triangle"></i>
+						生成失败
+					</div>
+					<div id="ai-error-content" class="error-content"></div>
+				</div>
+			</section>
+		</main>
+	</div>
+
+	<script src="{% static 'js/ai_assistant.js' %}"></script>
+</body>
+</html>
