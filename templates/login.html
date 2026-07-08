@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - TourNest 旅游预订平台</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <style>
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; }
+        .login-card { background: #fff; border-radius: 16px; padding: 40px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+        .login-card h2 { text-align: center; margin-bottom: 8px; font-weight: 700; color: #333; }
+        .login-card .subtitle { text-align: center; color: #999; margin-bottom: 28px; }
+        .login-card .form-control { border-radius: 8px; padding: 12px 16px; border: 1px solid #e0e0e0; font-size: 15px; }
+        .login-card .form-control:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,.15); }
+        .login-card .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 600; width: 100%; }
+        .login-card .btn-primary:hover { opacity: .9; }
+        .login-card .error { background: #ffeaea; color: #e74c3c; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+        .login-card .links { text-align: center; margin-top: 20px; color: #999; }
+        .login-card .links a { color: #667eea; text-decoration: none; font-weight: 500; }
+        .login-card .links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>欢迎回来</h2>
+        <p class="subtitle">登录您的 TourNest 账户</p>
+        {% if error %}
+        <div class="error"><i class="fa fa-exclamation-circle"></i> {{ error }}</div>
+        {% endif %}
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">用户名</label>
+                <input type="text" class="form-control" name="username" required placeholder="请输入用户名">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">密码</label>
+                <input type="password" class="form-control" name="password" required placeholder="请输入密码">
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-sign-in"></i> 登录</button>
+        </form>
+        <div class="links">
+            <p>还没有账号？<a href="{% url 'register' %}">立即注册</a></p>
+            <p class="mt-2"><a href="/">返回首页</a></p>
+        </div>
+    </div>
+</body>
+</html>

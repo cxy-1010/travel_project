@@ -1,0 +1,113 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预订 {{ package.name }} - TourNest</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <style>
+        body { background: #f5f7fa; font-family: 'Poppins', sans-serif; }
+        .container { max-width: 800px; margin-top: 30px; margin-bottom: 40px; }
+        .package-summary { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,.06); margin-bottom: 24px; }
+        .package-summary h3 { font-weight: 700; }
+        .package-summary .price-big { font-size: 32px; font-weight: 700; color: #e74c3c; }
+        .package-summary .price-original { text-decoration: line-through; color: #999; font-size: 18px; }
+        .package-summary .detail-item { margin-bottom: 8px; color: #555; }
+        .booking-form { background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+        .booking-form h4 { font-weight: 600; margin-bottom: 20px; }
+        .booking-form .form-control { border-radius: 8px; padding: 10px 14px; border: 1px solid #e0e0e0; }
+        .booking-form .form-control:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,.15); }
+        .booking-form .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 600; width: 100%; }
+        .booking-form .error { background: #ffeaea; color: #e74c3c; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+        .price-calc { background: #f8f9fa; border-radius: 8px; padding: 12px 16px; margin-top: 16px; }
+        .price-calc .total { font-size: 24px; font-weight: 700; color: #e74c3c; }
+        .nav-bar { background: #fff; padding: 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+        .nav-bar .logo { font-size: 22px; font-weight: 700; color: #333; text-decoration: none; }
+        .nav-bar .logo span { color: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="container">
+            <a href="/" class="logo">tour<span>Nest</span></a>
+            <span class="float-end"><a href="{% url 'my_bookings' %}" class="btn btn-outline-primary btn-sm"><i class="fa fa-list"></i> 我的预订</a></span>
+        </div>
+    </div>
+    <div class="container">
+        <!-- 套餐信息摘要 -->
+        <div class="package-summary">
+            <div class="row">
+                <div class="col-md-8">
+                    <h3>{{ package.name }}</h3>
+                    <p class="text-muted"><i class="fa fa-map-marker"></i> {{ package.destination }} | {{ package.duration }}</p>
+                    <div class="detail-item"><i class="fa fa-star" style="color:#f1c40f"></i> {{ package.rating }} 分</div>
+                    <p class="mt-2 text-muted">{{ package.itinerary|linebreaksbr }}</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    {% if package.discount_price and package.discount_price < package.original_price %}
+                    <div class="price-original">¥{{ package.original_price }}</div>
+                    <div class="price-big">¥{{ package.discount_price }}</div>
+                    <span class="badge bg-danger">限时优惠</span>
+                    {% else %}
+                    <div class="price-big">¥{{ package.original_price }}</div>
+                    {% endif %}
+                    <div class="text-muted mt-2">/ 人</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 预订表单 -->
+        <div class="booking-form">
+            <h4><i class="fa fa-edit"></i> 填写预订信息</h4>
+            {% if error %}
+            <div class="error"><i class="fa fa-exclamation-circle"></i> {{ error }}</div>
+            {% endif %}
+            <form method="post" action="{% url 'book_package' package.id %}">
+                {% csrf_token %}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">出行人数</label>
+                        <input type="number" class="form-control" name="num_people" value="1" min="1" max="20" id="numPeople" onchange="updateTotal()">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">出行日期</label>
+                        <input type="date" class="form-control" name="travel_date" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">联系人</label>
+                        <input type="text" class="form-control" name="contact_name" required placeholder="请输入姓名">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">联系电话</label>
+                        <input type="text" class="form-control" name="contact_phone" required placeholder="请输入手机号">
+                    </div>
+                </div>
+                <div class="price-calc">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            单价：¥<span id="unitPrice">{{ package.discount_price|default:package.original_price }}</span>
+                            × <span id="peopleCount">1</span>人
+                        </div>
+                        <div class="col-md-6 text-end">
+                            合计：<span class="total">¥<span id="totalPrice">{{ package.discount_price|default:package.original_price }}</span></span>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3"><i class="fa fa-check"></i> 确认预订</button>
+            </form>
+        </div>
+    </div>
+    <script>
+    function updateTotal() {
+        var people = parseInt(document.getElementById('numPeople').value) || 1;
+        var unitPrice = parseFloat(document.getElementById('unitPrice').textContent);
+        document.getElementById('peopleCount').textContent = people;
+        document.getElementById('totalPrice').textContent = (unitPrice * people).toFixed(2);
+    }
+    </script>
+</body>
+</html>
