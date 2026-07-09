@@ -22,6 +22,14 @@ def _session_favorite_guide_ids(request):
     return {str(guide_id) for guide_id in request.session.get('favorite_guides', [])}
 
 
+def _session_favorite_news_ids(request):
+    return {str(news_id) for news_id in request.session.get('favorite_news', [])}
+
+
+def _is_news_favorited(request, news_id):
+    return str(news_id) in _session_favorite_news_ids(request)
+
+
 def _favorite_guide_ids(request):
     if request.user.is_authenticated:
         return {
@@ -185,6 +193,28 @@ def favorite_guide(request, guide_id):
         'favorite_count': guide.favorites.count()
     })
 
+
+@csrf_exempt
+@require_POST
+def favorite_news(request, news_id):
+    news = get_object_or_404(TravelNews, id=news_id)
+    news_key = str(news.id)
+    favorite_news = _session_favorite_news_ids(request)
+
+    if news_key in favorite_news:
+        favorite_news.remove(news_key)
+        favorited = False
+    else:
+        favorite_news.add(news_key)
+        favorited = True
+
+    request.session['favorite_news'] = list(favorite_news)
+    request.session.modified = True
+    return JsonResponse({
+        'status': 'success',
+        'favorited': favorited
+    })
+
 # 5. 发表攻略评论（必须登录）
 @csrf_exempt
 def add_guide_comment(request, guide_id):
@@ -275,8 +305,8 @@ def home_page(request):
     # 1. 获取前端传过来的搜索词 (例如 ?search=北京)
     search_query = request.GET.get('search', '').strip()
     
-    # 2. 基础查询：捞取所有攻略
-    guides = Guide.objects.select_related('user').prefetch_related('favorites').all().order_by('-created_at')
+    # 2. 首页只展示点赞数最高的用户评价，完整列表去评论社区页查看
+    guides = Guide.objects.select_related('user').prefetch_related('favorites').all()
     
     # 3. 💡 如果用户输入了搜索词，直接在数据库进行筛选过滤！
     if search_query:
@@ -285,6 +315,7 @@ def home_page(request):
             Q(title__icontains=search_query) |        # 匹配标题
             Q(content__icontains=search_query)        # 匹配正文内容
         )
+    guides = guides.order_by('-likes', '-created_at')[:6]
     
     # 4. 色彩库（保持你们之前绚丽的色彩库逻辑）
     color_palette = [
@@ -307,7 +338,10 @@ def home_page(request):
         g.favorite_count = g.favorites.count()
 
     # 5. 把过滤后的列表和原本的请求一起传给前端
-    latest_news = TravelNews.objects.all()[:3]
+    latest_news = TravelNews.objects.all().order_by('-views_count', '-created_at')[:3]
+    for news in latest_news:
+        news.is_favorited = _is_news_favorited(request, news.id)
+
     favorite_ids = _favorite_guide_ids(request)
     favorite_guides = Guide.objects.select_related('user').filter(id__in=favorite_ids).order_by('-created_at')
 
@@ -322,6 +356,8 @@ def home_page(request):
 def news_list(request):
     # 查出所有的旅行资讯
     all_news = TravelNews.objects.all()
+    for news in all_news:
+        news.is_favorited = _is_news_favorited(request, news.id)
     # 也可以按分类筛选，比如：news_only = TravelNews.objects.filter(category='news')
     return render(request, 'news_list.html', {'news_list': all_news})
 
@@ -331,9 +367,69 @@ def news_detail(request, news_id):
     # 每次打开详情页，浏览量默默 +1
     news.views_count += 1
     news.save(update_fields=['views_count'])
+    news.is_favorited = _is_news_favorited(request, news.id)
     return render(request, 'news_detail.html', {'news': news})
+
+
+def comments_page(request):
+    search_query = request.GET.get('search', '').strip()
+    guides = Guide.objects.select_related('user').prefetch_related('favorites').all().order_by('-created_at')
+
+    if search_query:
+        guides = guides.filter(
+            Q(destination__icontains=search_query) |
+            Q(title__icontains=search_query) |
+            Q(content__icontains=search_query) |
+            Q(user__username__icontains=search_query)
+        )
+    color_palette = [
+        ("#FFF5F5", "#E53E3E"), ("#EBF8FF", "#3182CE"),
+        ("#F0FDF4", "#16A34A"), ("#FFFDF5", "#D97706"),
+        ("#F3E8FF", "#8B5CF6"), ("#ECEFEE", "#0D9488")
+    ]
+    city_color_map = {}
+    color_index = 0
+
+    for guide in guides:
+        city = guide.destination
+        if city not in city_color_map:
+            city_color_map[city] = color_palette[color_index % len(color_palette)]
+            color_index += 1
+        guide.bg_color = city_color_map[city][0]
+        guide.text_color = city_color_map[city][1]
+        guide.is_liked = _is_guide_liked(request, guide.id)
+        guide.is_favorited = _is_guide_favorited(request, guide.id)
+        guide.favorite_count = guide.favorites.count()
+
+    return render(request, 'comments.html', {
+        'g_list': guides,
+        'search_query': search_query,
+    })
+
+
+def favorites_page(request):
+    favorite_guide_ids = _favorite_guide_ids(request)
+    favorite_news_ids = _session_favorite_news_ids(request)
+
+    favorite_guides = Guide.objects.select_related('user').filter(id__in=favorite_guide_ids).order_by('-created_at')
+    for guide in favorite_guides:
+        guide.is_liked = _is_guide_liked(request, guide.id)
+        guide.is_favorited = True
+        guide.favorite_count = guide.favorites.count()
+
+    favorite_news = TravelNews.objects.filter(id__in=favorite_news_ids).order_by('-created_at')
+    for news in favorite_news:
+        news.is_favorited = True
+
+    return render(request, 'favorites.html', {
+        'favorite_guides': favorite_guides,
+        'favorite_news': favorite_news,
+    })
+
 
 def news_all_hub(request):
     # 🎯 核心：不加任何切片限制，把数据库里收集的所有攻略全部查出来！
     all_stored_news = TravelNews.objects.all().order_by('-created_at')
+    for news in all_stored_news:
+        news.is_favorited = _is_news_favorited(request, news.id)
     return render(request, 'news_all_list.html', {'news_list': all_stored_news})

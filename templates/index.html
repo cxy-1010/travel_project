@@ -5,7 +5,7 @@
 	<head>
 		<style>
 			/* 1. 默认让所有轮播包裹块都缩小、变暗，并设置平滑过渡 */
-			#testemonial-carousel .owl-item {
+			#guide-carousel .owl-item {
 				transform: scale(0.85);
 				opacity: 0.5;
 				transition: all 0.5s ease-in-out !important;
@@ -13,20 +13,20 @@
 			}
 
 			/* 2. 强行把正中间（带有 .center 类）的包裹块放大，恢复亮度和层级 */
-			#testemonial-carousel .owl-item.center {
+			#guide-carousel .owl-item.center {
 				transform: scale(1.1) !important;
 				opacity: 1 !important;
 				z-index: 10 !important;
 			}
 
 			/* 3. 增强阴影：只给中间那个真实的卡片加阴影，视觉效果拉满 */
-			#testemonial-carousel .owl-item.center .home1-testm-single {
+			#guide-carousel .owl-item.center .home1-testm-single {
 				box-shadow: 0 15px 35px rgba(0, 123, 255, 0.25) !important;
 				border: 1px solid rgba(0, 123, 255, 0.1);
 			}
 			
 			/* 4. 防止放大时顶部和底部被外层盒子切掉 */
-			#testemonial-carousel .owl-stage-outer {
+			#guide-carousel .owl-stage-outer {
 				padding-top: 40px !important;
 				padding-bottom: 40px !important;
 			}
@@ -123,6 +123,7 @@
 										<li class="smooth-menu"><a href="#pack">精选套餐 </a></li>
 										<li class="smooth-menu"><a href="#spo">特惠活动</a></li>
 										<li class="smooth-menu"><a href="#blog">旅游攻略</a></li>
+										<li><a href="/favorites/">我的收藏</a></li>
 										<li class="smooth-menu"><a href="#subs">订阅我们</a></li>
 										<li>
 											<button class="book-btn">立即预订
@@ -1067,39 +1068,24 @@
 		</section><!--/.packages-->
 		<!--packages end-->
 
-		<!-- testemonial Start -->
-		<section class="testemonial" id="comment-section" style="padding: 60px 0; background: #f8fafc; overflow: hidden;">
+		<!-- user comment community start -->
+		<section class="testemonial" id="guide-section" style="padding: 60px 0; background: #f8fafc; overflow: hidden;">
 			<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
 				
 				<div style="text-align: center; margin-bottom: 30px;">
-					<h2 style="font-size: 32px; font-weight: 800; color: #1e293b; margin: 0;">真实旅客评价</h2>
-					<p style="color: #64748b; margin-top: 10px; font-size: 15px;">听听来自全球各地的游客对我们服务的真实心声。</p>
+					<h2 style="font-size: 32px; font-weight: 800; color: #1e293b; margin: 0;">用户评论交流社区</h2>
+					<p style="color: #64748b; margin-top: 10px; font-size: 15px;">分享真实旅行体验，收藏有帮助的用户评价与交流内容。</p>
 				</div>
 
 				<div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 40px; flex-wrap: wrap;">
-					<form method="GET" action="/#comment-section" style="margin: 0; width: 100%; max-width: 320px; position: relative;">
+					<form method="GET" action="/#guide-section" style="margin: 0; width: 100%; max-width: 320px; position: relative;">
 						<input type="text" name="search" value="{{ request.GET.search }}" placeholder="🔍 输入城市或关键词，回车搜索..." 
 							style="width: 100%; padding: 12px 16px 12px 40px; border: 2px solid #e2e8f0; border-radius: 30px; font-size: 14px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.02);"
 							onfocus="this.style.borderColor='#007BFF';" onblur="this.style.borderColor='#e2e8f0';">
 					</form>
 					<button onclick="openInputModal()" style="background: linear-gradient(135deg, #007BFF, #0056b3); color: white; border: none; padding: 11px 26px; font-size: 15px; font-weight: 600; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,123,255,0.25);">
-						✍️ 我要写攻略/评价
+						✍️ 我要写评价
 					</button>
-				</div>
-
-				<div id="favorite-panel" class="favorite-panel" {% if not favorite_guides %}style="display:none;"{% endif %}>
-					<div class="favorite-panel-title">
-						<i class="fa fa-bookmark"></i>
-						<span>我的收藏</span>
-					</div>
-					<div id="favorite-list" class="favorite-list">
-						{% for fav in favorite_guides %}
-							<button type="button" class="favorite-item" data-guide-id="{{ fav.id }}">
-								<span>{{ fav.title }}</span>
-								<small>{{ fav.destination }}</small>
-							</button>
-						{% endfor %}
-					</div>
 				</div>
 
 				{% if request.GET.search %}
@@ -1127,9 +1113,6 @@
 										<button type="button" class="guide-action-btn guide-like-btn {% if g.is_liked %}is-liked{% endif %}" data-guide-id="{{ g.id }}" aria-pressed="{% if g.is_liked %}true{% else %}false{% endif %}">
 											<i class="fa fa-thumbs-up"></i> <span class="like-label">{% if g.is_liked %}已赞{% else %}点赞{% endif %}</span> <span class="like-count">{{ g.likes }}</span>
 										</button>
-										<button type="button" class="guide-action-btn guide-favorite-btn {% if g.is_favorited %}is-favorited{% endif %}" data-guide-id="{{ g.id }}" aria-pressed="{% if g.is_favorited %}true{% else %}false{% endif %}">
-											<i class="fa fa-bookmark"></i> <span class="favorite-label">{% if g.is_favorited %}已收藏{% else %}收藏{% endif %}</span>
-										</button>
 										<button type="button" class="guide-action-btn guide-detail-btn" data-guide-id="{{ g.id }}">
 											<i class="fa fa-comments"></i> 详情
 										</button>
@@ -1139,7 +1122,7 @@
 							{% endfor %}
 						{% else %}
 							<div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 450px; padding: 35px; text-align: center; border: 1px solid #f1f5f9;">
-								<p style="color: #64748b; font-size: 14px; font-weight: 600;">🔍 没有找到关于 “<span style="color: #ef4444;">{{ request.GET.search }}</span>” 的攻略...</p>
+								<p style="color: #64748b; font-size: 14px; font-weight: 600;">🔍 没有找到关于 “<span style="color: #ef4444;">{{ request.GET.search }}</span>” 的用户评价...</p>
 								<a href="/" style="color: #007BFF; text-decoration: none; font-size: 13px;">查看全部内容 &rarr;</a>
 							</div>
 						{% endif %}
@@ -1147,7 +1130,7 @@
 
 				{% else %}
 
-					<div class="owl-carousel owl-theme" id="testemonial-carousel" style="width: 100%; padding: 20px 0;">
+					<div class="owl-carousel owl-theme" id="guide-carousel" style="width: 100%; padding: 20px 0;">
 						{% if g_list %}
 							{% for g in g_list %}
 							<div class="item" style="padding: 15px; transition: all 0.5s ease;">
@@ -1171,9 +1154,6 @@
 											<button type="button" class="guide-action-btn guide-like-btn {% if g.is_liked %}is-liked{% endif %}" data-guide-id="{{ g.id }}" aria-pressed="{% if g.is_liked %}true{% else %}false{% endif %}">
 												<i class="fa fa-thumbs-up"></i> <span class="like-label">{% if g.is_liked %}已赞{% else %}点赞{% endif %}</span> <span class="like-count">{{ g.likes }}</span>
 											</button>
-											<button type="button" class="guide-action-btn guide-favorite-btn {% if g.is_favorited %}is-favorited{% endif %}" data-guide-id="{{ g.id }}" aria-pressed="{% if g.is_favorited %}true{% else %}false{% endif %}">
-												<i class="fa fa-bookmark"></i> <span class="favorite-label">{% if g.is_favorited %}已收藏{% else %}收藏{% endif %}</span>
-											</button>
 											<button type="button" class="guide-action-btn guide-detail-btn" data-guide-id="{{ g.id }}">
 												<i class="fa fa-comments"></i> 详情
 											</button>
@@ -1186,6 +1166,12 @@
 					</div>
 
 				{% endif %}
+
+				<div style="text-align: center; margin-top: 26px;">
+					<a href="/comments/" style="display: inline-block; background: #ffffff; color: #007BFF; border: 2px solid #007BFF; padding: 12px 30px; font-size: 15px; font-weight: 700; border-radius: 30px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,123,255,0.06);" onmouseenter="this.style.background='#007BFF'; this.style.color='white'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.background='#ffffff'; this.style.color='#007BFF'; this.style.transform='translateY(0)';">
+						查看更多评价 &rarr;
+					</a>
+				</div>
 
 			</div>
 		</section>
@@ -1289,7 +1275,7 @@
 									<div class="col-sm-4 col-md-4">
 										<div class="thumbnail">
 											
-											<h2>探索足迹 <span>{{ news.created_at|date:"d 十一月 Y" }}</span></h2>
+											<h2>{% if news.category == 'news' %}实时新闻{% else %}精选攻略{% endif %} <span>{{ news.created_at|date:"d 十一月 Y" }}</span></h2>
 											
 											<div class="thumbnail-img">
 												<img src="{{ news.cover_url }}" alt="blog-img">
@@ -1308,7 +1294,13 @@
 														{{ news.summary }}
 													</p>
 													
-													<a href="/news/{{ news.id }}/">阅读全文</a>
+													<div class="news-card-actions">
+														<a href="/news/{{ news.id }}/">阅读全文</a>
+														<button type="button" class="news-favorite-btn {% if news.is_favorited %}is-favorited{% endif %}" data-news-id="{{ news.id }}" aria-pressed="{% if news.is_favorited %}true{% else %}false{% endif %}">
+															<i class="fa fa-bookmark"></i>
+															<span class="news-favorite-label">{% if news.is_favorited %}已收藏{% else %}收藏{% endif %}</span>
+														</button>
+													</div>
 												</div>
 											</div>
 											
@@ -1324,7 +1316,7 @@
 							</div>
 								</div><div style="text-align: center; margin-top: 40px; margin-bottom: 20px;">
 									<a href="/news/all/" style="display: inline-block; background: #ffffff; color: #007BFF; border: 2px solid #007BFF; padding: 12px 30px; font-size: 15px; font-weight: 700; border-radius: 30px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,123,255,0.06);" onmouseenter="this.style.background='#007BFF'; this.style.color='white'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.background='#ffffff'; this.style.color='#007BFF'; this.style.transform='translateY(0)';">
-										查看更多历史攻略 &rarr;
+										查看更多攻略 &rarr;
 									</a>
 								</div>
 							</div>
@@ -1487,15 +1479,15 @@
 
 		<script>
 			$(document).ready(function(){
-				var carousel = $("#testemonial-carousel");
+				var carousel = $("#guide-carousel");
     
 				// 如果已经初始化过，先强行销毁它
 				if (carousel.data('owl.carousel')) {
 					carousel.owlCarousel('destroy');
 				}
 
-				// 这里的 #testemonial-carousel 必须对应咱们刚刚改的那个 div 的 id
-				$("#testemonial-carousel").owlCarousel({
+				// 这里的 #guide-carousel 必须对应攻略轮播容器的 id
+				$("#guide-carousel").owlCarousel({
 					center: true,        // 💡 核心：必须开启居中模式，否则 CSS 无法识别谁在中间
 					items: 3,            // 同时显示3个卡片（根据你们的布局可以改2或3）
 					loop: true,          // 循环播放
@@ -1553,7 +1545,7 @@
 				const keyword = document.getElementById('search-input').value.toLowerCase().trim();
 				
 				// 2. 找到轮播图里所有的卡片块
-				const cards = document.querySelectorAll('#testemonial-carousel .owl-item');
+				const cards = document.querySelectorAll('#guide-carousel .owl-item');
 
 				cards.forEach(card => {
 					// 抓取卡片内部的标题、正文和目的地文字
@@ -1572,7 +1564,7 @@
 				});
 
 				//4. 刷新轮播图插件的布局，防止隐藏卡片后留下难看的空位
-				var owl = $('#testemonial-carousel');
+				var owl = $('#guide-carousel');
 				owl.trigger('refresh.owl.carousel');
 			}
 			function renderModalComments(comments) {
@@ -1594,7 +1586,7 @@
 					const response = await fetch(`/api/guides/${guideId}/`);
 					const result = await response.json();
 					if (result.status !== 'success') {
-						alert(result.message || '攻略详情加载失败');
+						alert(result.message || '评价详情加载失败');
 						return;
 					}
 					const guide = result.data;
@@ -1607,7 +1599,7 @@
 					document.getElementById('modal-comment-input').value = '';
 					document.getElementById('review-modal').style.display = 'flex';
 				} catch (error) {
-					alert('攻略详情加载失败，请稍后重试');
+					alert('评价详情加载失败，请稍后重试');
 				}
 			}
 
@@ -1641,42 +1633,14 @@
 				}
 			}
 
-			function updateFavoritePanel(guideId, favorited) {
-				const panel = document.getElementById('favorite-panel');
-				const list = document.getElementById('favorite-list');
-				const existing = list.querySelector(`[data-guide-id="${guideId}"]`);
-
-				if (favorited) {
-					if (!existing) {
-						const card = document.querySelector(`[data-guide-card="${guideId}"]`);
-						const item = document.createElement('button');
-						item.type = 'button';
-						item.className = 'favorite-item';
-						item.dataset.guideId = guideId;
-						item.innerHTML = `
-							<span>${escapeHtml(card?.dataset.guideTitle || '收藏攻略')}</span>
-							<small>${escapeHtml(card?.dataset.guideDestination || '')}</small>
-						`;
-						list.prepend(item);
-					}
-				} else if (existing) {
-					existing.remove();
-				}
-
-				panel.style.display = list.children.length ? 'block' : 'none';
-			}
-
-			async function favoriteGuide(guideId, button) {
+			async function favoriteNews(newsId, button) {
 				try {
-					const response = await fetch(`/api/guides/${guideId}/favorite/`, { method: 'POST' });
+					const response = await fetch(`/api/news/${newsId}/favorite/`, { method: 'POST' });
 					const result = await response.json();
 					if (result.status === 'success') {
-						document.querySelectorAll(`.guide-favorite-btn[data-guide-id="${guideId}"]`).forEach(btn => {
-							btn.querySelector('.favorite-label').innerText = result.favorited ? '已收藏' : '收藏';
-							btn.classList.toggle('is-favorited', result.favorited);
-							btn.setAttribute('aria-pressed', result.favorited ? 'true' : 'false');
-						});
-						updateFavoritePanel(guideId, result.favorited);
+						button.querySelector('.news-favorite-label').innerText = result.favorited ? '已收藏' : '收藏';
+						button.classList.toggle('is-favorited', result.favorited);
+						button.setAttribute('aria-pressed', result.favorited ? 'true' : 'false');
 					}
 				} catch (error) {
 					alert('收藏失败，请稍后重试');
@@ -1684,19 +1648,14 @@
 			}
 
 			document.addEventListener('click', function(event) {
-				const favoriteItem = event.target.closest('.favorite-item');
-				if (favoriteItem) {
-					openReviewModalById(favoriteItem.dataset.guideId);
-					return;
-				}
 				const likeButton = event.target.closest('.guide-like-btn');
 				if (likeButton) {
 					likeGuide(likeButton.dataset.guideId, likeButton);
 					return;
 				}
-				const favoriteButton = event.target.closest('.guide-favorite-btn');
-				if (favoriteButton) {
-					favoriteGuide(favoriteButton.dataset.guideId, favoriteButton);
+				const newsFavoriteButton = event.target.closest('.news-favorite-btn');
+				if (newsFavoriteButton) {
+					favoriteNews(newsFavoriteButton.dataset.newsId, newsFavoriteButton);
 					return;
 				}
 				const detailButton = event.target.closest('.guide-detail-btn');
@@ -1748,7 +1707,7 @@
 
 		<style>
 			/* === 1. 3D 轮播核心动画与缩放（中央高保真清晰版） === */
-			#testemonial-carousel .owl-item {
+			#guide-carousel .owl-item {
 				transform: scale(0.85);
 				opacity: 0.35;
 				filter: blur(1px) brightness(80%); 
@@ -1757,16 +1716,16 @@
 			}
 
 			/* 默认让卡片里的文字表现得内敛、灰暗一些，突出中间的清晰度 */
-			#testemonial-carousel .owl-item .card-guide-title {
+			#guide-carousel .owl-item .card-guide-title {
 				color: #718096 !important;
 				font-weight: 500 !important;
 			}
-			#testemonial-carousel .owl-item .card-guide-content {
+			#guide-carousel .owl-item .card-guide-content {
 				color: #A0AEC0 !important;
 			}
 
 			/* ---------------- 💡 核心：中央卡片大异变 ---------------- */
-			#testemonial-carousel .owl-item.center {
+			#guide-carousel .owl-item.center {
 				transform: scale(1.08) !important;
 				opacity: 1 !important;
 				filter: blur(0px) brightness(100%) !important; 
@@ -1774,32 +1733,32 @@
 			}
 
 			/* 1. 中间标题：字体重黑、颜色纯黑，绝对醒目清晰 */
-			#testemonial-carousel .owl-item.center .card-guide-title {
+			#guide-carousel .owl-item.center .card-guide-title {
 				color: #1A202C !important;  /* 极其浓郁的纯深色 */
 				font-weight: 800 !important;  /* 极粗体 */
 				text-shadow: 0 1px 2px rgba(0,0,0,0.05);
 			}
 
 			/* 2. 中间正文：提高色彩对比度，字字清晰可读 */
-			#testemonial-carousel .owl-item.center .card-guide-content {
+			#guide-carousel .owl-item.center .card-guide-content {
 				color: #2D3748 !important;  /* 清晰的高对比度灰黑 */
 				font-weight: 500 !important;
 			}
 
 			/* 3. 中间徽章与图标：拉高色彩饱和度，让颜色更鲜艳 */
-			#testemonial-carousel .owl-item.center .quote-icon-wrap {
+			#guide-carousel .owl-item.center .quote-icon-wrap {
 				background: rgba(0, 123, 255, 0.15) !important;
 				color: #0056b3 !important; /* 更深邃、鲜艳的蓝色 */
 			}
 
 			/* 4. 强行放大并提亮各个城市徽章的颜色，让红色更红，蓝色更蓝 */
-			#testemonial-carousel .owl-item.center .badge-beijing { background: #FFEBEB !important; color: #E53E3E !important; font-weight: 700; }
-			#testemonial-carousel .owl-item.center .badge-dali { background: #E0F2FE !important; color: #0284C7 !important; font-weight: 700; }
-			#testemonial-carousel .owl-item.center .badge-chengdu { background: #DCFCE7 !important; color: #15803D !important; font-weight: 700; }
-			#testemonial-carousel .owl-item.center .badge-xian { background: #FEF3C7 !important; color: #B45309 !important; font-weight: 700; }
+			#guide-carousel .owl-item.center .badge-beijing { background: #FFEBEB !important; color: #E53E3E !important; font-weight: 700; }
+			#guide-carousel .owl-item.center .badge-dali { background: #E0F2FE !important; color: #0284C7 !important; font-weight: 700; }
+			#guide-carousel .owl-item.center .badge-chengdu { background: #DCFCE7 !important; color: #15803D !important; font-weight: 700; }
+			#guide-carousel .owl-item.center .badge-xian { background: #FEF3C7 !important; color: #B45309 !important; font-weight: 700; }
 
 			/* 5. 强化中间纯白卡片的视觉包裹感 */
-			#testemonial-carousel .owl-item.center .custom-guide-card {
+			#guide-carousel .owl-item.center .custom-guide-card {
 				background: #ffffff !important;
 				box-shadow: 0 25px 50px rgba(0, 123, 255, 0.25) !important;
 				border: 1px solid rgba(0, 123, 255, 0.2) !important;
@@ -1818,7 +1777,7 @@
 				transition: box-shadow 0.5s ease;
 			}
 			/* 当卡片在中间时，散发特有的彩色霓虹微阴影 */
-			#testemonial-carousel .owl-item.center .custom-guide-card {
+			#guide-carousel .owl-item.center .custom-guide-card {
 				box-shadow: 0 20px 40px rgba(0, 123, 255, 0.15);
 				border: 1px solid rgba(0, 123, 255, 0.1);
 			}
@@ -1885,62 +1844,40 @@
 			.guide-action-btn i {
 				margin-right: 4px;
 			}
-			.guide-favorite-btn.is-favorited {
+			.news-card-actions {
+				align-items: center;
+				display: flex;
+				gap: 12px;
+				justify-content: space-between;
+				padding-bottom: 12px;
+			}
+			.news-card-actions > a {
+				padding-bottom: 0 !important;
+			}
+			.news-favorite-btn {
+				align-items: center;
+				background: #ffffff;
+				border: 1px solid #dbeafe;
+				border-radius: 999px;
+				color: #2563eb;
+				cursor: pointer;
+				display: inline-flex;
+				font-size: 13px;
+				font-weight: 700;
+				gap: 5px;
+				padding: 7px 12px;
+				transition: all 0.2s ease;
+				white-space: nowrap;
+			}
+			.news-favorite-btn:hover {
+				background: #eff6ff;
+				transform: translateY(-1px);
+			}
+			.news-favorite-btn.is-favorited {
 				background: #f59e0b;
 				border-color: #f59e0b;
 				color: #ffffff;
-				box-shadow: 0 6px 14px rgba(245, 158, 11, 0.22);
-			}
-			.favorite-panel {
-				background: #ffffff;
-				border: 1px solid #e2e8f0;
-				border-radius: 16px;
-				box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
-				margin: 0 auto 34px auto;
-				max-width: 980px;
-				padding: 16px 18px;
-			}
-			.favorite-panel-title {
-				align-items: center;
-				color: #0f172a;
-				display: flex;
-				font-size: 15px;
-				font-weight: 800;
-				gap: 8px;
-				margin-bottom: 12px;
-			}
-			.favorite-panel-title i {
-				color: #f59e0b;
-			}
-			.favorite-list {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 10px;
-			}
-			.favorite-item {
-				background: #fffbeb;
-				border: 1px solid #fde68a;
-				border-radius: 12px;
-				color: #92400e;
-				cursor: pointer;
-				display: flex;
-				flex-direction: column;
-				max-width: 240px;
-				padding: 9px 12px;
-				text-align: left;
-			}
-			.favorite-item span {
-				font-size: 13px;
-				font-weight: 800;
-				line-height: 1.35;
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap;
-			}
-			.favorite-item small {
-				color: #b45309;
-				font-size: 11px;
-				margin-top: 3px;
+				box-shadow: 0 6px 14px rgba(245, 158, 11, 0.2);
 			}
 
 			/* === 4. 多彩城市徽章体系（多颜色搭配） === */
@@ -1991,7 +1928,7 @@
 			}
 			
 			/* 调整外层间距防止切边 */
-			#testemonial-carousel .owl-stage-outer {
+			#guide-carousel .owl-stage-outer {
 				padding-top: 30px !important;
 				padding-bottom: 30px !important;
 			}
@@ -2004,9 +1941,9 @@
 				
 				<h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 20px 0; text-align: center;">✍️ 分享您的旅行足迹</h3>
 				
-				<form method="POST" action="/api/guides/create/" id="comment-form" onsubmit="submitComment(event)">
+				<form method="POST" action="/api/guides/create/" id="guide-form" onsubmit="submitGuide(event)">
 					{% csrf_token %} <div style="margin-bottom: 16px;">
-						<label style="display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 6px;">攻略标题</label>
+						<label style="display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 6px;">评价标题</label>
 						<input type="text" name="title" required placeholder="如：震撼人心的神华之旅" style="width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; font-size: 14px;">
 					</div>
 
@@ -2016,7 +1953,7 @@
 					</div>
 
 					<div style="margin-bottom: 24px;">
-						<label style="display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 6px;">旅行体验 / 评价正文</label>
+						<label style="display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 6px;">评价正文</label>
 						<textarea name="content" required rows="4" placeholder="写下这一刻您的真实感悟与游玩建议..." style="width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; font-size: 14px; resize: none; line-height: 1.6;"></textarea>
 					</div>
 
@@ -2041,7 +1978,7 @@
 			function closeInputModal() {
 				document.getElementById('input-modal').style.display = 'none';
 			}
-			function submitComment(event) {
+			function submitGuide(event) {
 			// 1. 阻止表单默认的刷新跳转行为
 			event.preventDefault(); 
 			

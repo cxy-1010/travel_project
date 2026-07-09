@@ -23,8 +23,11 @@ urlpatterns = [
     path('api/guides/<int:guide_id>/like/', views.like_guide),
     path('api/guides/<int:guide_id>/favorite/', views.favorite_guide),
     path('api/guides/<int:guide_id>/comment/', views.add_guide_comment),
+    path('api/news/<int:news_id>/favorite/', views.favorite_news),
 
     path('news/', views.news_list, name='news_list'),
     path('news/<int:news_id>/', views.news_detail, name='news_detail'),
     path('news/all/', views.news_all_hub, name='news_all_hub'),
+    path('favorites/', views.favorites_page, name='favorites'),
+    path('comments/', views.comments_page, name='comments'),
 ]
