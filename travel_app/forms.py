@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 
 from .models import UserProfile
@@ -25,7 +25,23 @@ class LoginForm(AuthenticationForm):
     )
 
 
-class RegisterForm(UserCreationForm):
+class RegisterForm(forms.ModelForm):
+    password1 = forms.CharField(
+        label='密码',
+        error_messages={'required': '请设置密码。'},
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': '请设置密码',
+        }),
+    )
+    password2 = forms.CharField(
+        label='确认密码',
+        error_messages={'required': '请再次输入密码。'},
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': '请再次输入密码',
+        }),
+    )
     email = forms.EmailField(
         label='邮箱',
         required=True,
@@ -63,20 +79,6 @@ class RegisterForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['password1'].widget.attrs.update({
-            'class': 'form-control',
-            'placeholder': '请设置密码',
-        })
-        self.fields['password2'].widget.attrs.update({
-            'class': 'form-control',
-            'placeholder': '请再次输入密码',
-        })
-        self.fields['password1'].error_messages.update({
-            'required': '请设置密码。',
-        })
-        self.fields['password2'].error_messages.update({
-            'required': '请再次输入密码。',
-        })
 
     def clean_email(self):
         email = self.cleaned_data['email'].strip().lower()
@@ -90,6 +92,14 @@ class RegisterForm(UserCreationForm):
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError('两次输入的密码不一致，请重新输入。')
         return password2
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.set_password(self.cleaned_data['password1'])
+        if commit:
+            user.save()
+        return user
 
 
 class ProfileForm(forms.ModelForm):

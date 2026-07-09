@@ -94,7 +94,14 @@ def user_logout(request):
 
 @login_required
 def profile(request):
-    user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    user_profile, _ = UserProfile.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'avatar_url': '',
+            'preferred_currency': 'CNY',
+            'bio': '',
+        },
+    )
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=user_profile, user=request.user)

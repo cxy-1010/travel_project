@@ -18,6 +18,18 @@ class AuthFlowTests(TestCase):
         self.assertTrue(User.objects.filter(username='traveler').exists())
         self.assertContains(response, 'traveler')
 
+    def test_register_allows_simple_password(self):
+        response = self.client.post(reverse('register'), {
+            'username': 'simple',
+            'email': 'simple@example.com',
+            'password1': '123',
+            'password2': '123',
+        }, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        user = User.objects.get(username='simple')
+        self.assertTrue(user.check_password('123'))
+
     def test_login_and_logout_flow(self):
         User.objects.create_user(username='demo', password='SafePass12345')
 
@@ -102,4 +114,17 @@ class AuthFlowTests(TestCase):
         response = self.client.get(reverse('profile'))
 
         self.assertEqual(response.status_code, 200)
+        self.assertTrue(UserProfile.objects.filter(user=user).exists())
+
+    def test_home_profile_link_and_profile_page_work_for_logged_in_legacy_user(self):
+        user = User.objects.create_user(username='legacy_nav', password='1')
+        self.assertFalse(UserProfile.objects.filter(user=user).exists())
+        self.client.login(username='legacy_nav', password='1')
+
+        home_response = self.client.get(reverse('index'))
+        profile_response = self.client.get(reverse('profile'))
+
+        self.assertEqual(home_response.status_code, 200)
+        self.assertContains(home_response, reverse('profile'))
+        self.assertEqual(profile_response.status_code, 200)
         self.assertTrue(UserProfile.objects.filter(user=user).exists())
