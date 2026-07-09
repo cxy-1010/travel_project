@@ -394,7 +394,8 @@ def build_destination_packages(destination_name):
             {
                 'name': '伊瓜苏瀑布奇观 4 日',
                 'price': '¥8,699 起',
-                'image_url': 'https://images.unsplash.com/photo-1520960683738-55ab77f2bc0d?auto=format&fit=crop&w=900&q=80',
+                'image_url': 'images/packages/brazil-iguazu-falls.jpg',
+                'fallback_image': 'images/packages/brazil-iguazu-falls.jpg',
                 'duration': '4 天 3 晚',
                 'highlights': ['瀑布双侧观景', '鸟园', '雨林步道'],
                 'hotel': '瀑布区精选酒店',
@@ -461,7 +462,8 @@ def build_destination_packages(destination_name):
             {
                 'name': '荷比小镇慢旅行 6 日',
                 'price': '¥9,600 起',
-                'image_url': 'https://images.unsplash.com/photo-1473959383416-8518a661bd9c?auto=format&fit=crop&w=900&q=80',
+                'image_url': 'images/packages/netherlands-belgium-villages.jpg',
+                'fallback_image': 'images/packages/netherlands-belgium-villages.jpg',
                 'duration': '6 天 5 晚',
                 'highlights': ['羊角村', '布鲁日', '鹿特丹建筑'],
                 'hotel': '小镇精品住宿',
