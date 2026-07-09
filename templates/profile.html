@@ -1,0 +1,69 @@
+{% extends 'auth_base.html' %}
+{% load static %}
+
+{% block title %}个人信息 - TourNest{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+{% block panel_class %}profile-panel{% endblock %}
+{% block kicker %}个人中心{% endblock %}
+{% block heading %}查看与编辑个人信息{% endblock %}
+
+{% block content %}
+    <div class="profile-summary">
+        <div class="profile-avatar">
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" alt="{{ user.username }} 的头像">
+            {% else %}
+                <i class="fa fa-user-circle"></i>
+            {% endif %}
+        </div>
+        <div>
+            <h2>{{ user.username }}</h2>
+            <p>注册时间：{{ user.date_joined|date:"Y-m-d H:i" }}</p>
+            <p>上次登录：{{ user.last_login|date:"Y-m-d H:i"|default:"暂无记录" }}</p>
+        </div>
+    </div>
+
+    <div class="profile-bookings">
+        <div class="profile-section-head">
+            <h2>已预订的旅游套餐</h2>
+            <a href="{% url 'my_bookings' %}">查看全部</a>
+        </div>
+        {% if bookings %}
+            <div class="profile-booking-grid">
+                {% for booking in bookings %}
+                    <a class="profile-booking-card" href="{% url 'booking_detail' booking.id %}">
+                        <img src="{% if booking.image_url|slice:':4' == 'http' %}{{ booking.image_url }}{% else %}{% static booking.image_url %}{% endif %}" alt="{{ booking.package_name }}">
+                        <div>
+                            <h3>{{ booking.package_name }}</h3>
+                            <p>{{ booking.price }} · {{ booking.travelers }} 人</p>
+                            <span>{{ booking.get_status_display }}</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="profile-empty-booking">暂无已预订套餐。您可以从首页热门套餐点击“立即预订”。</p>
+        {% endif %}
+    </div>
+
+    <form class="auth-form" method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <p class="auth-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <button class="auth-submit" type="submit">
+            <i class="fa fa-save"></i>
+            保存修改
+        </button>
+        <p class="auth-switch"><a href="{% url 'index' %}">返回首页</a></p>
+    </form>
+{% endblock %}

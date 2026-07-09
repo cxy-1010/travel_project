@@ -18,7 +18,7 @@
 		<title>TourNest 旅游预订平台</title>
 
 		<!-- favicon img -->
-		<link rel="shortcut icon" type="image/icon" href="{% static 'vendor/favicon.png' %}"/>
+		<link rel="shortcut icon" type="image/icon" href="{% static 'logo/favicon.png' %}"/>
 
 		<!--font-awesome.min.css-->
 		<link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" />
@@ -50,6 +50,8 @@
 
 		<!--responsive.css-->
 		<link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
+		<link rel="stylesheet" href="{% static 'css/package_cards.css' %}?v=button-fix-3" />
+		<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=button-fix-3" />
 
 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -93,13 +95,33 @@
 										<li class="smooth-menu"><a href="#home">首页</a></li>
 										<li class="smooth-menu"><a href="#gallery">目的地</a></li>
 										<li class="smooth-menu"><a href="#pack">精选套餐 </a></li>
-										<li class="smooth-menu"><a href="#spo">特惠活动</a></li>
 										<li class="smooth-menu"><a href="#blog">旅游攻略</a></li>
 										<li class="smooth-menu"><a href="#subs">订阅我们</a></li>
-										<li>
-											<button class="book-btn">立即预订
-											</button>
-										</li><!--/.project-btn--> 
+										{% if user.is_authenticated %}
+											<li class="user-menu-item">
+												<a class="nav-user" href="{% url 'profile' %}" title="查看或编辑个人信息">
+													{% if user.profile.avatar %}
+														<img class="nav-avatar" src="{{ user.profile.avatar.url }}" alt="{{ user.username }} 的头像">
+													{% else %}
+														<i class="fa fa-user-circle"></i>
+													{% endif %}
+													{{ user.username }}
+												</a>
+											</li>
+											<li>
+												<a class="book-btn nav-action-btn nav-register-btn" href="{% url 'my_bookings' %}">我的预订</a>
+											</li>
+											<li>
+												<a class="book-btn nav-action-btn" href="{% url 'logout' %}">退出</a>
+											</li>
+										{% else %}
+											<li>
+												<a class="book-btn nav-action-btn" href="{% url 'login' %}">登录</a>
+											</li>
+											<li>
+												<a class="book-btn nav-action-btn nav-register-btn" href="{% url 'register' %}">注册</a>
+											</li>
+										{% endif %}
 									</ul>
 								</div><!-- /.navbar-collapse -->
 							</div><!-- /.main-menu-->
@@ -157,7 +179,7 @@
 									<li role="presentation" class="active">
 									 	<a href="#tours" aria-controls="tours" role="tab" data-toggle="tab">
 									 		<i class="fa fa-tree"></i>
-									 		旅游套餐
+									 		旅游方案
 									 	</a>
 									</li>
 
@@ -188,31 +210,29 @@
 
 														<h2>目的地</h2>
 
-														<div class="travel-select-icon">
-															<select class="form-control ">
+														<div class="form-group" style="position: relative; margin-bottom: 20px;">
+															<input type="text" 
+																id="select_country" 
+																name="country" 
+																class="form-control" 
+																placeholder="输入您想去的国家" 
+																style="padding-right: 40px; height: 50px;"> <span class="fa fa-angle-down" 
+																style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #a9a9a9; pointer-events: none; font-size: 18px;">
+															</span>
+														</div>
 
-															  	<option value="default">输入您想去的国家</option><!-- /.option-->
-
-															  	<option value="turkey">土耳其</option><!-- /.option-->
-
-															  	<option value="russia">俄罗斯</option><!-- /.option-->
-															  	<option value="egept">埃及</option><!-- /.option-->
-
-															</select><!-- /.select-->
-														</div><!-- /.travel-select-icon -->
-
-														<div class="travel-select-icon">
-															<select class="form-control ">
-
-															  	<option value="default">输入目标城市</option><!-- /.option-->
-
-															  	<option value="istambul">伊斯坦布尔</option><!-- /.option-->
-
-															  	<option value="mosko">莫斯科</option><!-- /.option-->
-															  	<option value="cairo">开罗</option><!-- /.option-->
-
-															</select><!-- /.select-->
-														</div><!-- /.travel-select-icon -->
+														<div class="form-group" style="position: relative; margin-bottom: 20px;">
+															<input type="text" 
+																id="select_city" 
+																name="city" 
+																class="form-control" 
+																placeholder="输入目标城市" 
+																style="padding-right: 40px; height: 50px;">
+															
+															<span class="fa fa-angle-down" 
+																style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #a9a9a9; pointer-events: none; font-size: 18px;">
+															</span>
+														</div>
 
 													</div><!--/.single-tab-select-box-->
 												</div><!--/.col-->
@@ -222,7 +242,7 @@
 														<h2>出发日期</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="check_in" class="form-control" data-toggle="datepicker" placeholder="12 -01 - 2026 ">
+																<input type="text" id="check_in" name="check_in" class="form-control" data-toggle="datepicker" placeholder="12 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
@@ -233,7 +253,7 @@
 														<h2>返回日期</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="check_out" class="form-control"  data-toggle="datepicker" placeholder="22 -01 - 2026 ">
+																<input type="text" id="check_out" name="check_out" class="form-control"  data-toggle="datepicker" placeholder="22 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
@@ -242,18 +262,9 @@
 												<div class="col-lg-2 col-md-1 col-sm-4">
 													<div class="single-tab-select-box">
 														<h2>出行天数</h2>
-														<div class="travel-select-icon">
-															<select class="form-control ">
-
-															  	<option value="default">5 天</option><!-- /.option-->
-
-															  	<option value="10">10 天</option><!-- /.option-->
-
-															  	<option value="15">15 天</option><!-- /.option-->
-															  	<option value="20">20 天</option><!-- /.option-->
-
-															</select><!-- /.select-->
-														</div><!-- /.travel-select-icon -->
+														<div class="travel-check-icon">
+															<input type="number" id="days" class="form-control" placeholder="请输入天数" min="1" value="5">
+														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
 												</div><!--/.col-->
 
@@ -261,9 +272,9 @@
 													<div class="single-tab-select-box">
 														<h2>出行人数</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="people" class="form-control ">
 
-															  	<option value="default">1 人</option><!-- /.option-->
+															  	<option value="1">1 人</option><!-- /.option-->
 
 															  	<option value="2">2 人</option><!-- /.option-->
 
@@ -303,7 +314,7 @@
 												</div><!--/.col-->
 												<div class="clo-sm-7">
 													<div class="about-btn travel-mrt-0 pull-right">
-														<button  class="about-view travel-btn">
+														<button id="search-btn" class="about-view travel-btn">
 															搜索路线	
 														</button><!--/.travel-btn-->
 													</div><!--/.about-btn-->
@@ -312,6 +323,51 @@
 											</div><!--/.row-->
 
 										</div><!--/.tab-para-->
+
+							<!-- AI 搜索结果面板 -->
+							<div id="ai-result" class="ai-result" style="display: none;">
+								<div class="ai-result-header">
+									<div class="ai-assistant-title">
+										<div class="ai-window-dots">
+											<span></span>
+											<span></span>
+											<span></span>
+										</div>
+										<div>
+											<h3>TourNest AI 旅行助手</h3>
+											<p id="ai-status-text">正在理解您的出行需求...</p>
+										</div>
+									</div>
+									<button id="ai-close-btn" class="ai-close-btn">
+										<i class="fa fa-times"></i>
+									</button>
+								</div>
+								<div class="ai-progress-row">
+									<div class="ai-thinking-dots">
+										<span></span><span></span><span></span>
+									</div>
+									<span>正在生成更适合您的旅行方案</span>
+								</div>
+								<div id="ai-search-summary" class="ai-search-summary"></div>
+								<div id="ai-reasoning" class="ai-reasoning" style="display: none;">
+									<div class="ai-reasoning-header">
+										<i class="fa fa-lightbulb-o"></i> AI 思考过程
+									</div>
+									<div id="ai-reasoning-content" class="ai-reasoning-content"></div>
+								</div>
+								<div id="ai-response" class="ai-response" style="display: none;">
+									<div class="ai-response-header">
+										<i class="fa fa-compass"></i> 定制行程方案
+									</div>
+									<div id="ai-response-content" class="ai-response-content"></div>
+								</div>
+								<div id="ai-error" class="ai-error" style="display: none;">
+									<div class="ai-error-header">
+										<i class="fa fa-exclamation-triangle"></i> 出错了
+									</div>
+									<div id="ai-error-content" class="ai-error-content"></div>
+								</div>
+							</div>
 
 									</div><!--/.tabpannel-->
 
@@ -324,32 +380,30 @@
 
 														<h2>目的地酒店</h2>
 
-														<div class="travel-select-icon">
-															<select class="form-control ">
+														<div class="form-group" style="position: relative; margin-bottom: 20px;">
+															<input type="text" 
+																id="hotel_country" 
+																name="country" 
+																class="form-control" 
+																placeholder="输入您想去的国家" 
+																style="padding-right: 40px; height: 50px;"> <span class="fa fa-angle-down" 
+																style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #a9a9a9; pointer-events: none; font-size: 18px;">
+															</span>
+														</div>
 
-															  	<option value="default">输入您想去的国家</option><!-- /.option-->
-
-															  	<option value="turkey">土耳其</option><!-- /.option-->
-
-															  	<option value="russia">俄罗斯</option><!-- /.option-->
-															  	<option value="egept">埃及</option><!-- /.option-->
-
-															</select><!-- /.select-->
-														</div><!-- /.travel-select-icon -->
-
-														<div class="travel-select-icon">
-															<select class="form-control ">
-
-															  	<option value="default">输入目标城市</option><!-- /.option-->
-
-															  	<option value="istambul">伊斯坦布尔</option><!-- /.option-->
-
-															  	<option value="mosko">莫斯科</option><!-- /.option-->
-															  	<option value="cairo">开罗</option><!-- /.option-->
-
-															</select><!-- /.select-->
-														</div><!-- /.travel-select-icon -->
-
+														<div class="form-group" style="position: relative; margin-bottom: 20px;">
+															<input type="text" 
+																id="hotel_city" 
+																name="city" 
+																class="form-control" 
+																placeholder="输入目标城市" 
+																style="padding-right: 40px; height: 50px;">
+															
+															<span class="fa fa-angle-down" 
+																style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #a9a9a9; pointer-events: none; font-size: 18px;">
+															</span>
+														</div>
+														
 													</div><!--/.single-tab-select-box-->
 												</div><!--/.col-->
 
@@ -358,7 +412,7 @@
 														<h2>入住日期</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="check_in" class="form-control" data-toggle="datepicker" placeholder="12 -01 - 2026 ">
+																<input type="text" id="hotel_check_in" name="check_in" class="form-control" data-toggle="datepicker" placeholder="12 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
@@ -369,7 +423,7 @@
 														<h2>退房日期</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="check_out" class="form-control"  data-toggle="datepicker" placeholder="22 -01 - 2026 ">
+																<input type="text" id="hotel_check_out" name="check_out" class="form-control"  data-toggle="datepicker" placeholder="22 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
@@ -379,9 +433,9 @@
 													<div class="single-tab-select-box">
 														<h2>房间数</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="hotel_rooms" class="form-control ">
 
-															  	<option value="default">1 间</option><!-- /.option-->
+															  	<option value="1">1 间</option><!-- /.option-->
 
 															  	<option value="2">2 间</option><!-- /.option-->
 
@@ -396,9 +450,9 @@
 													<div class="single-tab-select-box">
 														<h2>入住人数</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="hotel_guests" class="form-control ">
 
-															  	<option value="default">1 人</option><!-- /.option-->
+															  	<option value="1">1 人</option><!-- /.option-->
 
 															  	<option value="2">2 人</option><!-- /.option-->
 
@@ -415,7 +469,7 @@
 												<div class="col-sm-5"></div><!--/.col-->
 												<div class="clo-sm-7">
 													<div class="about-btn travel-mrt-0 pull-right">
-														<button  class="about-view travel-btn">
+														<button id="hotel-search-open-btn" class="about-view travel-btn">
 															搜索酒店	
 														</button><!--/.travel-btn-->
 													</div><!--/.about-btn-->
@@ -453,17 +507,9 @@
 
 														<h2>出发城市</h2>
 
-														<div class="travel-select-icon">
-															<select class="form-control ">
-
-															  	<option value="default">选择您的出发地</option><!-- /.option-->
-
-															  	<option value="china">中国 (北京)</option><!-- /.option-->
-
-															  	<option value="china2">中国 (上海)</option><!-- /.option-->
-
-															</select><!-- /.select-->
-														</div><!-- /.travel-select-icon -->
+														<div class="travel-check-icon">
+															<input id="flight-from" type="text" class="form-control" placeholder="输入您的出发地">
+														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
 												</div><!--/.col-->
 
@@ -472,7 +518,7 @@
 														<h2>出发时间</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="departure" class="form-control" data-toggle="datepicker"
+																<input id="flight-departure" type="text" name="departure" class="form-control" data-toggle="datepicker"
 																placeholder="12 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
@@ -484,7 +530,7 @@
 														<h2>返回时间</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="return" class="form-control" data-toggle="datepicker" placeholder="22 -01 - 2026 ">
+																<input id="flight-return" type="text" name="return" class="form-control" data-toggle="datepicker" placeholder="22 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
@@ -494,9 +540,9 @@
 													<div class="single-tab-select-box">
 														<h2>成人</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="flight-adults" class="form-control ">
 
-															  	<option value="default">1</option><!-- /.option-->
+															  	<option value="1">1</option><!-- /.option-->
 
 															  	<option value="2">2</option><!-- /.option-->
 
@@ -509,9 +555,9 @@
 													<div class="single-tab-select-box">
 														<h2>儿童</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="flight-children" class="form-control ">
 
-															  	<option value="default">0</option><!-- /.option-->
+															  	<option value="0">0</option><!-- /.option-->
 
 															  	<option value="1">1</option><!-- /.option-->
 
@@ -528,17 +574,9 @@
 
 														<h2>到达城市</h2>
 
-														<div class="travel-select-icon">
-															<select class="form-control ">
-
-															  	<option value="default">输入您的目的地</option><!-- /.option-->
-
-															  	<option value="istambul">伊斯坦布尔</option><!-- /.option-->
-
-															  	<option value="mosko">莫斯科</option><!-- /.option-->
-
-															</select><!-- /.select-->
-														</div><!-- /.travel-select-icon -->
+														<div class="travel-check-icon">
+															<input id="flight-to" type="text" class="form-control" placeholder="输入您的目的地">
+														</div><!-- /.travel-check-icon -->
 
 													</div><!--/.single-tab-select-box-->
 												</div><!--/.col-->
@@ -547,14 +585,14 @@
 
 														<h2>舱位等级</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="flight-cabin" class="form-control ">
 
-															  	<option value="default">选择舱位</option><!-- /.option-->
+															  	<option value="经济舱">选择舱位</option><!-- /.option-->
 
-															  	<option value="A">经济舱</option><!-- /.option-->
+															  	<option value="经济舱">经济舱</option><!-- /.option-->
 
-															  	<option value="B">商务舱</option><!-- /.option-->
-															  	<option value="C">头等舱</option><!-- /.option-->
+															  	<option value="商务舱">商务舱</option><!-- /.option-->
+															  	<option value="头等舱">头等舱</option><!-- /.option-->
 
 															</select><!-- /.select-->
 														</div><!-- /.travel-select-icon -->
@@ -562,7 +600,7 @@
 												</div><!--/.col-->
 												<div class="clo-sm-5">
 													<div class="about-btn pull-right">
-														<button  class="about-view travel-btn">
+														<button id="flight-search-open-btn" class="about-view travel-btn">
 															搜索机票	
 														</button><!--/.travel-btn-->
 													</div><!--/.about-btn-->
@@ -659,8 +697,20 @@
 					</div><!--/.gallery-header-->
 					<div class="gallery-box">
 						<div class="gallery-content">
-						  	<div class="filtr-container">
-						  		<div class="row">
+						  	<div class="destination-grid">
+
+						  		{% for destination in hot_destinations %}
+						  		<article class="destination-card">
+									<img class="destination-cover" src="{{ destination.image_url }}" alt="{{ destination.name }}" loading="lazy" onerror="this.onerror=null;this.src='{% static destination.fallback_image %}';"/>
+									<div class="item-title">
+										<a href="{% url 'destination_packages' destination.name %}" target="_blank" rel="noopener">
+											{{ destination.name }}
+										</a>
+										<p><span>{{ destination.routes }} 路线</span><span>{{ destination.spots }} 景点</span></p>
+									</div><!-- /.item-title -->
+								</article><!-- /.destination-card -->
+						  		{% endfor %}
+						  			{% comment %}
 
 						  			<div class="col-md-6">
 						  				<div class="filtr-item">
@@ -733,10 +783,9 @@
 											</div> <!-- /.item-title-->
 										</div><!-- /.filtr-item -->
 						  			</div><!-- /.col -->
+						  			{% endcomment %}
 
-						  		</div><!-- /.row -->
-
-						  	</div><!-- /.filtr-container-->
+						  	</div><!-- /.destination-grid-->
 						</div><!-- /.gallery-content -->
 					</div><!--/.galley-box-->
 				</div><!--/.gallery-details-->
@@ -745,44 +794,6 @@
 		</section><!--/.gallery-->
 		<!--gallery end-->
 
-
-		<!--discount-offer start-->
-		<section class="discount-offer">
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-12">
-						<div class="dicount-offer-content text-center">
-							<h2>限时早鸟优惠：即日起至本周内下单，尊享全场最高 40% 折扣！</h2>
-							<div class="campaign-timer">
-								<div id="timer">
-									<div class="time time-after" id="days">
-										<span></span>
-									</div><!--/.time-->
-									<div class="time time-after" id="hours">
-
-									</div><!--/.time-->
-									<div class="time time-after" id="minutes">
-
-									</div><!--/.time-->
-									<div class="time" id="seconds">
-
-									</div><!--/.time-->
-								</div><!--/.timer-->
-							</div><!--/.campaign-timer-->
-							<div class="about-btn">
-								<button  class="about-view discount-offer-btn">
-									立即抢购
-								</button>
-							</div><!--/.about-btn-->
-
-
-						</div><!-- /.dicount-offer-content-->
-					</div><!-- /.col-->
-				</div><!-- /.row-->
-			</div><!-- /.container-->
-
-		</section><!-- /.discount-offer-->
-		<!--discount-offer end-->
 
 		<!--packages start-->
 		<section id="pack" class="packages">
@@ -797,6 +808,47 @@
 				</div><!--/.gallery-header-->
 				<div class="packages-content">
 					<div class="row">
+
+						{% for package in travel_packages %}
+						<div class="col-md-4 col-sm-6">
+							<div class="single-package-item">
+								<img class="package-cover" src="{% if package.image_url|slice:':4' == 'http' %}{{ package.image_url }}{% else %}{% static package.image_url %}{% endif %}" alt="{{ package.name }}" loading="lazy" onerror="this.onerror=null;this.src='{% static package.fallback_image %}';">
+								<div class="single-package-item-txt">
+									<h3>{{ package.name }} <span class="pull-right">{{ package.price }}</span></h3>
+									<div class="packages-para">
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> {{ package.duration }}
+											</span>
+											<i class="fa fa-angle-right"></i> {{ package.hotel }}
+										</p>
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> {{ package.transport }}
+											</span>
+											<i class="fa fa-angle-right"></i> {{ package.meal }}
+										 </p>
+									</div><!--/.packages-para-->
+									<div class="packages-review">
+										<p>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<span>{{ package.reviews }} 条好评</span>
+										</p>
+									</div><!--/.packages-review-->
+									<div class="about-btn">
+										<a class="about-view packages-btn" href="{% url 'book_package' package.id %}">
+											立即预订
+										</a>
+									</div><!--/.about-btn-->
+								</div><!--/.single-package-item-txt-->
+							</div><!--/.single-package-item-->
+						</div><!--/.col-->
+						{% endfor %}
+						{% comment %}
 
 						<div class="col-md-4 col-sm-6">
 							<div class="single-package-item">
@@ -1031,6 +1083,7 @@
 							</div><!--/.single-package-item-->
 
 						</div><!--/.col-->
+						{% endcomment %}
 
 					</div><!--/.row-->
 				</div><!--/.packages-content-->
@@ -1430,6 +1483,274 @@
 		<!--Custom JS-->
 		<script src="{% static 'js/custom.js' %}"></script>
 
+		<!--AI Search JS-->
+		<script>
+		$(document).ready(function(){
+			"use strict";
+			
+			$('#search-btn').on('click', function(e) {
+				e.preventDefault();
+				
+				// Collect form data
+				var country = $('#select_country').val();
+				var city = $('#select_city').val();
+				var checkIn = $('#check_in').val();
+				var checkOut = $('#check_out').val();
+				var days = $('#days').val();
+				var people = $('#people').val();
+				var budget = $('#amount').val();
+				
+				if (!days || Number(days) < 1) {
+					alert('请输入有效的出行天数');
+					return;
+				}
+				
+				// Check if at least one field is filled
+				if (!country && !city && !checkIn && !checkOut && !days && !people && !budget) {
+					alert('请至少填写一个搜索条件');
+					return;
+				}
+
+				var assistantParams = new URLSearchParams({
+					country: country || '',
+					city: city || '',
+					check_in: checkIn || '',
+					check_out: checkOut || '',
+					days: days || '',
+					people: people || '',
+					budget: budget || ''
+				});
+				var assistantUrl = '/ai-assistant/?' + assistantParams.toString();
+				var assistantWindow = window.open(assistantUrl, '_blank');
+				if (!assistantWindow) {
+					window.location.href = assistantUrl;
+				}
+				return;
+				
+				// Show result panel
+				var resultEl = $('#ai-result');
+				var reasoningEl = $('#ai-reasoning');
+				var reasoningContent = $('#ai-reasoning-content');
+				var responseEl = $('#ai-response');
+				var responseContent = $('#ai-response-content');
+				var errorEl = $('#ai-error');
+				var errorContent = $('#ai-error-content');
+				var statusText = $('#ai-status-text');
+				var summaryEl = $('#ai-search-summary');
+				var responseText = '';
+				
+				resultEl.show();
+				reasoningEl.hide();
+				reasoningContent.empty();
+				responseEl.hide();
+				responseContent.empty();
+				errorEl.hide();
+				errorContent.empty();
+				$('.ai-thinking-dots').show();
+				statusText.text('正在理解您的出行需求...');
+				summaryEl.html(buildSummary({
+					country: country,
+					city: city,
+					checkIn: checkIn,
+					checkOut: checkOut,
+					days: days,
+					people: people,
+					budget: budget
+				}));
+				
+				// Scroll to results
+				$('html, body').animate({
+					scrollTop: resultEl.offset().top - 100
+				}, 500);
+				
+				// Send request
+				fetch('/api/search/', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': getCookie('csrftoken')
+					},
+					body: JSON.stringify({
+						country: country,
+						city: city,
+						check_in: checkIn,
+						check_out: checkOut,
+						days: days,
+						people: people,
+						budget: budget
+					})
+				}).then(function(response) {
+					if (!response.ok) {
+						return response.text().then(function(body) {
+							throw new Error('服务器错误 (' + response.status + '): ' + body);
+						});
+					}
+					
+					var reader = response.body.getReader();
+					var decoder = new TextDecoder();
+					var buffer = '';
+					
+					function processStream() {
+						reader.read().then(function(result) {
+							if (result.done) {
+								return;
+							}
+							
+							buffer += decoder.decode(result.value, {stream: true});
+							var lines = buffer.split('\n');
+							buffer = lines.pop(); // Keep incomplete line in buffer
+							
+							for (var i = 0; i < lines.length; i++) {
+								var line = lines[i].trim();
+								if (line.startsWith('data: ')) {
+									try {
+										var data = JSON.parse(line.substring(6));
+										
+										if (data.type === 'start') {
+											statusText.text('正在拆解路线、住宿和预算...');
+										} else if (data.type === 'reasoning') {
+											reasoningEl.show();
+											reasoningContent.append(document.createTextNode(data.content));
+											reasoningContent.scrollTop(reasoningContent[0].scrollHeight);
+										} else if (data.type === 'content') {
+											responseEl.show();
+											statusText.text('正在生成定制行程...');
+											responseText += data.content;
+											responseContent.html(renderTravelMarkdown(responseText));
+											responseContent.scrollTop(responseContent[0].scrollHeight);
+										} else if (data.type === 'done') {
+											statusText.text('AI 已回答完成');
+											$('.ai-thinking-dots').hide();
+										} else if (data.type === 'error') {
+											errorEl.show();
+											errorContent.text(data.content);
+											statusText.text('出错了');
+											$('.ai-thinking-dots').hide();
+										}
+									} catch (parseErr) {
+										// Skip malformed JSON
+									}
+								}
+							}
+							
+							processStream();
+						}).catch(function(err) {
+							errorEl.show();
+							errorContent.text('读取响应时出错: ' + err.message);
+							statusText.text('出错了');
+							$('.ai-thinking-dots').hide();
+						});
+					}
+					
+					processStream();
+				}).catch(function(err) {
+					errorEl.show();
+					errorContent.text('请求失败: ' + err.message);
+					statusText.text('出错了');
+					$('.ai-thinking-dots').hide();
+				});
+			});
+
+			$('#hotel-search-open-btn').on('click', function(e) {
+				e.preventDefault();
+				var params = new URLSearchParams({
+					country: $('#hotel_country').val() || '',
+					city: $('#hotel_city').val() || '',
+					check_in: $('#hotel_check_in').val() || '',
+					check_out: $('#hotel_check_out').val() || '',
+					rooms: $('#hotel_rooms').val() || '1',
+					guests: $('#hotel_guests').val() || '1',
+					keyword: ''
+				});
+				var hotelUrl = '/hotel-search/?' + params.toString();
+				var hotelWindow = window.open(hotelUrl, '_blank');
+				if (!hotelWindow) {
+					window.location.href = hotelUrl;
+				}
+			});
+
+			$('#flight-search-open-btn').on('click', function(e) {
+				e.preventDefault();
+				var tripType = $('#radio02').is(':checked') ? 'oneway' : 'round';
+				var params = new URLSearchParams({
+					from: $('#flight-from').val() || '北京',
+					to: $('#flight-to').val() || '上海',
+					departure: $('#flight-departure').val() || '',
+					return: $('#flight-return').val() || '',
+					adults: $('#flight-adults').val() || '1',
+					children: $('#flight-children').val() || '0',
+					cabin: $('#flight-cabin').val() || '经济舱',
+					trip_type: tripType
+				});
+				var flightUrl = '/flight-search/?' + params.toString();
+				var flightWindow = window.open(flightUrl, '_blank');
+				if (!flightWindow) {
+					window.location.href = flightUrl;
+				}
+			});
+			
+			// Close button
+			$('#ai-close-btn').on('click', function() {
+				$('#ai-result').hide();
+			});
+			
+			// CSRF token helper
+			function getCookie(name) {
+				var cookieValue = null;
+				if (document.cookie && document.cookie !== '') {
+					var cookies = document.cookie.split(';');
+					for (var i = 0; i < cookies.length; i++) {
+						var cookie = $.trim(cookies[i]);
+						if (cookie.substring(0, name.length + 1) === (name + '=')) {
+							cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+							break;
+						}
+					}
+				}
+				return cookieValue;
+			}
+
+			function buildSummary(values) {
+				var items = [];
+				if (values.country) items.push(['目的地', values.country]);
+				if (values.city) items.push(['城市', values.city]);
+				if (values.checkIn) items.push(['出发', values.checkIn]);
+				if (values.checkOut) items.push(['返回', values.checkOut]);
+				if (values.days) items.push(['天数', values.days + '天']);
+				if (values.people) items.push(['人数', values.people + '人']);
+				if (values.budget) items.push(['预算', values.budget]);
+				if (!items.length) return '';
+				return items.map(function(item) {
+					return '<span><b>' + escapeHtml(item[0]) + '</b>' + escapeHtml(item[1]) + '</span>';
+				}).join('');
+			}
+
+			function renderTravelMarkdown(text) {
+				var escaped = escapeHtml(text);
+				escaped = escaped.replace(/^###\s*(.+)$/gm, '<h4>$1</h4>');
+				escaped = escaped.replace(/^##\s*(.+)$/gm, '<h3>$1</h3>');
+				escaped = escaped.replace(/^#\s*(.+)$/gm, '<h3>$1</h3>');
+				escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+				escaped = escaped.replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>');
+				escaped = escaped.replace(/^\s*(\d+)\.\s+(.+)$/gm, '<li><em>$1.</em> $2</li>');
+				escaped = escaped.replace(/(<li>.*?<\/li>\n?)+/gs, function(block) {
+					return '<ul>' + block + '</ul>';
+				});
+				escaped = escaped.replace(/\n{2,}/g, '</p><p>');
+				escaped = escaped.replace(/\n/g, '<br>');
+				return '<p>' + escaped + '</p>';
+			}
+
+			function escapeHtml(value) {
+				return String(value || '')
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/"/g, '&quot;')
+					.replace(/'/g, '&#039;');
+			}
+		});
+		</script>
 
 	</body>
 
