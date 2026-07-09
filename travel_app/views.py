@@ -22,7 +22,7 @@ import httpx
 from openai import OpenAI
 
 from .forms import LoginForm, ProfileForm, RegisterForm, TravelBookingForm
-from .models import EmailVerificationCode, TravelBooking, UserProfile
+from .models import EmailVerificationCode, TravelBooking, TravelPackage, UserProfile
 
 
 HOTEL_SEARCH_CACHE = {}
@@ -185,17 +185,42 @@ def get_deepseek_api_key():
 
 
 def index(request):
+    travel_packages = get_featured_packages()
     return render(
         request,
         'index.html',
         {
-            'travel_packages': TRAVEL_PACKAGES,
+            'travel_packages': travel_packages,
             'hot_destinations': HOT_DESTINATIONS,
         },
     )
 
 
+def package_to_dict(package):
+    if isinstance(package, TravelPackage):
+        return package.to_card_dict()
+    return package
+
+
+def get_featured_packages(limit=6):
+    packages = list(
+        TravelPackage.objects.filter(is_active=True, is_featured=True).order_by('display_order', 'id')
+    )
+    if not packages:
+        return TRAVEL_PACKAGES[:limit]
+
+    # Rotate homepage packages automatically by hour, no manual switching needed.
+    current_time = timezone.localtime()
+    rotation_index = current_time.toordinal() * 24 + current_time.hour
+    start = rotation_index % len(packages)
+    rotated = packages[start:] + packages[:start]
+    return [package.to_card_dict() for package in rotated[:limit]]
+
+
 def get_home_package(package_id):
+    package = TravelPackage.objects.filter(slug=package_id, is_active=True).first()
+    if package:
+        return package.to_card_dict()
     return next((package for package in TRAVEL_PACKAGES if package['id'] == package_id), None)
 
 
@@ -263,7 +288,7 @@ def destination_packages(request, destination):
             'spots': 6,
         }
 
-    packages = build_destination_packages(selected_destination['name'])
+    packages = get_destination_packages(selected_destination['name'])
     return render(
         request,
         'destination_packages.html',
@@ -272,6 +297,18 @@ def destination_packages(request, destination):
             'packages': packages,
         },
     )
+
+
+def get_destination_packages(destination_name):
+    db_packages = [
+        package.to_card_dict()
+        for package in TravelPackage.objects.filter(is_active=True, destination=destination_name)[:12]
+    ]
+    for package in db_packages:
+        if not package['highlights']:
+            package['highlights'] = [package['hotel'], package['transport'], package['meal']]
+            package['highlights'] = [item for item in package['highlights'] if item]
+    return db_packages or build_destination_packages(destination_name)
 
 
 def build_destination_packages(destination_name):

@@ -18,6 +18,53 @@ class UserProfile(models.Model):
         return f'{self.user.username} 的个人资料'
 
 
+class TravelPackage(models.Model):
+    slug = models.SlugField('Package ID', max_length=120, unique=True)
+    name = models.CharField('Package name', max_length=200)
+    destination = models.CharField('Destination', max_length=100, blank=True)
+    price = models.CharField('Price', max_length=50)
+    image_url = models.URLField('Image URL', max_length=600, blank=True)
+    fallback_image = models.CharField('Fallback image', max_length=200, blank=True, default='images/packages/p1.jpg')
+    duration = models.CharField('Duration', max_length=50)
+    hotel = models.CharField('Hotel', max_length=120, blank=True)
+    transport = models.CharField('Transport', max_length=120, blank=True)
+    meal = models.CharField('Meal / experience', max_length=160, blank=True)
+    highlights = models.TextField('Highlights', blank=True, default='')
+    rating = models.PositiveSmallIntegerField('Rating', default=5)
+    reviews = models.PositiveIntegerField('Reviews', default=0)
+    is_featured = models.BooleanField('Join homepage rotation', default=True)
+    is_active = models.BooleanField('Active', default=True)
+    display_order = models.PositiveIntegerField('Display order', default=0)
+    created_at = models.DateTimeField('Created at', auto_now_add=True)
+    updated_at = models.DateTimeField('Updated at', auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', '-updated_at']
+
+    def __str__(self):
+        return self.name
+
+    def highlight_list(self):
+        return [item.strip() for item in self.highlights.splitlines() if item.strip()]
+
+    def to_card_dict(self):
+        return {
+            'id': self.slug,
+            'name': self.name,
+            'destination': self.destination or self.name.split(' ')[0],
+            'price': self.price,
+            'image_url': self.image_url,
+            'fallback_image': self.fallback_image or 'images/packages/p1.jpg',
+            'duration': self.duration,
+            'hotel': self.hotel,
+            'transport': self.transport,
+            'meal': self.meal,
+            'rating': self.rating,
+            'reviews': self.reviews,
+            'highlights': self.highlight_list(),
+        }
+
+
 class TravelBooking(models.Model):
     STATUS_CHOICES = [
         ('confirmed', '已预订'),
