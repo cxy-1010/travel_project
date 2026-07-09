@@ -1098,73 +1098,104 @@
 		</section><!--/.packages-->
 		<!--packages end-->
 
-		<!-- testemonial Start -->
-		<section   class="testemonial">
+		<!-- user comment community start -->
+		<section class="testemonial guide-community" id="guide-section">
 			<div class="container">
+				<div class="guide-community-head">
+					<h2>用户评论交流社区</h2>
+					<p>分享真实旅行体验，收藏有帮助的用户评价与交流内容。</p>
+				</div>
 
-				<div class="gallary-header text-center">
-					<h2>
-						真实旅客评价
-					</h2>
-					<p>
-						听听来自全球各地的游客对我们服务的真实心声。
-					</p>
+				<div class="guide-community-tools">
+					<form method="GET" action="/#guide-section" class="guide-search-form">
+						<input type="text" name="search" value="{{ request.GET.search }}" placeholder="输入城市或关键词，回车搜索">
+					</form>
+					<button type="button" class="guide-write-btn" onclick="openInputModal()">我要写评价</button>
+				</div>
 
-				</div><!--/.gallery-header-->
+				{% if request.GET.search %}
+				<div class="guide-search-results">
+					{% if g_list %}
+						{% for g in g_list %}
+						<div class="custom-guide-card" data-guide-card="{{ g.id }}">
+							<div>
+								<span class="quote-icon-wrap"><i class="fa fa-map-signs"></i></span>
+								<h3 class="card-guide-title">{{ g.title }}</h3>
+								<div class="city-badge-wrap">
+									<span class="city-badge" style="background: {{ g.bg_color }}; color: {{ g.text_color }}; border-color: {{ g.text_color }};">{{ g.destination }}</span>
+								</div>
+								<p class="card-guide-content">{{ g.content|truncatechars:130 }}</p>
+							</div>
+							<div>
+								<div class="card-divider"></div>
+								<div class="guide-card-meta">
+									<span><i class="fa fa-user-circle"></i> {{ g.user.username }}</span>
+									<span>{{ g.created_at|date:"m-d H:i" }}</span>
+								</div>
+								<div class="guide-actions">
+									<button type="button" class="guide-action-btn guide-like-btn {% if g.is_liked %}is-liked{% endif %}" data-guide-id="{{ g.id }}" aria-pressed="{% if g.is_liked %}true{% else %}false{% endif %}">
+										<i class="fa fa-thumbs-up"></i><span class="like-label">{% if g.is_liked %}已赞{% else %}点赞{% endif %}</span> <span class="like-count">{{ g.likes }}</span>
+									</button>
+									<button type="button" class="guide-action-btn guide-detail-btn" data-guide-id="{{ g.id }}">
+										<i class="fa fa-comments"></i>详情
+									</button>
+								</div>
+							</div>
+						</div>
+						{% endfor %}
+					{% else %}
+						<div class="guide-empty-card">
+							<p>没有找到关于 “{{ request.GET.search }}” 的用户评价。</p>
+							<a href="/">查看全部内容</a>
+						</div>
+					{% endif %}
+				</div>
+				{% else %}
+				<div class="owl-carousel owl-theme" id="guide-carousel">
+					{% for g in g_list %}
+					<div class="item">
+						<div class="custom-guide-card">
+							<div>
+								<span class="quote-icon-wrap"><i class="fa fa-map-signs"></i></span>
+								<h3 class="card-guide-title">{{ g.title }}</h3>
+								<div class="city-badge-wrap">
+									<span class="city-badge" style="background: {{ g.bg_color }}; color: {{ g.text_color }}; border-color: {{ g.text_color }};">{{ g.destination }}</span>
+								</div>
+								<p class="card-guide-content">{{ g.content|truncatechars:120 }}</p>
+							</div>
+							<div>
+								<div class="card-divider"></div>
+								<div class="guide-card-meta">
+									<span><i class="fa fa-user-circle"></i> {{ g.user.username }}</span>
+									<span>{{ g.created_at|date:"m-d H:i" }}</span>
+								</div>
+								<div class="guide-actions">
+									<button type="button" class="guide-action-btn guide-like-btn {% if g.is_liked %}is-liked{% endif %}" data-guide-id="{{ g.id }}" aria-pressed="{% if g.is_liked %}true{% else %}false{% endif %}">
+										<i class="fa fa-thumbs-up"></i><span class="like-label">{% if g.is_liked %}已赞{% else %}点赞{% endif %}</span> <span class="like-count">{{ g.likes }}</span>
+									</button>
+									<button type="button" class="guide-action-btn guide-detail-btn" data-guide-id="{{ g.id }}">
+										<i class="fa fa-comments"></i>详情
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					{% empty %}
+					<div class="item">
+						<div class="guide-empty-card">
+							<p>暂无用户评价，来发布第一条旅行体验吧。</p>
+						</div>
+					</div>
+					{% endfor %}
+				</div>
+				{% endif %}
 
-				<div class="owl-carousel owl-theme" id="testemonial-carousel">
-
-					<div class="home1-testm item">
-						<div class="home1-testm-single text-center">
-							<div class="home1-testm-img">
-								<img src="{% static 'images/client/testimonial1.jpg' %}" alt="img"/>
-							</div><!--/.home1-testm-img-->
-							<div class="home1-testm-txt">
-								<span class="icon section-icon">
-									<i class="fa fa-quote-left" aria-hidden="true"></i>
-								</span>
-								<p>
-									这次旅行体验太棒了！导游非常专业，机票和五星级酒店的比价帮我省了一大笔钱。 
-								</p>
-								<h3>
-									<a href="#">
-										凯文·沃森
-									</a>
-								</h3>
-								<h4>英国，伦敦</h4>
-							</div><!--/.home1-testm-txt-->	
-						</div><!--/.home1-testm-single-->
-
-					</div><!--/.item-->
-
-					<div class="home1-testm item">
-						<div class="home1-testm-single text-center">
-							<div class="home1-testm-img">
-								<img src="{% static 'images/client/testimonial2.jpg' %}" alt="img"/>
-							</div><!--/.home1-testm-img-->
-							<div class="home1-testm-txt">
-								<span class="icon section-icon">
-									<i class="fa fa-quote-left" aria-hidden="true"></i>
-								</span>
-								<p>
-									非常高效的在线机票预订服务，酒店的位置也极好。全五星好评！
-								</p>
-								<h3>
-									<a href="#">
-										珍妮·苏
-									</a>
-								</h3>
-								<h4>美国，纽约</h4>
-							</div><!--/.home1-testm-txt-->	
-						</div><!--/.home1-testm-single-->
-
-					</div><!--/.item-->
-
-				</div><!--/.testemonial-carousel-->
-			</div><!--/.container-->
-
-		</section><!--/.testimonial-->	
-		<!-- testemonial End -->
+				<div class="guide-more-wrap">
+					<a href="/comments/" class="guide-more-link">查看更多评价</a>
+				</div>
+			</div>
+		</section>
+		<!-- user comment community end -->
 
 
 		<!--blog start-->
@@ -1411,6 +1442,525 @@
 
 		<!--Custom JS-->
 		<script src="{% static 'js/custom.js' %}"></script>
+
+		<div id="review-modal" class="review-modal">
+			<div class="review-modal-panel">
+				<button type="button" class="review-modal-close" onclick="closeReviewModal()">&times;</button>
+				<h3 id="modal-title">评价详情</h3>
+				<p id="modal-content"></p>
+				<div class="review-modal-meta">
+					<span id="modal-author"></span>
+					<span id="modal-destination"></span>
+				</div>
+				<div class="review-modal-comments">
+					<h4>互动评论</h4>
+					<div id="modal-comments"></div>
+					<form id="modal-comment-form">
+						<input type="text" id="modal-comment-input" placeholder="写一句补充建议或体验...">
+						<button type="submit" class="guide-action-btn">发送</button>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<div id="input-modal" class="review-modal">
+			<div class="review-input-panel">
+				<button type="button" class="review-modal-close" onclick="closeInputModal()">&times;</button>
+				<h3>分享您的旅行足迹</h3>
+				<form method="POST" action="/api/guides/create/" id="guide-form" onsubmit="submitGuide(event)">
+					{% csrf_token %}
+					<label>评价标题</label>
+					<input type="text" name="title" required placeholder="如：震撼人心的神华之旅">
+					<label>目的地城市</label>
+					<input type="text" name="destination" required placeholder="如：北京、拉萨、大理">
+					<label>评价正文</label>
+					<textarea name="content" required rows="4" placeholder="写下这一刻您的真实感悟与游玩建议..."></textarea>
+					<button type="submit" class="guide-submit-btn">立即发布评价</button>
+				</form>
+			</div>
+		</div>
+
+		<style>
+			.guide-community {
+				background: #f8fafc;
+				overflow: hidden;
+				padding: 68px 0;
+			}
+			.guide-community-head {
+				margin-bottom: 30px;
+				text-align: center;
+			}
+			.guide-community-head h2 {
+				color: #1e293b;
+				font-size: 32px;
+				font-weight: 800;
+				margin: 0;
+			}
+			.guide-community-head p {
+				color: #64748b;
+				font-size: 15px;
+				margin-top: 10px;
+			}
+			.guide-community-tools {
+				align-items: center;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 18px;
+				justify-content: center;
+				margin-bottom: 36px;
+			}
+			.guide-search-form {
+				margin: 0;
+				max-width: 320px;
+				width: 100%;
+			}
+			.guide-search-form input {
+				border: 2px solid #e2e8f0;
+				border-radius: 999px;
+				box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+				font-size: 14px;
+				outline: none;
+				padding: 12px 18px;
+				width: 100%;
+			}
+			.guide-search-form input:focus {
+				border-color: #007bff;
+			}
+			.guide-write-btn,
+			.guide-submit-btn {
+				background: linear-gradient(135deg, #007bff, #0056b3);
+				border: 0;
+				border-radius: 999px;
+				box-shadow: 0 8px 20px rgba(0, 123, 255, 0.22);
+				color: #fff;
+				cursor: pointer;
+				font-size: 15px;
+				font-weight: 700;
+				padding: 12px 26px;
+			}
+			#guide-carousel {
+				padding: 20px 0 26px;
+			}
+			#guide-carousel .owl-stage-outer {
+				padding: 30px 0 !important;
+			}
+			#guide-carousel .owl-item {
+				filter: blur(1px) brightness(82%);
+				opacity: 0.38;
+				transform: scale(0.86);
+				transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+				z-index: 1;
+			}
+			#guide-carousel .owl-item.center {
+				filter: blur(0) brightness(100%) !important;
+				opacity: 1 !important;
+				transform: scale(1.06) !important;
+				z-index: 10 !important;
+			}
+			.custom-guide-card {
+				background: #fff;
+				border: 1px solid rgba(15, 23, 42, 0.06);
+				border-radius: 16px;
+				box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				margin: 15px;
+				min-height: 320px;
+				padding: 34px 25px;
+				transition: all 0.35s ease;
+			}
+			#guide-carousel .owl-item.center .custom-guide-card {
+				border-color: rgba(0, 123, 255, 0.2);
+				box-shadow: 0 24px 48px rgba(0, 123, 255, 0.2);
+			}
+			.quote-icon-wrap {
+				background: rgba(0, 123, 255, 0.09);
+				border-radius: 50%;
+				color: #007bff;
+				display: inline-block;
+				font-size: 16px;
+				height: 40px;
+				line-height: 40px;
+				margin-bottom: 15px;
+				text-align: center;
+				width: 40px;
+			}
+			.card-guide-title {
+				color: #253044;
+				font-size: 18px;
+				font-weight: 800;
+				line-height: 1.4;
+				margin: 0 0 12px;
+			}
+			.card-guide-content {
+				color: #64748b;
+				font-size: 14px;
+				line-height: 1.75;
+				margin: 15px 0;
+				text-align: justify;
+			}
+			.city-badge {
+				border: 1px solid;
+				border-radius: 999px;
+				display: inline-block;
+				font-size: 12px;
+				font-weight: 700;
+				padding: 4px 14px;
+			}
+			.card-divider {
+				background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+				height: 1px;
+				margin: 20px 0 14px;
+			}
+			.guide-card-meta {
+				align-items: center;
+				color: #64748b;
+				display: flex;
+				font-size: 12px;
+				justify-content: space-between;
+				gap: 10px;
+			}
+			.guide-actions {
+				display: flex;
+				gap: 8px;
+				margin-top: 14px;
+			}
+			.guide-action-btn {
+				background: #eff6ff;
+				border: 1px solid #dbeafe;
+				border-radius: 999px;
+				color: #2563eb;
+				cursor: pointer;
+				font-size: 12px;
+				font-weight: 800;
+				line-height: 1;
+				padding: 8px 12px;
+				transition: all 0.2s ease;
+			}
+			.guide-action-btn:hover,
+			.guide-like-btn.is-liked {
+				background: #2563eb;
+				border-color: #2563eb;
+				color: #fff;
+			}
+			.guide-search-results {
+				align-items: stretch;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 24px;
+				justify-content: center;
+			}
+			.guide-search-results .custom-guide-card {
+				max-width: 350px;
+				width: 100%;
+			}
+			.guide-empty-card {
+				background: #fff;
+				border: 1px solid #e2e8f0;
+				border-radius: 16px;
+				color: #64748b;
+				padding: 34px;
+				text-align: center;
+			}
+			.guide-more-wrap {
+				margin-top: 24px;
+				text-align: center;
+			}
+			.guide-more-link {
+				background: #fff;
+				border: 2px solid #007bff;
+				border-radius: 999px;
+				color: #007bff;
+				font-size: 15px;
+				font-weight: 800;
+				padding: 12px 30px;
+			}
+			.guide-more-link:hover {
+				background: #007bff;
+				color: #fff;
+			}
+			.review-modal {
+				align-items: center;
+				background: rgba(15, 23, 42, 0.65);
+				display: none;
+				inset: 0;
+				justify-content: center;
+				padding: 16px;
+				position: fixed;
+				z-index: 9999;
+			}
+			.review-modal-panel,
+			.review-input-panel {
+				background: #fff;
+				border-radius: 16px;
+				box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+				max-width: 620px;
+				padding: 28px;
+				position: relative;
+				width: 90%;
+			}
+			.review-input-panel {
+				max-width: 480px;
+			}
+			.review-modal-close {
+				background: #f1f5f9;
+				border: 0;
+				border-radius: 50%;
+				color: #64748b;
+				cursor: pointer;
+				font-size: 20px;
+				height: 32px;
+				position: absolute;
+				right: 18px;
+				top: 18px;
+				width: 32px;
+			}
+			#modal-title,
+			.review-input-panel h3 {
+				color: #0f172a;
+				font-size: 22px;
+				font-weight: 800;
+				margin: 0 38px 16px 0;
+			}
+			#modal-content {
+				color: #334155;
+				font-size: 15px;
+				line-height: 1.8;
+				max-height: 230px;
+				overflow-y: auto;
+				white-space: pre-wrap;
+			}
+			.review-modal-meta {
+				border-top: 1px solid #e2e8f0;
+				color: #64748b;
+				display: flex;
+				font-size: 13px;
+				gap: 16px;
+				padding-top: 10px;
+			}
+			.review-modal-comments h4 {
+				color: #0f172a;
+				font-size: 15px;
+				margin: 18px 0 10px;
+			}
+			#modal-comments {
+				background: #f8fafc;
+				border: 1px solid #e2e8f0;
+				border-radius: 12px;
+				color: #475569;
+				font-size: 13px;
+				max-height: 140px;
+				overflow-y: auto;
+				padding: 12px;
+			}
+			#modal-comment-form {
+				display: flex;
+				gap: 8px;
+				margin-top: 10px;
+			}
+			#modal-comment-form input,
+			.review-input-panel input,
+			.review-input-panel textarea {
+				border: 2px solid #e2e8f0;
+				border-radius: 10px;
+				font-size: 14px;
+				margin: 6px 0 14px;
+				outline: none;
+				padding: 10px 14px;
+				width: 100%;
+			}
+			#modal-comment-form input {
+				border-width: 1px;
+				flex: 1;
+				margin: 0;
+			}
+			.review-input-panel label {
+				color: #475569;
+				display: block;
+				font-size: 13px;
+				font-weight: 800;
+			}
+			.guide-submit-btn {
+				border-radius: 12px;
+				width: 100%;
+			}
+		</style>
+
+		<script>
+			$(document).ready(function(){
+				var carousel = $("#guide-carousel");
+				if (carousel.length && jQuery.fn.owlCarousel) {
+					if (carousel.data('owl.carousel')) {
+						carousel.owlCarousel('destroy');
+					}
+					carousel.owlCarousel({
+						center: true,
+						items: 3,
+						loop: carousel.find('.item').length > 1,
+						margin: 20,
+						autoplay: true,
+						autoplayTimeout: 4000,
+						smartSpeed: 800,
+						mouseDrag: true,
+						touchDrag: true,
+						dots: true,
+						nav: false,
+						responsive: {
+							0: { items: 1 },
+							768: { items: 2 },
+							992: { items: 3 }
+						}
+					});
+				}
+			});
+
+			let currentModalGuideId = null;
+
+			function openInputModal() {
+				document.getElementById('input-modal').style.display = 'flex';
+			}
+
+			function closeInputModal() {
+				document.getElementById('input-modal').style.display = 'none';
+			}
+
+			function escapeHtml(text) {
+				const div = document.createElement('div');
+				div.innerText = text || '';
+				return div.innerHTML;
+			}
+
+			function renderModalComments(comments) {
+				const box = document.getElementById('modal-comments');
+				if (!comments || comments.length === 0) {
+					box.innerHTML = '<div style="color:#94a3b8;">暂无评论，来补充第一条旅行建议吧。</div>';
+					return;
+				}
+				box.innerHTML = comments.map(comment => `
+					<div style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+						<div style="font-weight: 700; color:#334155;">${escapeHtml(comment.author || '游客')} <span style="font-weight:400; color:#94a3b8;">${escapeHtml(comment.created_at || '')}</span></div>
+						<div style="margin-top: 4px;">${escapeHtml(comment.content)}</div>
+					</div>
+				`).join('');
+			}
+
+			async function openReviewModalById(guideId) {
+				try {
+					const response = await fetch(`/api/guides/${guideId}/`);
+					const result = await response.json();
+					if (result.status !== 'success') {
+						alert(result.message || '评价详情加载失败');
+						return;
+					}
+					const guide = result.data;
+					currentModalGuideId = guide.id;
+					document.getElementById('modal-title').innerText = guide.title;
+					document.getElementById('modal-content').innerText = guide.content;
+					document.getElementById('modal-author').innerText = "作者：" + guide.author;
+					document.getElementById('modal-destination').innerText = "目的地：" + guide.destination;
+					renderModalComments(guide.comments);
+					document.getElementById('modal-comment-input').value = '';
+					document.getElementById('review-modal').style.display = 'flex';
+				} catch (error) {
+					alert('评价详情加载失败，请稍后重试');
+				}
+			}
+
+			function closeReviewModal() {
+				document.getElementById('review-modal').style.display = 'none';
+			}
+
+			async function likeGuide(guideId, button) {
+				try {
+					const response = await fetch(`/api/guides/${guideId}/like/`, { method: 'POST' });
+					const result = await response.json();
+					if (result.status === 'success') {
+						button.querySelector('.like-count').innerText = result.likes;
+						button.querySelector('.like-label').innerText = result.liked ? '已赞' : '点赞';
+						button.classList.toggle('is-liked', result.liked);
+						button.setAttribute('aria-pressed', result.liked ? 'true' : 'false');
+					}
+				} catch (error) {
+					alert('点赞失败，请稍后重试');
+				}
+			}
+
+			document.addEventListener('click', function(event) {
+				const likeButton = event.target.closest('.guide-like-btn');
+				if (likeButton) {
+					likeGuide(likeButton.dataset.guideId, likeButton);
+					return;
+				}
+				const detailButton = event.target.closest('.guide-detail-btn');
+				if (detailButton) {
+					openReviewModalById(detailButton.dataset.guideId);
+				}
+			});
+
+			document.getElementById('modal-comment-form').addEventListener('submit', async function(event) {
+				event.preventDefault();
+				if (!currentModalGuideId) return;
+				const input = document.getElementById('modal-comment-input');
+				const content = input.value.trim();
+				if (!content) return;
+
+				try {
+					const response = await fetch(`/api/guides/${currentModalGuideId}/comment/`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ content })
+					});
+					const result = await response.json();
+					if (result.status === 'success') {
+						input.value = '';
+						openReviewModalById(currentModalGuideId);
+					} else {
+						alert(result.message || '评论失败');
+					}
+				} catch (error) {
+					alert('评论失败，请稍后重试');
+				}
+			});
+
+			function submitGuide(event) {
+				event.preventDefault();
+				const form = event.target;
+				const tokenInput = form.querySelector('[name=csrfmiddlewaretoken]');
+				fetch('/api/guides/create/', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': tokenInput ? tokenInput.value : ''
+					},
+					body: JSON.stringify({
+						title: form.querySelector('[name=title]').value,
+						destination: form.querySelector('[name=destination]').value,
+						content: form.querySelector('[name=content]').value
+					})
+				})
+				.then(response => response.json())
+				.then(result => {
+					if (result.status === 'success') {
+						closeInputModal();
+						window.location.href = '/#guide-section';
+						window.location.reload();
+					} else {
+						alert('发布失败：' + (result.message || '未知错误'));
+					}
+				})
+				.catch(() => {
+					alert('发布失败，请稍后重试');
+				});
+			}
+
+			window.addEventListener('click', function(event) {
+				const reviewModal = document.getElementById('review-modal');
+				const inputModal = document.getElementById('input-modal');
+				if (event.target === reviewModal) closeReviewModal();
+				if (event.target === inputModal) closeInputModal();
+			});
+		</script>
 
 		<!--AI Search JS-->
 		<script>

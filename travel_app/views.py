@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.db.utils import OperationalError, ProgrammingError
 from django.db.models import Q
 import json
 import os
@@ -201,12 +202,62 @@ def get_deepseek_api_key():
 def index(request):
     travel_packages = get_featured_packages()
     hot_destinations = enrich_destination_route_counts(HOT_DESTINATIONS)
+    search_query = request.GET.get('search', '').strip()
+    guides = []
+    latest_news = []
+    favorite_guides = []
+
+    try:
+        guides = Guide.objects.select_related('user').prefetch_related('favorites').all()
+
+        if search_query:
+            guides = guides.filter(
+                Q(destination__icontains=search_query) |
+                Q(title__icontains=search_query) |
+                Q(content__icontains=search_query)
+            )
+        guides = list(guides.order_by('-likes', '-created_at')[:6])
+
+        color_palette = [
+            ("#FFF5F5", "#E53E3E"), ("#EBF8FF", "#3182CE"),
+            ("#F0FDF4", "#16A34A"), ("#FFFDF5", "#D97706"),
+            ("#F3E8FF", "#8B5CF6"), ("#ECEFEE", "#0D9488")
+        ]
+        city_color_map = {}
+        color_index = 0
+        for guide in guides:
+            city = guide.destination
+            if city not in city_color_map:
+                city_color_map[city] = color_palette[color_index % len(color_palette)]
+                color_index += 1
+            guide.bg_color = city_color_map[city][0]
+            guide.text_color = city_color_map[city][1]
+            guide.is_liked = _is_guide_liked(request, guide.id)
+            guide.is_favorited = _is_guide_favorited(request, guide.id)
+            guide.favorite_count = guide.favorites.count()
+
+        latest_news = list(TravelNews.objects.all().order_by('-views_count', '-created_at')[:3])
+        for news in latest_news:
+            news.is_favorited = _is_news_favorited(request, news.id)
+
+        favorite_ids = _favorite_guide_ids(request)
+        favorite_guides = list(
+            Guide.objects.select_related('user').filter(id__in=favorite_ids).order_by('-created_at')
+        )
+    except (OperationalError, ProgrammingError):
+        guides = []
+        latest_news = []
+        favorite_guides = []
+
     return render(
         request,
         'index.html',
         {
             'travel_packages': travel_packages,
             'hot_destinations': hot_destinations,
+            'g_list': guides,
+            'favorite_guides': favorite_guides,
+            'news_list': latest_news,
         },
     )
 
