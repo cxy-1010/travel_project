@@ -1,0 +1,45 @@
+{% extends 'auth_base.html' %}
+{% load static %}
+
+{% block title %}我的预订 - TourNest{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+{% block panel_class %}profile-panel booking-panel{% endblock %}
+{% block kicker %}个人中心{% endblock %}
+{% block heading %}已预订的旅游套餐{% endblock %}
+
+{% block content %}
+    {% if bookings %}
+        <div class="booking-list">
+            {% for booking in bookings %}
+                <article class="booking-list-card">
+                    <img src="{% if booking.image_url|slice:':4' == 'http' %}{{ booking.image_url }}{% else %}{% static booking.image_url %}{% endif %}" alt="{{ booking.package_name }}">
+                    <div class="booking-list-body">
+                        <div class="booking-list-head">
+                            <div>
+                                <h2>{{ booking.package_name }}</h2>
+                                <p>{{ booking.destination }} · {{ booking.duration }} · {{ booking.travelers }} 人</p>
+                            </div>
+                            <span>{{ booking.get_status_display }}</span>
+                        </div>
+                        <div class="booking-list-meta">
+                            <span><i class="fa fa-money"></i> {{ booking.price }}</span>
+                            <span><i class="fa fa-calendar"></i> 出发：{{ booking.start_date|date:"Y-m-d"|default:"待确认" }}</span>
+                            <span><i class="fa fa-clock-o"></i> 预订：{{ booking.booked_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        <div class="booking-actions">
+                            <a class="booking-detail-link" href="{% url 'booking_detail' booking.id %}">查看详情</a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-bookings">
+            <i class="fa fa-suitcase"></i>
+            <h2>还没有已预订套餐</h2>
+            <p>去首页选择一个喜欢的热门套餐，点击“立即预订”后会显示在这里。</p>
+            <a href="{% url 'index' %}#pack">去选择套餐</a>
+        </div>
+    {% endif %}
+    <p class="auth-switch"><a href="{% url 'profile' %}">返回个人中心</a></p>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'auth_base.html' %}
+{% load static %}
+
+{% block title %}预订详情 - TourNest{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+{% block panel_class %}profile-panel booking-panel{% endblock %}
+{% block kicker %}预订详情{% endblock %}
+{% block heading %}{{ booking.package_name }}{% endblock %}
+
+{% block content %}
+    <article class="booking-package-card booking-detail-card">
+        <img src="{% if booking.image_url|slice:':4' == 'http' %}{{ booking.image_url }}{% else %}{% static booking.image_url %}{% endif %}" alt="{{ booking.package_name }}">
+        <div>
+            <p class="booking-price">{{ booking.price }}</p>
+            <ul>
+                <li><i class="fa fa-map-marker"></i> {{ booking.destination|default:"目的地待确认" }}</li>
+                <li><i class="fa fa-calendar"></i> {{ booking.duration }} · 出发 {{ booking.start_date|date:"Y-m-d"|default:"待确认" }}</li>
+                <li><i class="fa fa-user"></i> {{ booking.travelers }} 人</li>
+                <li><i class="fa fa-phone"></i> {{ booking.contact_phone|default:"未填写联系电话" }}</li>
+                <li><i class="fa fa-hotel"></i> {{ booking.hotel }}</li>
+                <li><i class="fa fa-car"></i> {{ booking.transport }}</li>
+                <li><i class="fa fa-cutlery"></i> {{ booking.meal }}</li>
+                <li><i class="fa fa-check-circle"></i> {{ booking.get_status_display }}</li>
+            </ul>
+            {% if booking.note %}
+                <div class="booking-note">
+                    <h3>备注</h3>
+                    <p>{{ booking.note }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </article>
+    <p class="auth-switch"><a href="{% url 'my_bookings' %}">返回我的预订</a></p>
+{% endblock %}

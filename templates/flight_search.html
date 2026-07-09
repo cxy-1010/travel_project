@@ -1,0 +1,76 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>TourNest 特价机票</title>
+	<link rel="shortcut icon" type="image/icon" href="{% static 'logo/favicon.png' %}"/>
+	<link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" />
+	<link rel="stylesheet" href="{% static 'css/flight_search.css' %}?v=flight-ai-stream-3" />
+</head>
+<body>
+	<header class="flight-topbar">
+		<a class="brand-link" href="/">tour<span>Nest</span></a>
+		<div class="top-search"><i class="fa fa-search"></i><input type="text" placeholder="搜索任何旅游相关"></div>
+		<a class="home-link" href="/"><i class="fa fa-home"></i> 首页</a>
+	</header>
+
+	<section class="flight-search-bar">
+		<div class="field"><i class="fa fa-plane"></i><input id="flight-from" type="text" placeholder="出发城市"></div>
+		<div class="field"><i class="fa fa-map-marker"></i><input id="flight-to" type="text" placeholder="到达城市"></div>
+		<div class="field"><i class="fa fa-calendar"></i><input id="flight-departure" type="text" placeholder="出发日期"></div>
+		<div class="field"><input id="flight-return" type="text" placeholder="返回日期"></div>
+		<div class="field"><i class="fa fa-user"></i><input id="flight-passengers" type="text" placeholder="1成人"></div>
+		<button id="flight-search-btn"><i class="fa fa-search"></i> 搜索</button>
+	</section>
+
+	<main class="flight-layout">
+		<aside class="filter-panel">
+			<div class="filter-card">
+				<h3>价格</h3>
+				<div class="price-range"><span></span><span></span></div>
+				<div id="price-filters" class="chip-grid">
+					<button data-price="0-600">¥0 - ¥600</button>
+					<button data-price="600-1000">¥600 - ¥1000</button>
+					<button data-price="1000-1600">¥1000 - ¥1600</button>
+					<button data-price="1600-99999">¥1600+</button>
+				</div>
+			</div>
+
+			<div class="filter-card">
+				<h3>航班偏好</h3>
+				<label><input type="checkbox" value="direct"> 只看直飞</label>
+				<label><input type="checkbox" value="early"> 早班机</label>
+				<label><input type="checkbox" value="luggage"> 含托运行李</label>
+				<label><input type="checkbox" value="refund"> 退改灵活</label>
+			</div>
+
+			<div class="tip-card">
+				<i class="fa fa-lightbulb-o"></i>
+				<p>结果默认按价格从低到高排序，详情会跳转到相关机票搜索页面。</p>
+			</div>
+		</aside>
+
+		<section class="flight-results">
+			<div class="result-toolbar">
+				<div>
+					<h1 id="result-title">特价机票</h1>
+					<p id="result-subtitle">正在整理最低价航班</p>
+				</div>
+				<select id="sort-select">
+					<option value="priceAsc">价格从低到高</option>
+					<option value="departAsc">起飞时间从早到晚</option>
+					<option value="durationAsc">飞行时间最短</option>
+				</select>
+			</div>
+
+			<div class="flight-summary" id="flight-summary"></div>
+			<div id="flight-list" class="flight-list"></div>
+		</section>
+	</main>
+
+	<script src="{% static 'js/flight_search.js' %}?v=flight-ai-stream-3"></script>
+</body>
+</html>

@@ -674,6 +674,103 @@
 		</section><!--/.service-->
 		<!--service end-->
 
+		<section id="feature-center" style="padding: 58px 0; background: #f8fafc;">
+			<div class="container">
+				<div class="gallary-header text-center">
+					<h2>旅行功能中心</h2>
+					<p>前面合并进来的功能入口统一放在这里，点击即可进入对应页面。</p>
+				</div>
+				<div class="row" style="margin-top: 28px;">
+					<div class="col-md-3 col-sm-6">
+						<a href="/ai-assistant/" class="feature-entry-card">
+							<i class="fa fa-magic"></i>
+							<strong>AI 行程助手</strong>
+							<span>生成路线、预算和出行建议</span>
+						</a>
+					</div>
+					<div class="col-md-3 col-sm-6">
+						<a href="/packages/" class="feature-entry-card">
+							<i class="fa fa-suitcase"></i>
+							<strong>旅游套餐预订</strong>
+							<span>查看国内外精选旅行套餐</span>
+						</a>
+					</div>
+					<div class="col-md-3 col-sm-6">
+						<a href="/hotel-search/" class="feature-entry-card">
+							<i class="fa fa-building"></i>
+							<strong>智能酒店搜索</strong>
+							<span>按城市查找酒店推荐</span>
+						</a>
+					</div>
+					<div class="col-md-3 col-sm-6">
+						<a href="/flight-search/" class="feature-entry-card">
+							<i class="fa fa-plane"></i>
+							<strong>智能机票搜索</strong>
+							<span>查询航班和价格建议</span>
+						</a>
+					</div>
+				</div>
+				<div class="text-center" style="margin-top: 18px;">
+					<a href="/my-bookings/" class="feature-secondary-link">查看我的订单</a>
+					<a href="/favorites/" class="feature-secondary-link">查看我的收藏</a>
+				</div>
+			</div>
+		</section>
+
+		<style>
+			.feature-entry-card {
+				align-items: center;
+				background: #ffffff;
+				border: 1px solid #e2e8f0;
+				border-radius: 8px;
+				box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+				color: #334155;
+				display: flex;
+				flex-direction: column;
+				min-height: 178px;
+				padding: 28px 18px;
+				text-align: center;
+				transition: all 0.2s ease;
+			}
+			.feature-entry-card:hover,
+			.feature-entry-card:focus {
+				color: #0f172a;
+				text-decoration: none;
+				transform: translateY(-4px);
+				box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+			}
+			.feature-entry-card i {
+				color: #00d8ff;
+				font-size: 34px;
+				margin-bottom: 16px;
+			}
+			.feature-entry-card strong {
+				color: #1e293b;
+				font-size: 17px;
+				margin-bottom: 10px;
+			}
+			.feature-entry-card span {
+				color: #64748b;
+				font-size: 13px;
+				line-height: 1.7;
+			}
+			.feature-secondary-link {
+				border: 1px solid #00d8ff;
+				border-radius: 999px;
+				color: #0284c7;
+				display: inline-block;
+				font-size: 13px;
+				font-weight: 700;
+				margin: 6px;
+				padding: 9px 18px;
+			}
+			.feature-secondary-link:hover {
+				background: #00d8ff;
+				color: #ffffff;
+				text-decoration: none;
+			}
+		</style>
+
 		<!--galley start-->
 		<section id="gallery" class="gallery">
 			<div class="container">
@@ -2021,6 +2118,40 @@
 				window.location.reload();
 			});
 		}
+
+		document.addEventListener('DOMContentLoaded', function () {
+			document.querySelectorAll('.book-btn').forEach(function (button) {
+				if ((button.textContent || '').indexOf('立即预订') !== -1) {
+					button.addEventListener('click', function () {
+						window.location.href = '/packages/';
+					});
+				}
+			});
+
+			document.querySelectorAll('.about-view').forEach(function (button) {
+				const text = (button.textContent || '').trim();
+				if (text.indexOf('立刻出发') !== -1 || text.indexOf('定制行程') !== -1) {
+					button.addEventListener('click', function () {
+						window.location.href = '/ai-assistant/';
+					});
+				}
+				if (text.indexOf('搜索酒店') !== -1) {
+					button.addEventListener('click', function () {
+						window.location.href = '/hotel-search/';
+					});
+				}
+				if (text.indexOf('搜索机票') !== -1) {
+					button.addEventListener('click', function () {
+						window.location.href = '/flight-search/';
+					});
+				}
+				if (text.indexOf('立即预订') !== -1 && button.classList.contains('packages-btn')) {
+					button.addEventListener('click', function () {
+						window.location.href = '/packages/';
+					});
+				}
+			});
+		});
 		</script>
 
 	</body>

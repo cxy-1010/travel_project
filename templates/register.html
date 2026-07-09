@@ -1,0 +1,104 @@
+{% extends 'auth_base.html' %}
+
+{% block title %}用户注册 - TourNest{% endblock %}
+{% block kicker %}创建账号{% endblock %}
+{% block heading %}开启你的旅行预订账户{% endblock %}
+
+{% block content %}
+    <form class="auth-form" method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% if field.name == 'email' %}
+                    <div class="email-code-row">
+                        {{ field }}
+                        <button id="send-email-code-btn" class="email-code-btn" type="button">发送验证码</button>
+                    </div>
+                    <p id="email-code-message" class="auth-help"></p>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+                {% if field.help_text %}
+                    <p class="auth-help">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                    <p class="auth-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <button class="auth-submit" type="submit">
+            <i class="fa fa-user-plus"></i>
+            注册并登录
+        </button>
+        <p class="auth-switch">已有账号？<a href="{% url 'login' %}">返回登录</a></p>
+    </form>
+
+    <script>
+    (function() {
+        var button = document.getElementById('send-email-code-btn');
+        var emailInput = document.getElementById('id_email');
+        var message = document.getElementById('email-code-message');
+        var secondsLeft = 0;
+        var timer = null;
+
+        function setMessage(text, isError) {
+            message.textContent = text || '';
+            message.className = isError ? 'auth-error' : 'auth-help';
+        }
+
+        function startCountdown(seconds) {
+            secondsLeft = seconds;
+            button.disabled = true;
+            button.textContent = secondsLeft + '秒后重发';
+            timer = window.setInterval(function() {
+                secondsLeft -= 1;
+                if (secondsLeft <= 0) {
+                    window.clearInterval(timer);
+                    button.disabled = false;
+                    button.textContent = '发送验证码';
+                    return;
+                }
+                button.textContent = secondsLeft + '秒后重发';
+            }, 1000);
+        }
+
+        button.addEventListener('click', function() {
+            var email = (emailInput.value || '').trim();
+            if (!email) {
+                setMessage('请先填写邮箱地址。', true);
+                emailInput.focus();
+                return;
+            }
+            button.disabled = true;
+            button.textContent = '发送中...';
+            setMessage('', false);
+
+            fetch('{% url "send_email_code" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({email: email})
+            }).then(function(response) {
+                return response.json().then(function(data) {
+                    if (!response.ok) {
+                        throw new Error(data.error || '验证码发送失败');
+                    }
+                    return data;
+                });
+            }).then(function(data) {
+                setMessage(data.message || '验证码已发送，请查收邮箱。', false);
+                startCountdown(60);
+            }).catch(function(error) {
+                setMessage(error.message, true);
+                button.disabled = false;
+                button.textContent = '发送验证码';
+            });
+        });
+    })();
+    </script>
+{% endblock %}
