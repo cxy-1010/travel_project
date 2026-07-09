@@ -58,10 +58,10 @@ class RegisterForm(forms.ModelForm):
     email_code = forms.CharField(
         label='邮箱验证码',
         max_length=6,
-        error_messages={'required': '请输入邮箱验证码。'},
+        required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '请输入 6 位邮箱验证码',
+            'placeholder': '未配置邮箱时可留空',
             'maxlength': '6',
         }),
     )
@@ -99,6 +99,8 @@ class RegisterForm(forms.ModelForm):
 
     def clean_email_code(self):
         code = self.cleaned_data.get('email_code', '').strip()
+        if not code:
+            return code
         if not code.isdigit() or len(code) != 6:
             raise forms.ValidationError('请输入 6 位数字邮箱验证码。')
         return code
@@ -113,7 +115,7 @@ class RegisterForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get('email')
-        code = cleaned_data.get('email_code')
+        code = (cleaned_data.get('email_code') or '').strip()
         if not email or not code:
             return cleaned_data
 
@@ -123,7 +125,7 @@ class RegisterForm(forms.ModelForm):
             is_used=False,
         ).order_by('-created_at').first()
         if not verification:
-            self.add_error('email_code', '请先获取邮箱验证码。')
+            self.add_error('email_code', '请先获取邮箱验证码，或留空直接注册。')
             return cleaned_data
         if verification.code != code:
             self.add_error('email_code', '邮箱验证码不正确。')

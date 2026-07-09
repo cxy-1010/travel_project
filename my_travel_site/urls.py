@@ -8,10 +8,11 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from travel_app import views
+from travel_app import booking_views, views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    path('packages/', booking_views.packages_page, name='packages'),
     path('destinations/<str:destination>/packages/', views.destination_packages, name='destination_packages'),
     path('book-package/<str:package_id>/', views.book_package, name='book_package'),
     path('my-bookings/', views.my_bookings, name='my_bookings'),
