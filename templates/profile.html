@@ -1,0 +1,45 @@
+{% extends 'auth_base.html' %}
+
+{% block title %}个人信息 - TourNest{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+{% block panel_class %}profile-panel{% endblock %}
+{% block kicker %}个人中心{% endblock %}
+{% block heading %}查看与编辑个人信息{% endblock %}
+
+{% block content %}
+    <div class="profile-summary">
+        <div class="profile-avatar">
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" alt="{{ user.username }} 的头像">
+            {% else %}
+                <i class="fa fa-user-circle"></i>
+            {% endif %}
+        </div>
+        <div>
+            <h2>{{ user.username }}</h2>
+            <p>注册时间：{{ user.date_joined|date:"Y-m-d H:i" }}</p>
+            <p>上次登录：{{ user.last_login|date:"Y-m-d H:i"|default:"暂无记录" }}</p>
+        </div>
+    </div>
+
+    <form class="auth-form" method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <p class="auth-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <button class="auth-submit" type="submit">
+            <i class="fa fa-save"></i>
+            保存修改
+        </button>
+        <p class="auth-switch"><a href="{% url 'index' %}">返回首页</a></p>
+    </form>
+{% endblock %}

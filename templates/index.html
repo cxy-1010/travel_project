@@ -50,6 +50,7 @@
 
 		<!--responsive.css-->
 		<link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
+		<link rel="stylesheet" href="{% static 'css/auth.css' %}" />
 
 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -96,10 +97,28 @@
 										<li class="smooth-menu"><a href="#spo">特惠活动</a></li>
 										<li class="smooth-menu"><a href="#blog">旅游攻略</a></li>
 										<li class="smooth-menu"><a href="#subs">订阅我们</a></li>
-										<li>
-											<button class="book-btn">立即预订
-											</button>
-										</li><!--/.project-btn--> 
+										{% if user.is_authenticated %}
+											<li class="user-menu-item">
+												<a class="nav-user" href="{% url 'profile' %}" title="查看或编辑个人信息">
+													{% if user.profile.avatar %}
+														<img class="nav-avatar" src="{{ user.profile.avatar.url }}" alt="{{ user.username }} 的头像">
+													{% else %}
+														<i class="fa fa-user-circle"></i>
+													{% endif %}
+													{{ user.username }}
+												</a>
+											</li>
+											<li>
+												<a class="book-btn nav-action-btn" href="{% url 'logout' %}">退出</a>
+											</li>
+										{% else %}
+											<li>
+												<a class="book-btn nav-action-btn" href="{% url 'login' %}">登录</a>
+											</li>
+											<li>
+												<a class="book-btn nav-action-btn nav-register-btn" href="{% url 'register' %}">注册</a>
+											</li>
+										{% endif %}
 									</ul>
 								</div><!-- /.navbar-collapse -->
 							</div><!-- /.main-menu-->
