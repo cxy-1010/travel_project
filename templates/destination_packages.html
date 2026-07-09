@@ -44,7 +44,7 @@
 		<div class="package-grid">
 			{% for package in packages %}
 			<article class="destination-package-card">
-				<img src="{{ package.image_url }}" alt="{{ package.name }}" loading="lazy">
+				<img src="{% if package.image_url|slice:':4' == 'http' %}{{ package.image_url }}{% else %}{% static package.image_url %}{% endif %}" alt="{{ package.name }}" loading="lazy" onerror="this.onerror=null;this.src='{% static package.fallback_image|default:'images/packages/p1.jpg' %}';">
 				<div class="package-card-body">
 					<div class="package-title-row">
 						<h3>{{ package.name }}</h3>

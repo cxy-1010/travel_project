@@ -317,6 +317,7 @@ def get_destination_packages(destination_name):
         if not package['highlights']:
             package['highlights'] = [package['hotel'], package['transport'], package['meal']]
             package['highlights'] = [item for item in package['highlights'] if item]
+        package['fallback_image'] = package.get('fallback_image') or 'images/packages/p1.jpg'
     return db_packages or build_destination_packages(destination_name)
 
 
@@ -497,7 +498,7 @@ def build_destination_packages(destination_name):
             },
         ],
     }
-    return destination_package_map.get(destination_name, [
+    packages = destination_package_map.get(destination_name, [
         {
             'name': f'{destination_name}精选深度游 5 日',
             'price': '¥6,999 起',
@@ -508,6 +509,9 @@ def build_destination_packages(destination_name):
             'transport': '当地接送服务',
         },
     ])
+    for index, package in enumerate(packages):
+        package.setdefault('fallback_image', f'images/packages/p{index % 6 + 1}.jpg')
+    return packages
 
 
 def ai_assistant(request):
