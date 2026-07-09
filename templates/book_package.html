@@ -1,0 +1,46 @@
+{% extends 'auth_base.html' %}
+
+{% block title %}确认预订 - TourNest{% endblock %}
+{% block body_class %}profile-page{% endblock %}
+{% block panel_class %}profile-panel booking-panel{% endblock %}
+{% block kicker %}套餐预订{% endblock %}
+{% block heading %}确认您的旅游套餐{% endblock %}
+
+{% block content %}
+    <div class="booking-layout">
+        <article class="booking-package-card">
+            <img src="{{ package.image_url }}" alt="{{ package.name }}">
+            <div>
+                <h2>{{ package.name }}</h2>
+                <p class="booking-price">{{ package.price }}</p>
+                <ul>
+                    <li><i class="fa fa-calendar"></i> {{ package.duration }}</li>
+                    <li><i class="fa fa-hotel"></i> {{ package.hotel }}</li>
+                    <li><i class="fa fa-car"></i> {{ package.transport }}</li>
+                    <li><i class="fa fa-cutlery"></i> {{ package.meal }}</li>
+                </ul>
+            </div>
+        </article>
+
+        <form class="auth-form booking-form" method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p class="auth-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button class="auth-submit" type="submit">
+                <i class="fa fa-check"></i>
+                确认预订
+            </button>
+            <p class="auth-switch"><a href="{% url 'index' %}">返回首页重新选择</a></p>
+        </form>
+    </div>
+{% endblock %}

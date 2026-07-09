@@ -1,11 +1,18 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
-from django.shortcuts import redirect, render
+from django.conf import settings
+from django.core.mail import send_mail
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 import json
 import os
+import random
 import time
 from pathlib import Path
 from urllib.parse import quote
@@ -14,8 +21,8 @@ from django.views.decorators.csrf import csrf_exempt
 import httpx
 from openai import OpenAI
 
-from .forms import LoginForm, ProfileForm, RegisterForm
-from .models import UserProfile
+from .forms import LoginForm, ProfileForm, RegisterForm, TravelBookingForm
+from .models import EmailVerificationCode, TravelBooking, UserProfile
 
 
 HOTEL_SEARCH_CACHE = {}
@@ -26,6 +33,7 @@ FLIGHT_SEARCH_CACHE_SECONDS = 15 * 60
 
 TRAVEL_PACKAGES = [
     {
+        'id': 'santorini-volcano-sea',
         'name': '希腊圣托里尼火山海景 6 日',
         'price': '¥8,999 起',
         'image_url': 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=900&q=80',
@@ -38,6 +46,7 @@ TRAVEL_PACKAGES = [
         'reviews': 2680,
     },
     {
+        'id': 'kyoto-culture',
         'name': '日本京都古都文化 5 日',
         'price': '¥6,499 起',
         'image_url': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=900&q=80',
@@ -50,6 +59,7 @@ TRAVEL_PACKAGES = [
         'reviews': 2146,
     },
     {
+        'id': 'bali-ubud-coast',
         'name': '巴厘岛海岸与乌布疗愈 6 日',
         'price': '¥7,299 起',
         'image_url': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=900&q=80',
@@ -62,6 +72,7 @@ TRAVEL_PACKAGES = [
         'reviews': 3098,
     },
     {
+        'id': 'swiss-alps-train',
         'name': '瑞士少女峰全景列车 7 日',
         'price': '¥16,800 起',
         'image_url': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80',
@@ -74,6 +85,7 @@ TRAVEL_PACKAGES = [
         'reviews': 1864,
     },
     {
+        'id': 'paris-art-seine',
         'name': '巴黎艺术与塞纳河漫游 5 日',
         'price': '¥9,699 起',
         'image_url': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=900&q=80',
@@ -86,6 +98,7 @@ TRAVEL_PACKAGES = [
         'reviews': 2410,
     },
     {
+        'id': 'maldives-island',
         'name': '马尔代夫双人岛屿假期 6 日',
         'price': '¥14,999 起',
         'image_url': 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=900&q=80',
@@ -180,6 +193,59 @@ def index(request):
             'hot_destinations': HOT_DESTINATIONS,
         },
     )
+
+
+def get_home_package(package_id):
+    return next((package for package in TRAVEL_PACKAGES if package['id'] == package_id), None)
+
+
+@login_required
+def book_package(request, package_id):
+    package = get_home_package(package_id)
+    if package is None:
+        messages.error(request, '未找到该旅游套餐，请重新选择。')
+        return redirect('index')
+
+    if request.method == 'POST':
+        form = TravelBookingForm(request.POST)
+        if form.is_valid():
+            booking = form.save(commit=False)
+            booking.user = request.user
+            booking.package_id = package['id']
+            booking.package_name = package['name']
+            booking.destination = package['name'].split(' ')[0]
+            booking.price = package['price']
+            booking.duration = package['duration']
+            booking.hotel = package['hotel']
+            booking.transport = package['transport']
+            booking.meal = package['meal']
+            booking.image_url = package['image_url']
+            booking.status = 'confirmed'
+            booking.save()
+            messages.success(request, '预订成功，已保存到您的个人中心。')
+            return redirect('my_bookings')
+    else:
+        initial_phone = ''
+        if hasattr(request.user, 'profile'):
+            initial_phone = request.user.profile.phone
+        form = TravelBookingForm(initial={
+            'travelers': 1,
+            'contact_phone': initial_phone,
+        })
+
+    return render(request, 'book_package.html', {'package': package, 'form': form})
+
+
+@login_required
+def my_bookings(request):
+    bookings = TravelBooking.objects.filter(user=request.user)
+    return render(request, 'my_bookings.html', {'bookings': bookings})
+
+
+@login_required
+def booking_detail(request, booking_id):
+    booking = get_object_or_404(TravelBooking, pk=booking_id, user=request.user)
+    return render(request, 'booking_detail.html', {'booking': booking})
 
 
 def destination_packages(request, destination):
@@ -437,6 +503,56 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 
+@csrf_exempt
+def send_email_code(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': '仅支持 POST 请求'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, TypeError):
+        data = request.POST.dict()
+
+    email = str(data.get('email') or '').strip().lower()
+    if not email:
+        return JsonResponse({'error': '请先填写邮箱地址'}, status=400)
+    try:
+        validate_email(email)
+    except ValidationError:
+        return JsonResponse({'error': '邮箱地址格式不正确'}, status=400)
+    if User.objects.filter(email__iexact=email).exists():
+        return JsonResponse({'error': '这个邮箱已经被注册，请直接登录'}, status=400)
+    if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+        return JsonResponse({'error': '邮件服务未配置，请检查 EMAIL_HOST_USER 和 EMAIL_HOST_PASSWORD'}, status=500)
+
+    latest = EmailVerificationCode.objects.filter(email=email, purpose='register').order_by('-created_at').first()
+    if latest and (timezone.now() - latest.created_at).total_seconds() < 60:
+        return JsonResponse({'error': '验证码发送太频繁，请 60 秒后再试'}, status=429)
+
+    code = f'{random.randint(0, 999999):06d}'
+    verification = EmailVerificationCode.objects.create(
+        email=email,
+        code=code,
+        purpose='register',
+        expires_at=EmailVerificationCode.default_expires_at(),
+    )
+
+    try:
+        send_mail(
+            subject='TourNest 注册邮箱验证码',
+            message=f'您的 TourNest 注册验证码是：{code}。验证码 10 分钟内有效，请勿泄露给他人。',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+    except Exception as exc:
+        print(f'Email verification send failed: {exc}')
+        verification.delete()
+        return JsonResponse({'error': '验证码发送失败，请检查 QQ 邮箱授权码或稍后重试'}, status=500)
+
+    return JsonResponse({'message': '验证码已发送，请查收邮箱', 'expires_in': 600})
+
+
 def user_logout(request):
     logout(request)
     messages.success(request, '您已安全退出登录。')
@@ -463,7 +579,8 @@ def profile(request):
     else:
         form = ProfileForm(instance=user_profile, user=request.user)
 
-    return render(request, 'profile.html', {'form': form, 'profile': user_profile})
+    bookings = TravelBooking.objects.filter(user=request.user)[:4]
+    return render(request, 'profile.html', {'form': form, 'profile': user_profile, 'bookings': bookings})
 
 
 def create_deepseek_stream(api_key, prompt, ignore_system_proxy=False):

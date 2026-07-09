@@ -22,6 +22,29 @@
         </div>
     </div>
 
+    <div class="profile-bookings">
+        <div class="profile-section-head">
+            <h2>已预订的旅游套餐</h2>
+            <a href="{% url 'my_bookings' %}">查看全部</a>
+        </div>
+        {% if bookings %}
+            <div class="profile-booking-grid">
+                {% for booking in bookings %}
+                    <a class="profile-booking-card" href="{% url 'booking_detail' booking.id %}">
+                        <img src="{{ booking.image_url }}" alt="{{ booking.package_name }}">
+                        <div>
+                            <h3>{{ booking.package_name }}</h3>
+                            <p>{{ booking.price }} · {{ booking.travelers }} 人</p>
+                            <span>{{ booking.get_status_display }}</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="profile-empty-booking">暂无已预订套餐。您可以从首页热门套餐点击“立即预订”。</p>
+        {% endif %}
+    </div>
+
     <form class="auth-form" method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
         {% if form.non_field_errors %}

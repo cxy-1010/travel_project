@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 
@@ -13,3 +16,55 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f'{self.user.username} 的个人资料'
+
+
+class TravelBooking(models.Model):
+    STATUS_CHOICES = [
+        ('confirmed', '已预订'),
+        ('cancelled', '已取消'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='travel_bookings')
+    package_id = models.CharField('套餐编号', max_length=100)
+    package_name = models.CharField('套餐名称', max_length=200)
+    destination = models.CharField('目的地', max_length=100, blank=True)
+    price = models.CharField('价格', max_length=50)
+    duration = models.CharField('行程天数', max_length=50)
+    hotel = models.CharField('住宿', max_length=120, blank=True)
+    transport = models.CharField('交通', max_length=120, blank=True)
+    meal = models.CharField('餐饮/体验', max_length=160, blank=True)
+    image_url = models.URLField('套餐图片', max_length=600, blank=True)
+    travelers = models.PositiveIntegerField('出行人数', default=1)
+    start_date = models.DateField('出发日期', blank=True, null=True)
+    contact_phone = models.CharField('联系电话', max_length=20, blank=True)
+    note = models.TextField('备注', blank=True)
+    status = models.CharField('状态', max_length=20, choices=STATUS_CHOICES, default='confirmed')
+    booked_at = models.DateTimeField('预订时间', auto_now_add=True)
+
+    class Meta:
+        ordering = ['-booked_at']
+
+    def __str__(self):
+        return f'{self.user.username} - {self.package_name}'
+
+
+class EmailVerificationCode(models.Model):
+    email = models.EmailField('邮箱地址', db_index=True)
+    code = models.CharField('验证码', max_length=6)
+    purpose = models.CharField('用途', max_length=30, default='register')
+    is_used = models.BooleanField('是否已使用', default=False)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    expires_at = models.DateTimeField('过期时间')
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    @classmethod
+    def default_expires_at(cls):
+        return timezone.now() + timedelta(minutes=10)
+
+    def __str__(self):
+        return f'{self.email} - {self.purpose}'

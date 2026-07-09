@@ -13,3 +13,16 @@
 .col-md-8 .filtr-item .destination-cover {
     height: 360px;
 }
+
+a.about-view.packages-btn,
+a.about-view.packages-btn:hover,
+a.about-view.packages-btn:focus,
+a.about-view.packages-btn:active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    padding: 0;
+    text-decoration: none;
+}

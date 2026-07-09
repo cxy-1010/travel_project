@@ -13,6 +13,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
     path('destinations/<str:destination>/packages/', views.destination_packages, name='destination_packages'),
+    path('book-package/<str:package_id>/', views.book_package, name='book_package'),
+    path('my-bookings/', views.my_bookings, name='my_bookings'),
+    path('my-bookings/<int:booking_id>/', views.booking_detail, name='booking_detail'),
     path('ai-assistant/', views.ai_assistant, name='ai_assistant'),
     path('hotel-search/', views.hotel_search, name='hotel_search'),
     path('flight-search/', views.flight_search, name='flight_search'),
@@ -21,6 +24,7 @@ urlpatterns = [
     path('api/search/', views.search_ai, name='search_ai'),
     path('login/', views.UserLoginView.as_view(), name='login'),
     path('register/', views.register, name='register'),
+    path('api/send-email-code/', views.send_email_code, name='send_email_code'),
     path('logout/', views.user_logout, name='logout'),
     path('profile/', views.profile, name='profile'),
 ]
