@@ -1,12 +1,17 @@
 from django.shortcuts import render
 import json
 import os
+import time
 from pathlib import Path
 from urllib.parse import quote
 from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import httpx
 from openai import OpenAI
+
+
+HOTEL_SEARCH_CACHE = {}
+HOTEL_SEARCH_CACHE_SECONDS = 15 * 60
 
 
 def get_deepseek_api_key():
@@ -62,7 +67,7 @@ def create_deepseek_stream(api_key, prompt, ignore_system_proxy=False):
     )
 
 
-def create_deepseek_completion(api_key, prompt, ignore_system_proxy=False):
+def create_deepseek_completion(api_key, prompt, ignore_system_proxy=False, reasoning_effort="low"):
     http_client = None
     if ignore_system_proxy:
         http_client = httpx.Client(timeout=60.0, trust_env=False)
@@ -79,8 +84,34 @@ def create_deepseek_completion(api_key, prompt, ignore_system_proxy=False):
             {"role": "user", "content": prompt}
         ],
         stream=False,
-        reasoning_effort="high",
-        extra_body={"thinking": {"type": "enabled"}}
+        temperature=0.2,
+        max_tokens=2200,
+        reasoning_effort=reasoning_effort,
+        extra_body={"thinking": {"type": "disabled"}}
+    )
+
+
+def create_deepseek_hotel_stream(api_key, prompt, ignore_system_proxy=False):
+    http_client = None
+    if ignore_system_proxy:
+        http_client = httpx.Client(timeout=60.0, trust_env=False)
+
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.deepseek.com",
+        http_client=http_client,
+    )
+    return client.chat.completions.create(
+        model="deepseek-v4-pro",
+        messages=[
+            {"role": "system", "content": "你是酒店搜索助手。必须严格服从目标城市，只输出 NDJSON，每行一个 JSON 对象，不要 markdown，不要解释。"},
+            {"role": "user", "content": prompt}
+        ],
+        stream=True,
+        temperature=0.2,
+        max_tokens=2200,
+        reasoning_effort="low",
+        extra_body={"thinking": {"type": "disabled"}}
     )
 
 
@@ -102,50 +133,111 @@ def hotel_ai_search(request):
     check_out = _s(data.get('check_out'))
     guests = _s(data.get('guests'))
     keyword = _s(data.get('keyword'))
-
-    api_key = get_deepseek_api_key()
-    if not api_key:
-        return JsonResponse({'error': '未配置 DEEPSEEK_API_KEY'}, status=400)
+    cache_key = (city, check_in, check_out, guests, keyword)
+    cached = HOTEL_SEARCH_CACHE.get(cache_key)
 
     prompt = f"""
 目标城市只能是：{city}
-请为用户查找“{city}”本地的 12-18 家酒店候选。
+请为用户快速查找“{city}”本地的 8-10 家酒店候选。
 入住：{check_in or '未填写'}，退房：{check_out or '未填写'}，人数：{guests or '未填写'}，关键词：{keyword or '无'}。
 要求：
-1. 返回 JSON 数组，不要 markdown。
-2. 每项字段：name, area, price, rating, reviewCount, room, tags, reason, detailUrl, imageQuery。
+1. 输出 NDJSON，不要 markdown，不要数组。每一行是一个完整 JSON 对象。
+2. 每项字段：name, area, price, rating, reviewCount, room, tags, detailUrl, imageQuery。
 3. name 或 area 必须能看出属于“{city}”，禁止返回北京、上海、广州、深圳等其他城市酒店。
-4. detailUrl 必须是可访问的搜索/介绍网址，优先用酒店官网、Google/Bing搜索；不确定官网时用包含“{city}+酒店名”的 Bing 搜索网址。
+4. detailUrl 直接使用包含“{city}+酒店名+酒店 官网”的 Bing 搜索网址即可，优先保证快和可打开。
 5. imageQuery 写适合搜索酒店图片的关键词，必须包含“{city}”。
 6. price 是数字，rating 是 4.1-4.9 数字，reviewCount 是数字，tags 是字符串数组。
 7. 如果无法确认真实酒店，也必须围绕“{city}”返回候选，不要使用其他城市示例。
 8. 禁止使用“??”“某城市”“目标城市”等占位文字，必须写出真实城市名“{city}”。
+9. 不要等待全部想完，先输出最确定的酒店；每写完一行就继续下一行。
 """
 
-    try:
+    def event_stream():
+        def send(payload):
+            return "data: " + json.dumps(payload, ensure_ascii=False) + "\n\n"
+
+        if cached and time.time() - cached['time'] < HOTEL_SEARCH_CACHE_SECONDS:
+            yield send({"type": "start", "cached": True})
+            for hotel in cached['hotels']:
+                yield send({"type": "hotel", "hotel": hotel})
+            yield send({"type": "done", "count": len(cached['hotels']), "cached": True})
+            return
+
+        api_key = get_deepseek_api_key()
+        if not api_key:
+            yield send({"type": "error", "content": "未配置 DEEPSEEK_API_KEY"})
+            return
+
+        hotels = []
+        buffer = ''
+        yielded_names = set()
+        yield send({"type": "start"})
+        yield send({"type": "status", "content": "AI 已连接，正在逐个生成酒店。"})
+
         try:
-            result = create_deepseek_completion(api_key, prompt)
+            try:
+                response = create_deepseek_hotel_stream(api_key, prompt)
+            except Exception:
+                yield send({"type": "status", "content": "正在重试连接。"})
+                response = create_deepseek_hotel_stream(api_key, prompt, ignore_system_proxy=True)
+
+            for chunk in response:
+                if not chunk.choices:
+                    continue
+                content = chunk.choices[0].delta.content or ''
+                if not content:
+                    continue
+                buffer += content
+                lines = buffer.splitlines(keepends=True)
+                buffer = ''
+                for raw_line in lines:
+                    if not raw_line.endswith(('\n', '\r')):
+                        buffer += raw_line
+                        continue
+                    line = raw_line.strip().strip(',')
+                    if not line or line in ('[', ']') or line.startswith('```'):
+                        continue
+                    if line.startswith('data:'):
+                        line = line[5:].strip()
+                    try:
+                        item = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    cleaned = clean_hotel_results([item], city)
+                    if not cleaned:
+                        continue
+                    hotel = cleaned[0]
+                    name = hotel.get('name', '')
+                    if name in yielded_names:
+                        continue
+                    yielded_names.add(name)
+                    hotels.append(hotel)
+                    yield send({"type": "hotel", "hotel": hotel})
+
+            trailing = buffer.strip().strip(',')
+            if trailing and trailing not in ('[', ']'):
+                try:
+                    item = json.loads(trailing)
+                    cleaned = clean_hotel_results([item], city)
+                    if cleaned and cleaned[0].get('name', '') not in yielded_names:
+                        hotels.append(cleaned[0])
+                        yield send({"type": "hotel", "hotel": cleaned[0]})
+                except json.JSONDecodeError:
+                    pass
+
+            if hotels:
+                HOTEL_SEARCH_CACHE[cache_key] = {'time': time.time(), 'hotels': hotels}
+            yield send({"type": "done", "count": len(hotels)})
         except Exception:
-            result = create_deepseek_completion(api_key, prompt, ignore_system_proxy=True)
-        content = result.choices[0].message.content or '[]'
-        content = content.strip()
-        if content.startswith('```'):
-            content = content.strip('`')
-            content = content.replace('json', '', 1).strip()
-        start = content.find('[')
-        end = content.rfind(']')
-        if start != -1 and end != -1 and end > start:
-            content = content[start:end + 1]
-        hotels = json.loads(content)
-        if not isinstance(hotels, list):
-            hotels = []
-        hotels = clean_hotel_results(hotels, city)
-        return JsonResponse({'hotels': hotels})
-    except Exception as e:
-        return JsonResponse({
-            'error': 'AI 酒店查找失败',
-            'detail': str(e),
-        }, status=500)
+            yield send({"type": "error", "content": "AI 酒店查找失败，请检查网络或 DeepSeek 配置后重试。"})
+
+    resp = StreamingHttpResponse(
+        streaming_content=event_stream(),
+        content_type='text/event-stream'
+    )
+    resp['Cache-Control'] = 'no-cache'
+    resp['X-Accel-Buffering'] = 'no'
+    return resp
 
 
 def clean_hotel_results(hotels, city):

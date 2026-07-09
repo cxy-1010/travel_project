@@ -27,8 +27,34 @@
 	var priceFilters = document.getElementById('price-filters');
 	var aiNote = document.getElementById('ai-hotel-note');
 	var aiFindBtn = document.getElementById('ai-find-hotels-btn');
+	var hotelSearchBtn = document.getElementById('hotel-search-btn');
 	var hotelMap = document.getElementById('hotel-map');
 	var showMapBtn = document.getElementById('show-map-btn');
+	var loadingTimer = null;
+	var loadingStartedAt = 0;
+	var loadingStepIndex = 0;
+	var loadingSteps = [
+		{
+			title: '正在连接 AI 酒店搜索',
+			detail: '已收到目的地和入住信息，正在准备请求。',
+			hint: '首次连接模型或网络代理较慢时，这一步会多等几秒。'
+		},
+		{
+			title: '正在筛选酒店候选',
+			detail: 'AI 正在按城市、位置、价格和评分整理酒店。',
+			hint: '页面没有卡住，搜索完成后会一次性显示酒店列表。'
+		},
+		{
+			title: '正在补全详情网址',
+			detail: '正在为每家酒店生成可打开的详情或搜索链接。',
+			hint: '酒店搜索需要返回结构化 JSON，所以比普通聊天更慢一些。'
+		},
+		{
+			title: '正在校验结果',
+			detail: '正在避免把其他城市的酒店混进当前目的地。',
+			hint: '请稍等，不需要重复点击搜索按钮。'
+		}
+	];
 
 	init();
 
@@ -43,7 +69,7 @@
 		render();
 	}
 
-	document.getElementById('hotel-search-btn').addEventListener('click', function () {
+	hotelSearchBtn.addEventListener('click', function () {
 		searchHotelsWithAi();
 	});
 
@@ -63,10 +89,8 @@
 		state.keyword = keywordInput.value.trim();
 		updateMap();
 		hasSearched = true;
-		aiFindBtn.disabled = true;
-		aiFindBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 查找中';
-		aiNote.innerHTML = '<i class="fa fa-magic"></i> AI 正在查找酒店、评分、价格和详情网址。';
-		hotelList.innerHTML = '<div class="empty-state loading"><i class="fa fa-spinner fa-spin"></i><strong>正在让 AI 查找酒店</strong><span>会返回酒店名称、价格、评分、图片关键词和详情网址。</span></div>';
+		hotels = [];
+		setSearching(true);
 
 		fetch('/api/hotel-search/', {
 			method: 'POST',
@@ -80,26 +104,171 @@
 			})
 		}).then(function (response) {
 			if (!response.ok) {
-				return response.json().then(function (body) {
-					throw new Error(body.detail || body.error || 'AI 查找失败');
-				});
+				throw new Error('AI 查找失败：服务器返回 ' + response.status);
 			}
-			return response.json();
-		}).then(function (data) {
-			hotels = normalizeAiHotels(data.hotels || []);
-			if (!hotels.length) {
-				throw new Error('AI 没有返回可用酒店');
-			}
-			aiNote.innerHTML = '<i class="fa fa-check"></i> AI 已找到 ' + hotels.length + ' 家酒店，“查看详情”已绑定 AI 返回的网址。';
-			render();
+			return readHotelStream(response);
 		}).catch(function (err) {
 			hotels = [];
 			aiNote.innerHTML = '<i class="fa fa-warning"></i> AI 查找失败：' + escapeHtml(err.message) + '。请检查网络或 DeepSeek 配置后重试。';
 			render();
 		}).finally(function () {
-			aiFindBtn.disabled = false;
-			aiFindBtn.innerHTML = '<i class="fa fa-bolt"></i> AI查找酒店';
+			setSearching(false);
 		});
+	}
+
+	function readHotelStream(response) {
+		var reader = response.body.getReader();
+		var decoder = new TextDecoder();
+		var buffer = '';
+		var received = 0;
+
+		function pump() {
+			return reader.read().then(function (result) {
+				if (result.done) {
+					if (!received) throw new Error('AI 没有返回可用酒店');
+					return;
+				}
+
+				buffer += decoder.decode(result.value, { stream: true });
+				var events = buffer.split('\n\n');
+				buffer = events.pop();
+				var streamError = null;
+
+				events.forEach(function (eventText) {
+					if (streamError) return;
+					var line = eventText.split('\n').find(function (item) {
+						return item.indexOf('data: ') === 0;
+					});
+					if (!line) return;
+					try {
+						var data = JSON.parse(line.substring(6));
+						if (data.type === 'start') {
+							updateLoadingStep({
+								title: data.cached ? '正在读取缓存结果' : '正在连接 AI 酒店搜索',
+								detail: data.cached ? '相同条件刚刚查过，正在快速显示结果。' : '连接成功后会逐个显示酒店。',
+								hint: '第一家酒店出来后会立即显示在列表里。'
+							});
+						} else if (data.type === 'status') {
+							updateLoadingStep({
+								title: '正在逐个生成酒店',
+								detail: data.content || 'AI 正在返回酒店。',
+								hint: '不需要等全部完成，酒店卡片会陆续出现。'
+							});
+						} else if (data.type === 'hotel') {
+							appendStreamHotel(data.hotel);
+							received += 1;
+							stopLoadingProgress();
+							aiNote.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 已找到 ' + received + ' 家，AI 还在继续补充...';
+							aiNote.classList.remove('loading');
+						} else if (data.type === 'done') {
+							if (!received && !hotels.length) throw new Error('AI 没有返回可用酒店');
+							aiNote.innerHTML = '<i class="fa fa-check"></i> AI 已找到 ' + hotels.length + ' 家酒店，“查看详情”已绑定 AI 返回的网址。';
+						} else if (data.type === 'error') {
+							streamError = new Error(data.content || 'AI 查找失败');
+						}
+					} catch (err) {
+						streamError = err;
+					}
+				});
+				if (streamError) throw streamError;
+
+				return pump();
+			});
+		}
+
+		return pump();
+	}
+
+	function appendStreamHotel(item) {
+		var normalized = normalizeAiHotels([item])[0];
+		if (!normalized) return;
+		var exists = hotels.some(function (hotel) {
+			return hotel.name === normalized.name;
+		});
+		if (exists) return;
+		hotels.push(normalized);
+		render();
+	}
+
+	function setSearching(isSearching) {
+		aiFindBtn.disabled = isSearching;
+		hotelSearchBtn.disabled = isSearching;
+		aiFindBtn.innerHTML = isSearching ? '<i class="fa fa-spinner fa-spin"></i> 查找中' : '<i class="fa fa-bolt"></i> AI查找酒店';
+		hotelSearchBtn.innerHTML = isSearching ? '<i class="fa fa-spinner fa-spin"></i> 搜索中' : '<i class="fa fa-search"></i> 搜索';
+		if (isSearching) {
+			startLoadingProgress();
+			return;
+		}
+		stopLoadingProgress();
+	}
+
+	function startLoadingProgress() {
+		stopLoadingProgress();
+		loadingStartedAt = Date.now();
+		loadingStepIndex = 0;
+		updateLoadingStep(loadingSteps[0]);
+		renderHotelLoadingCards();
+		loadingTimer = window.setInterval(function () {
+			var elapsed = Math.floor((Date.now() - loadingStartedAt) / 1000);
+			var nextIndex = Math.min(Math.floor(elapsed / 5), loadingSteps.length - 1);
+			if (nextIndex !== loadingStepIndex) {
+				loadingStepIndex = nextIndex;
+				updateLoadingStep(loadingSteps[loadingStepIndex]);
+			} else {
+				updateLoadingStep(loadingSteps[loadingStepIndex]);
+			}
+		}, 1000);
+	}
+
+	function stopLoadingProgress() {
+		if (loadingTimer) {
+			window.clearInterval(loadingTimer);
+			loadingTimer = null;
+		}
+		aiNote.classList.remove('loading');
+	}
+
+	function updateLoadingStep(step) {
+		var elapsed = Math.floor((Date.now() - loadingStartedAt) / 1000);
+		var progress = Math.min(18 + elapsed * 4, 92);
+		aiNote.classList.add('loading');
+		aiNote.innerHTML = [
+			'<div class="hotel-loading-note-head">',
+			'<span class="hotel-loading-pulse"></span>',
+			'<div><strong>' + escapeHtml(step.title) + '</strong><p>' + escapeHtml(step.detail) + '</p></div>',
+			'<span class="hotel-loading-seconds">' + elapsed + '秒</span>',
+			'</div>',
+			'<div class="hotel-loading-progress"><span style="width:' + progress + '%"></span></div>',
+			'<div class="hotel-loading-hint">' + escapeHtml(step.hint) + '</div>'
+		].join('');
+	}
+
+	function renderHotelLoadingCards() {
+		resultTitle.textContent = '正在查找' + state.city + '酒店';
+		hotelList.innerHTML = [0, 1, 2].map(function () {
+			return [
+				'<article class="hotel-card hotel-card-loading">',
+				'<div class="hotel-img loading-block"></div>',
+				'<div class="hotel-info">',
+				'<div class="hotel-main">',
+				'<div class="loading-line title"></div>',
+				'<div class="loading-line short"></div>',
+				'<div class="loading-line medium"></div>',
+				'<div class="room-box loading-room">',
+				'<div class="loading-line"></div>',
+				'<div class="loading-line short"></div>',
+				'<div class="loading-tags"><span></span><span></span><span></span></div>',
+				'</div>',
+				'</div>',
+				'<div class="hotel-side">',
+				'<div class="loading-line score"></div>',
+				'<div class="loading-line price"></div>',
+				'<div class="loading-button"></div>',
+				'</div>',
+				'</div>',
+				'</article>'
+			].join('');
+		}).join('');
 	}
 
 	sortSelect.addEventListener('change', function () {
