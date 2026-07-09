@@ -46,7 +46,8 @@
 		<link rel="stylesheet" href="{% static 'css/bootsnav.css' %}"/>
 
 		<!--style.css-->
-		<link rel="stylesheet" href="{% static 'css/style.css' %}" />
+		<link rel="stylesheet" href="{% static 'css/style.css' %}?v=layout-fix-1" />
+		<link rel="stylesheet" href="{% static 'css/home_layout_fix.css' %}?v=layout-fix-7" />
 
 		<!--responsive.css-->
 		<link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
@@ -137,6 +138,11 @@
 		
 		<!--about-us start -->
 		<section id="home" class="about-us">
+			<div class="hero-carousel" aria-hidden="true">
+				<div class="hero-slide hero-slide-active" style="background-image: url('{% static 'images/packages/brazil-iguazu-falls.jpg' %}');"></div>
+				<div class="hero-slide" style="background-image: url('{% static 'images/packages/egypt-cairo-nile.jpg' %}');"></div>
+				<div class="hero-slide" style="background-image: url('{% static 'images/packages/netherlands-belgium-villages.jpg' %}');"></div>
+			</div>
 			<div class="container">
 				<div class="about-us-content">
 					<div class="row">
@@ -147,9 +153,9 @@
 										探索美丽世界的无限风光 
 									</h2>
 									<div class="about-btn">
-										<button  class="about-view">
-											立刻出发
-										</button>
+										<a class="about-view" href="#desc-tabs">
+											立即出发
+										</a>
 									</div><!--/.about-btn-->
 								</div><!--/.about-us-txt-->
 							</div><!--/.single-about-us-->
@@ -800,7 +806,7 @@
 			<div class="container">
 				<div class="gallary-header text-center">
 					<h2>
-						超值特惠套餐
+						精选旅行套餐
 					</h2>
 					<p>
 						跟团安心，自由随心！精选全包式旅行服务。
@@ -1160,83 +1166,6 @@
 		</section><!--/.testimonial-->	
 		<!-- testemonial End -->
 
-
-		<!--special-offer start-->
-		<section id="spo" class="special-offer">
-			<div class="container">
-				<div class="special-offer-content">
-					<div class="row">
-						<div class="col-sm-8">
-							<div class="single-special-offer">
-								<div class="single-special-offer-txt">
-									<h2>神秘泰兰德风情游</h2>
-									<div class="packages-review special-offer-review">
-										<p>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<span>2544 条真实评价</span>
-										</p>
-									</div><!--/.packages-review-->
-									<div class="packages-para special-offer-para">
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 5 天 6 晚
-											</span>
-											<span>
-												<i class="fa fa-angle-right"></i> 2 人同行
-											</span>
-											<span>
-												<i class="fa fa-angle-right"></i> 入住五星级高奢酒店
-											</span>
-										</p>
-										<p>
-											<span>
-												<i class="fa fa-angle-right"></i> 机场专属接送接驳
-											</span>
-											<span>
-												<i class="fa fa-angle-right"></i> 赠送海鲜饕餮大餐
-											</span>  
-										</p>
-										<p class="offer-para">
-											享受最纯正的阳光沙滩与热带风情，这条全包式独家度假路线将为您扫清一切出游烦恼。现在两人成团即可立享专属优惠加成。 
-										</p>
-									</div><!--/.packages-para-->
-									<div class="offer-btn-group">
-										<div class="about-btn">
-											<button  class="about-view packages-btn offfer-btn">
-												定制行程
-											</button>
-										</div><!--/.about-btn-->
-										<div class="about-btn">
-											<button  class="about-view packages-btn">
-												立即预订
-											</button>
-										</div><!--/.about-btn-->
-									</div><!--/.offer-btn-group-->
-								</div><!--/.single-special-offer-txt-->
-							</div><!--/.single-special-offer-->
-						</div><!--/.col-->
-						<div class="col-sm-4">
-							<div class="single-special-offer">
-								<div class="single-special-offer-bg">
-									<img src="{% static 'images/offer/offer-shape.png' %}" alt="offer-shape">
-								</div><!--/.single-special-offer-bg-->
-								<div class="single-special-shape-txt">
-									<h3>超级特惠</h3>
-									<h4><span>6.0折</span><br>特享</h4>
-									<p><span>$999</span><br>原价 $ 1450</p>
-								</div><!--/.single-special-shape-txt-->
-							</div><!--/.single-special-offer-->
-						</div><!--/.col-->
-					</div><!--/.row-->
-				</div><!--/.special-offer-content-->
-			</div><!--/.container-->
-
-		</section><!--/.special-offer end-->
-		<!--special-offer end-->
 
 		<!--blog start-->
 		<section id="blog" class="blog">
