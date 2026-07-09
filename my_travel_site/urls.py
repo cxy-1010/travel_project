@@ -13,6 +13,8 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('ai-assistant/', views.ai_assistant, name='ai_assistant'),
     path('hotel-search/', views.hotel_search, name='hotel_search'),
+    path('flight-search/', views.flight_search, name='flight_search'),
     path('api/hotel-search/', views.hotel_ai_search, name='hotel_ai_search'),
+    path('api/flight-search/', views.flight_ai_search, name='flight_ai_search'),
     path('api/search/', views.search_ai, name='search_ai'),
 ]

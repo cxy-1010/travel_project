@@ -485,17 +485,9 @@
 
 														<h2>出发城市</h2>
 
-														<div class="travel-select-icon">
-															<select class="form-control ">
-
-															  	<option value="default">选择您的出发地</option><!-- /.option-->
-
-															  	<option value="china">中国 (北京)</option><!-- /.option-->
-
-															  	<option value="china2">中国 (上海)</option><!-- /.option-->
-
-															</select><!-- /.select-->
-														</div><!-- /.travel-select-icon -->
+														<div class="travel-check-icon">
+															<input id="flight-from" type="text" class="form-control" placeholder="输入您的出发地">
+														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
 												</div><!--/.col-->
 
@@ -504,7 +496,7 @@
 														<h2>出发时间</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="departure" class="form-control" data-toggle="datepicker"
+																<input id="flight-departure" type="text" name="departure" class="form-control" data-toggle="datepicker"
 																placeholder="12 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
@@ -516,7 +508,7 @@
 														<h2>返回时间</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="return" class="form-control" data-toggle="datepicker" placeholder="22 -01 - 2026 ">
+																<input id="flight-return" type="text" name="return" class="form-control" data-toggle="datepicker" placeholder="22 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
@@ -526,9 +518,9 @@
 													<div class="single-tab-select-box">
 														<h2>成人</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="flight-adults" class="form-control ">
 
-															  	<option value="default">1</option><!-- /.option-->
+															  	<option value="1">1</option><!-- /.option-->
 
 															  	<option value="2">2</option><!-- /.option-->
 
@@ -541,9 +533,9 @@
 													<div class="single-tab-select-box">
 														<h2>儿童</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="flight-children" class="form-control ">
 
-															  	<option value="default">0</option><!-- /.option-->
+															  	<option value="0">0</option><!-- /.option-->
 
 															  	<option value="1">1</option><!-- /.option-->
 
@@ -560,17 +552,9 @@
 
 														<h2>到达城市</h2>
 
-														<div class="travel-select-icon">
-															<select class="form-control ">
-
-															  	<option value="default">输入您的目的地</option><!-- /.option-->
-
-															  	<option value="istambul">伊斯坦布尔</option><!-- /.option-->
-
-															  	<option value="mosko">莫斯科</option><!-- /.option-->
-
-															</select><!-- /.select-->
-														</div><!-- /.travel-select-icon -->
+														<div class="travel-check-icon">
+															<input id="flight-to" type="text" class="form-control" placeholder="输入您的目的地">
+														</div><!-- /.travel-check-icon -->
 
 													</div><!--/.single-tab-select-box-->
 												</div><!--/.col-->
@@ -579,14 +563,14 @@
 
 														<h2>舱位等级</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="flight-cabin" class="form-control ">
 
-															  	<option value="default">选择舱位</option><!-- /.option-->
+															  	<option value="经济舱">选择舱位</option><!-- /.option-->
 
-															  	<option value="A">经济舱</option><!-- /.option-->
+															  	<option value="经济舱">经济舱</option><!-- /.option-->
 
-															  	<option value="B">商务舱</option><!-- /.option-->
-															  	<option value="C">头等舱</option><!-- /.option-->
+															  	<option value="商务舱">商务舱</option><!-- /.option-->
+															  	<option value="头等舱">头等舱</option><!-- /.option-->
 
 															</select><!-- /.select-->
 														</div><!-- /.travel-select-icon -->
@@ -594,7 +578,7 @@
 												</div><!--/.col-->
 												<div class="clo-sm-5">
 													<div class="about-btn pull-right">
-														<button  class="about-view travel-btn">
+														<button id="flight-search-open-btn" class="about-view travel-btn">
 															搜索机票	
 														</button><!--/.travel-btn-->
 													</div><!--/.about-btn-->
@@ -1645,6 +1629,26 @@
 				var hotelWindow = window.open(hotelUrl, '_blank');
 				if (!hotelWindow) {
 					window.location.href = hotelUrl;
+				}
+			});
+
+			$('#flight-search-open-btn').on('click', function(e) {
+				e.preventDefault();
+				var tripType = $('#radio02').is(':checked') ? 'oneway' : 'round';
+				var params = new URLSearchParams({
+					from: $('#flight-from').val() || '北京',
+					to: $('#flight-to').val() || '上海',
+					departure: $('#flight-departure').val() || '',
+					return: $('#flight-return').val() || '',
+					adults: $('#flight-adults').val() || '1',
+					children: $('#flight-children').val() || '0',
+					cabin: $('#flight-cabin').val() || '经济舱',
+					trip_type: tripType
+				});
+				var flightUrl = '/flight-search/?' + params.toString();
+				var flightWindow = window.open(flightUrl, '_blank');
+				if (!flightWindow) {
+					window.location.href = flightUrl;
 				}
 			});
 			

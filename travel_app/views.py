@@ -12,6 +12,8 @@ from openai import OpenAI
 
 HOTEL_SEARCH_CACHE = {}
 HOTEL_SEARCH_CACHE_SECONDS = 15 * 60
+FLIGHT_SEARCH_CACHE = {}
+FLIGHT_SEARCH_CACHE_SECONDS = 15 * 60
 
 
 def get_deepseek_api_key():
@@ -43,6 +45,10 @@ def ai_assistant(request):
 
 def hotel_search(request):
     return render(request, 'hotel_search.html')
+
+
+def flight_search(request):
+    return render(request, 'flight_search.html')
 
 
 def create_deepseek_stream(api_key, prompt, ignore_system_proxy=False):
@@ -105,6 +111,30 @@ def create_deepseek_hotel_stream(api_key, prompt, ignore_system_proxy=False):
         model="deepseek-v4-pro",
         messages=[
             {"role": "system", "content": "你是酒店搜索助手。必须严格服从目标城市，只输出 NDJSON，每行一个 JSON 对象，不要 markdown，不要解释。"},
+            {"role": "user", "content": prompt}
+        ],
+        stream=True,
+        temperature=0.2,
+        max_tokens=2200,
+        reasoning_effort="low",
+        extra_body={"thinking": {"type": "disabled"}}
+    )
+
+
+def create_deepseek_flight_stream(api_key, prompt, ignore_system_proxy=False):
+    http_client = None
+    if ignore_system_proxy:
+        http_client = httpx.Client(timeout=60.0, trust_env=False)
+
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.deepseek.com",
+        http_client=http_client,
+    )
+    return client.chat.completions.create(
+        model="deepseek-v4-pro",
+        messages=[
+            {"role": "system", "content": "你是特价机票搜索助手。只输出 NDJSON，每行一个 JSON 对象，不要 markdown，不要解释。"},
             {"role": "user", "content": prompt}
         ],
         stream=True,
@@ -276,6 +306,175 @@ def clean_hotel_results(hotels, city):
         item['imageQuery'] = image_query
         cleaned.append(item)
     return cleaned[:20]
+
+
+def clean_flight_results(flights, origin, destination):
+    cleaned = []
+    fallback_detail_url = 'https://www.bing.com/search?q=' + quote(f'{origin} 到 {destination} 机票 预订')
+    for index, item in enumerate(flights):
+        if not isinstance(item, dict):
+            continue
+        airline = str(item.get('airline') or '特价航班').strip()
+        code = str(item.get('code') or f'TN{1200 + index * 17}').strip()
+        depart_time = str(item.get('departTime') or item.get('departureTime') or '08:30').strip()
+        arrive_time = str(item.get('arriveTime') or item.get('arrivalTime') or '10:45').strip()
+        from_airport = str(item.get('fromAirport') or f'{origin}机场').strip()
+        to_airport = str(item.get('toAirport') or f'{destination}机场').strip()
+        try:
+            price = int(float(item.get('price') or 699))
+        except (TypeError, ValueError):
+            price = 699
+        try:
+            duration = int(float(item.get('duration') or item.get('durationMinutes') or 135))
+        except (TypeError, ValueError):
+            duration = 135
+        direct = item.get('direct')
+        if direct is None:
+            direct = '中转' not in str(item.get('stops') or item.get('discount') or '')
+        tags = item.get('tags')
+        if not isinstance(tags, list):
+            tags = ['直飞' if direct else '1次中转', '特价']
+        detail_url = str(item.get('detailUrl') or '').strip()
+        if (
+            not detail_url.startswith(('http://', 'https://'))
+            or 'ctrip.com/flights/' in detail_url
+            or 'flights.ctrip.com/online/list' in detail_url
+        ):
+            detail_url = fallback_detail_url
+        cleaned.append({
+            'airline': airline,
+            'code': code,
+            'fromAirport': from_airport,
+            'toAirport': to_airport,
+            'departTime': depart_time,
+            'arriveTime': arrive_time,
+            'duration': duration,
+            'direct': bool(direct),
+            'price': price,
+            'discount': str(item.get('discount') or ('低价直飞' if direct else '中转特惠')).strip(),
+            'tags': [str(tag).strip() for tag in tags[:4] if str(tag).strip()],
+            'detailUrl': detail_url,
+        })
+    cleaned.sort(key=lambda flight: flight['price'])
+    return cleaned[:20]
+
+
+@csrf_exempt
+def flight_ai_search(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': '仅支持 POST 请求'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, TypeError):
+        data = request.POST.dict()
+
+    def _s(v):
+        return str(v).strip() if v is not None else ''
+
+    origin = _s(data.get('from')) or '北京'
+    destination = _s(data.get('to')) or '上海'
+    departure = _s(data.get('departure'))
+    return_date = _s(data.get('return'))
+    adults = _s(data.get('adults')) or '1'
+    children = _s(data.get('children')) or '0'
+    cabin = _s(data.get('cabin')) or '经济舱'
+    trip_type = _s(data.get('trip_type')) or 'round'
+    cache_key = (origin, destination, departure, return_date, adults, children, cabin, trip_type)
+    cached = FLIGHT_SEARCH_CACHE.get(cache_key)
+
+    prompt = f"""
+请为用户查找特价机票候选，按价格从低到高输出 8-10 个航班。
+出发城市：{origin}
+到达城市：{destination}
+出发日期：{departure or '未填写'}
+返回日期：{return_date or '未填写'}
+类型：{'单程' if trip_type == 'oneway' else '往返'}
+乘客：成人 {adults}，儿童 {children}
+舱位：{cabin}
+
+要求：
+1. 输出 NDJSON，不要 markdown，不要数组。每一行是一个完整 JSON 对象。
+2. 每项字段：airline, code, fromAirport, toAirport, departTime, arriveTime, duration, direct, price, discount, tags, detailUrl。
+3. price 必须是数字人民币价格，duration 是分钟数，direct 是 true/false，tags 是字符串数组。
+4. detailUrl 必须使用 Bing 搜索网址，搜索词为“{origin} 到 {destination} 机票 预订”，不要输出携程直达 URL。
+5. 不要输出解释。先输出最便宜、最确定的航班，每写完一行立刻继续下一行。
+"""
+
+    def event_stream():
+        def send(payload):
+            return "data: " + json.dumps(payload, ensure_ascii=False) + "\n\n"
+
+        if cached and time.time() - cached['time'] < FLIGHT_SEARCH_CACHE_SECONDS:
+            yield send({"type": "start", "cached": True})
+            for flight in cached['flights']:
+                yield send({"type": "flight", "flight": flight})
+            yield send({"type": "done", "count": len(cached['flights']), "cached": True})
+            return
+
+        api_key = get_deepseek_api_key()
+        if not api_key:
+            yield send({"type": "error", "content": "未配置 DEEPSEEK_API_KEY"})
+            return
+
+        flights = []
+        buffer = ''
+        yielded_codes = set()
+        yield send({"type": "start"})
+        yield send({"type": "status", "content": "AI 已连接，正在按价格生成特价机票。"})
+
+        try:
+            try:
+                response = create_deepseek_flight_stream(api_key, prompt)
+            except Exception:
+                yield send({"type": "status", "content": "正在重试连接。"})
+                response = create_deepseek_flight_stream(api_key, prompt, ignore_system_proxy=True)
+
+            for chunk in response:
+                if not chunk.choices:
+                    continue
+                content = chunk.choices[0].delta.content or ''
+                if not content:
+                    continue
+                buffer += content
+                lines = buffer.splitlines(keepends=True)
+                buffer = ''
+                for raw_line in lines:
+                    if not raw_line.endswith(('\n', '\r')):
+                        buffer += raw_line
+                        continue
+                    line = raw_line.strip().strip(',')
+                    if not line or line in ('[', ']') or line.startswith('```'):
+                        continue
+                    try:
+                        item = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    cleaned = clean_flight_results([item], origin, destination)
+                    if not cleaned:
+                        continue
+                    flight = cleaned[0]
+                    code = flight.get('code', '')
+                    if code in yielded_codes:
+                        continue
+                    yielded_codes.add(code)
+                    flights.append(flight)
+                    flights.sort(key=lambda value: value['price'])
+                    yield send({"type": "flight", "flight": flight})
+
+            if flights:
+                FLIGHT_SEARCH_CACHE[cache_key] = {'time': time.time(), 'flights': clean_flight_results(flights, origin, destination)}
+            yield send({"type": "done", "count": len(flights)})
+        except Exception:
+            yield send({"type": "error", "content": "AI 机票查找失败，请检查网络或 DeepSeek 配置后重试。"})
+
+    resp = StreamingHttpResponse(
+        streaming_content=event_stream(),
+        content_type='text/event-stream'
+    )
+    resp['Cache-Control'] = 'no-cache'
+    resp['X-Accel-Buffering'] = 'no'
+    return resp
 
 
 @csrf_exempt
