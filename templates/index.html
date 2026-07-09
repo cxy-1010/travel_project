@@ -703,7 +703,7 @@
 						  				<div class="filtr-item">
 											<img class="destination-cover" src="{{ destination.image_url }}" alt="{{ destination.name }}" loading="lazy" onerror="this.onerror=null;this.src='{% static destination.fallback_image %}';"/>
 											<div class="item-title">
-												<a href="#">
+												<a href="{% url 'destination_packages' destination.name %}" target="_blank" rel="noopener">
 													{{ destination.name }}
 												</a>
 												<p><span>{{ destination.routes }} 路线</span><span>{{ destination.spots }} 景点</span></p>

@@ -103,7 +103,7 @@ TRAVEL_PACKAGES = [
 HOT_DESTINATIONS = [
     {
         'name': '中国',
-        'image_url': 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=1200&q=80',
+        'image_url': 'https://unsplash.com/photos/nbEW8E9Qv9Y/download?force=true&w=1200',
         'fallback_image': 'images/gallary/g1.jpg',
         'routes': 28,
         'spots': 18,
@@ -111,7 +111,7 @@ HOT_DESTINATIONS = [
     },
     {
         'name': '委内瑞拉',
-        'image_url': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80',
+        'image_url': 'https://static.wixstatic.com/media/6233c4_b8a116b3ca224ba0b7f2296b8eb937de~mv2.jpg/v1/fill/w_980,h_653,al_c,q_85,enc_avif,quality_auto/6233c4_b8a116b3ca224ba0b7f2296b8eb937de~mv2.jpg',
         'fallback_image': 'images/gallary/g2.jpg',
         'routes': 12,
         'spots': 9,
@@ -127,7 +127,7 @@ HOT_DESTINATIONS = [
     },
     {
         'name': '澳大利亚',
-        'image_url': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=900&q=80',
+        'image_url': 'https://unsplash.com/photos/ZcAO4WHha84/download?force=true&w=1200',
         'fallback_image': 'images/gallary/g4.jpg',
         'routes': 18,
         'spots': 11,
@@ -135,7 +135,7 @@ HOT_DESTINATIONS = [
     },
     {
         'name': '荷兰',
-        'image_url': 'https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=900&q=80',
+        'image_url': 'https://unsplash.com/photos/_3QAUzIvqj0/download?force=true&w=1200',
         'fallback_image': 'images/gallary/g5.jpg',
         'routes': 14,
         'spots': 12,
@@ -143,7 +143,7 @@ HOT_DESTINATIONS = [
     },
     {
         'name': '土耳其',
-        'image_url': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1200&q=80',
+        'image_url': 'https://unsplash.com/photos/7ng3ISrlg1I/download?force=true&w=1200',
         'fallback_image': 'images/gallary/g6.jpg',
         'routes': 16,
         'spots': 8,
@@ -180,6 +180,222 @@ def index(request):
             'hot_destinations': HOT_DESTINATIONS,
         },
     )
+
+
+def destination_packages(request, destination):
+    destination_name = destination.strip()
+    selected_destination = next(
+        (item for item in HOT_DESTINATIONS if item['name'] == destination_name),
+        None,
+    )
+    if selected_destination is None:
+        selected_destination = {
+            'name': destination_name,
+            'image_url': 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80',
+            'fallback_image': 'images/home/banner.jpg',
+            'routes': 8,
+            'spots': 6,
+        }
+
+    packages = build_destination_packages(selected_destination['name'])
+    return render(
+        request,
+        'destination_packages.html',
+        {
+            'destination': selected_destination,
+            'packages': packages,
+        },
+    )
+
+
+def build_destination_packages(destination_name):
+    destination_package_map = {
+        '中国': [
+            {
+                'name': '北京古都与长城 5 日',
+                'price': '¥3,999 起',
+                'image_url': 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=900&q=80',
+                'duration': '5 天 4 晚',
+                'highlights': ['故宫深度讲解', '慕田峪长城', '胡同文化体验'],
+                'hotel': '四星精选酒店',
+                'transport': '市区专车接驳',
+            },
+            {
+                'name': '云南昆明大理丽江 7 日',
+                'price': '¥5,699 起',
+                'image_url': 'https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=900&q=80',
+                'duration': '7 天 6 晚',
+                'highlights': ['洱海旅拍', '丽江古城', '玉龙雪山'],
+                'hotel': '古城客栈 + 度假酒店',
+                'transport': '当地用车 + 城际交通',
+            },
+            {
+                'name': '桂林阳朔山水 4 日',
+                'price': '¥2,899 起',
+                'image_url': 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=900&q=80',
+                'duration': '4 天 3 晚',
+                'highlights': ['漓江竹筏', '阳朔西街', '喀斯特峰林'],
+                'hotel': '山景精品酒店',
+                'transport': '桂林接送站',
+            },
+        ],
+        '委内瑞拉': [
+            {
+                'name': '天使瀑布与卡奈玛探险 6 日',
+                'price': '¥18,800 起',
+                'image_url': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80',
+                'duration': '6 天 5 晚',
+                'highlights': ['天使瀑布观景', '卡奈玛泻湖', '雨林轻徒步'],
+                'hotel': '生态营地 + 城市酒店',
+                'transport': '内陆航班 + 当地船只',
+            },
+            {
+                'name': '罗赖马山徒步 8 日',
+                'price': '¥21,600 起',
+                'image_url': 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
+                'duration': '8 天 7 晚',
+                'highlights': ['桌山徒步', '高原奇景', '专业向导陪同'],
+                'hotel': '露营 + 城市酒店',
+                'transport': '越野车接驳',
+            },
+            {
+                'name': '加勒比海岸轻奢假期 5 日',
+                'price': '¥12,900 起',
+                'image_url': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80',
+                'duration': '5 天 4 晚',
+                'highlights': ['海岛浮潜', '落日晚餐', '海岸小镇漫游'],
+                'hotel': '海滨度假酒店',
+                'transport': '机场接送 + 岛内用车',
+            },
+        ],
+        '巴西': [
+            {
+                'name': '里约热内卢城市经典 5 日',
+                'price': '¥10,999 起',
+                'image_url': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=900&q=80',
+                'duration': '5 天 4 晚',
+                'highlights': ['基督像', '面包山缆车', '科帕卡巴纳海滩'],
+                'hotel': '海滩商圈酒店',
+                'transport': '市区专车',
+            },
+            {
+                'name': '伊瓜苏瀑布奇观 4 日',
+                'price': '¥8,699 起',
+                'image_url': 'https://images.unsplash.com/photo-1520960683738-55ab77f2bc0d?auto=format&fit=crop&w=900&q=80',
+                'duration': '4 天 3 晚',
+                'highlights': ['瀑布双侧观景', '鸟园', '雨林步道'],
+                'hotel': '瀑布区精选酒店',
+                'transport': '机场接送 + 景区交通',
+            },
+            {
+                'name': '亚马逊雨林生态 6 日',
+                'price': '¥14,500 起',
+                'image_url': 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80',
+                'duration': '6 天 5 晚',
+                'highlights': ['雨林游船', '夜观生态', '当地社区访问'],
+                'hotel': '雨林 Lodge',
+                'transport': '内陆航班 + 船只',
+            },
+        ],
+        '澳大利亚': [
+            {
+                'name': '悉尼海港与蓝山 5 日',
+                'price': '¥9,999 起',
+                'image_url': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=900&q=80',
+                'duration': '5 天 4 晚',
+                'highlights': ['悉尼歌剧院', '海港游船', '蓝山国家公园'],
+                'hotel': '市中心四星酒店',
+                'transport': '机场接送 + 蓝山一日车',
+            },
+            {
+                'name': '大堡礁潜水假期 6 日',
+                'price': '¥13,800 起',
+                'image_url': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80',
+                'duration': '6 天 5 晚',
+                'highlights': ['大堡礁出海', '浮潜体验', '凯恩斯雨林'],
+                'hotel': '海滨度假酒店',
+                'transport': '出海船票 + 接送',
+            },
+            {
+                'name': '墨尔本大洋路 5 日',
+                'price': '¥8,799 起',
+                'image_url': 'https://images.unsplash.com/photo-1516941064643-74aacd84843c?auto=format&fit=crop&w=900&q=80',
+                'duration': '5 天 4 晚',
+                'highlights': ['大洋路', '十二门徒', '企鹅归巢'],
+                'hotel': '墨尔本市区酒店',
+                'transport': '当地一日游用车',
+            },
+        ],
+        '荷兰': [
+            {
+                'name': '阿姆斯特丹运河与博物馆 4 日',
+                'price': '¥7,299 起',
+                'image_url': 'https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=900&q=80',
+                'duration': '4 天 3 晚',
+                'highlights': ['运河游船', '梵高博物馆', '老城漫步'],
+                'hotel': '运河区精品酒店',
+                'transport': '城市交通卡',
+            },
+            {
+                'name': '荷兰花田与风车 5 日',
+                'price': '¥8,199 起',
+                'image_url': 'https://images.unsplash.com/photo-1494783367193-149034c05e8f?auto=format&fit=crop&w=900&q=80',
+                'duration': '5 天 4 晚',
+                'highlights': ['库肯霍夫花园', '赞瑟斯汉斯风车村', '奶酪市集'],
+                'hotel': '阿姆斯特丹精选酒店',
+                'transport': '花田专车一日游',
+            },
+            {
+                'name': '荷比小镇慢旅行 6 日',
+                'price': '¥9,600 起',
+                'image_url': 'https://images.unsplash.com/photo-1473959383416-8518a661bd9c?auto=format&fit=crop&w=900&q=80',
+                'duration': '6 天 5 晚',
+                'highlights': ['羊角村', '布鲁日', '鹿特丹建筑'],
+                'hotel': '小镇精品住宿',
+                'transport': '城际火车 + 当地接驳',
+            },
+        ],
+        '土耳其': [
+            {
+                'name': '伊斯坦布尔与卡帕多奇亚 7 日',
+                'price': '¥11,800 起',
+                'image_url': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=900&q=80',
+                'duration': '7 天 6 晚',
+                'highlights': ['蓝色清真寺', '热气球体验', '地下城探访'],
+                'hotel': '洞穴酒店 + 城市酒店',
+                'transport': '内陆航班 + 当地用车',
+            },
+            {
+                'name': '土耳其爱琴海岸 6 日',
+                'price': '¥10,500 起',
+                'image_url': 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=900&q=80',
+                'duration': '6 天 5 晚',
+                'highlights': ['以弗所古城', '棉花堡', '爱琴海小镇'],
+                'hotel': '海岸度假酒店',
+                'transport': '城市间专车',
+            },
+            {
+                'name': '土耳其美食与市集 5 日',
+                'price': '¥8,900 起',
+                'image_url': 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=900&q=80',
+                'duration': '5 天 4 晚',
+                'highlights': ['大巴扎', '博斯普鲁斯海峡', '土耳其料理课'],
+                'hotel': '老城精品酒店',
+                'transport': '市区交通 + 接送机',
+            },
+        ],
+    }
+    return destination_package_map.get(destination_name, [
+        {
+            'name': f'{destination_name}精选深度游 5 日',
+            'price': '¥6,999 起',
+            'image_url': 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
+            'duration': '5 天 4 晚',
+            'highlights': ['经典地标', '当地文化体验', '舒适自由时间'],
+            'hotel': '精选舒适酒店',
+            'transport': '当地接送服务',
+        },
+    ])
 
 
 def ai_assistant(request):

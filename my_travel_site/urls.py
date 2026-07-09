@@ -12,6 +12,7 @@ from travel_app import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    path('destinations/<str:destination>/packages/', views.destination_packages, name='destination_packages'),
     path('ai-assistant/', views.ai_assistant, name='ai_assistant'),
     path('hotel-search/', views.hotel_search, name='hotel_search'),
     path('flight-search/', views.flight_search, name='flight_search'),
