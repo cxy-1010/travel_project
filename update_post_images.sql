@@ -1,0 +1,42 @@
+BEGIN TRANSACTION;
+
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?beijing,forbidden-city' WHERE id = 94;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?dali,erhai,lake' WHERE id = 95;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?chengdu,hotpot,street-food' WHERE id = 96;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?xian,tang-dynasty,night' WHERE id = 97;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?wuhan-university,cherry-blossom' WHERE id = 98;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?wuhan,yangtze-river,city' WHERE id = 99;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?qingdao,beach' WHERE id = 100;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?hangzhou,west-lake,rain' WHERE id = 101;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?chongqing,night,city' WHERE id = 102;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?xiamen,gulangyu,island' WHERE id = 103;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?suzhou,garden' WHERE id = 104;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?changsha,street-food' WHERE id = 105;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?nanjing,autumn,plane-trees' WHERE id = 106;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?guangzhou,dim-sum' WHERE id = 107;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?kunming,flowers,lake' WHERE id = 108;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?harbin,ice-snow' WHERE id = 109;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?paris,louvre' WHERE id = 110;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?tokyo,asakusa' WHERE id = 111;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?london,british-museum' WHERE id = 112;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?rome,colosseum' WHERE id = 113;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?new-york,central-park' WHERE id = 114;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?sydney,opera-house' WHERE id = 115;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?singapore,gardens-by-the-bay' WHERE id = 116;
+UPDATE travel_app_guide SET image_url = 'https://source.unsplash.com/600x400/?cape-town,table-mountain' WHERE id = 117;
+
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?china,mountains,summer' WHERE id = 25;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?tibet,highway,mountains' WHERE id = 26;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?yunnan,old-town' WHERE id = 27;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?tropical,island,beach' WHERE id = 28;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?gansu,desert,road-trip' WHERE id = 29;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?family,travel,hotel' WHERE id = 30;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?shanghai,wukang-road' WHERE id = 31;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?china,high-speed-train' WHERE id = 32;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?paris,london,rome' WHERE id = 33;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?japan,cherry-blossom' WHERE id = 34;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?southeast-asia,island' WHERE id = 35;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?new-york,observation-deck' WHERE id = 36;
+UPDATE travel_app_travelnews SET cover_url = 'https://source.unsplash.com/600x400/?new-zealand,road-trip' WHERE id = 37;
+
+COMMIT;

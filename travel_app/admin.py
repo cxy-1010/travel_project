@@ -1,6 +1,18 @@
 from django.contrib import admin
 
-from .models import EmailVerificationCode, TravelBooking, TravelPackage, UserProfile
+from .models import (
+    EmailVerificationCode,
+    Flight,
+    Guide,
+    GuideComment,
+    GuideFavorite,
+    Hotel,
+    Order,
+    TravelBooking,
+    TravelNews,
+    TravelPackage,
+    UserProfile,
+)
 
 
 @admin.register(UserProfile)
@@ -30,3 +42,30 @@ class EmailVerificationCodeAdmin(admin.ModelAdmin):
     list_display = ('email', 'purpose', 'code', 'is_used', 'created_at', 'expires_at')
     list_filter = ('purpose', 'is_used', 'created_at')
     search_fields = ('email',)
+
+
+@admin.register(Guide)
+class GuideAdmin(admin.ModelAdmin):
+    list_display = ('title', 'destination', 'user', 'likes', 'created_at')
+    search_fields = ('title', 'destination', 'content', 'user__username')
+    list_filter = ('destination', 'created_at')
+
+
+@admin.register(GuideComment)
+class GuideCommentAdmin(admin.ModelAdmin):
+    list_display = ('title', 'destination', 'guide', 'user', 'created_at')
+    search_fields = ('title', 'destination', 'content', 'user__username')
+    list_filter = ('destination', 'created_at')
+
+
+@admin.register(GuideFavorite)
+class GuideFavoriteAdmin(admin.ModelAdmin):
+    list_display = ('guide', 'user', 'created_at')
+    search_fields = ('guide__title', 'guide__destination', 'user__username')
+    list_filter = ('created_at',)
+
+
+admin.site.register(Flight)
+admin.site.register(Hotel)
+admin.site.register(Order)
+admin.site.register(TravelNews)

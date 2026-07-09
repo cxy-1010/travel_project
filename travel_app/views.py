@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.db.models import Q
 import json
 import os
 import random
@@ -18,11 +19,24 @@ from pathlib import Path
 from urllib.parse import quote
 from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 import httpx
 from openai import OpenAI
 
 from .forms import LoginForm, ProfileForm, RegisterForm, TravelBookingForm
-from .models import EmailVerificationCode, TravelBooking, TravelPackage, UserProfile
+from .models import (
+    EmailVerificationCode,
+    Flight,
+    Guide,
+    GuideComment,
+    GuideFavorite,
+    Hotel,
+    Order,
+    TravelBooking,
+    TravelNews,
+    TravelPackage,
+    UserProfile,
+)
 
 
 HOTEL_SEARCH_CACHE = {}
@@ -1175,3 +1189,446 @@ def search_ai(request):
             'detail': str(e),
             'traceback': traceback.format_exc()
         }, status=500)
+
+
+def _liked_guide_ids(request):
+    return {str(guide_id) for guide_id in request.session.get('liked_guides', [])}
+
+
+def _is_guide_liked(request, guide_id):
+    return str(guide_id) in _liked_guide_ids(request)
+
+
+def _session_favorite_guide_ids(request):
+    return {str(guide_id) for guide_id in request.session.get('favorite_guides', [])}
+
+
+def _session_favorite_news_ids(request):
+    return {str(news_id) for news_id in request.session.get('favorite_news', [])}
+
+
+def _is_news_favorited(request, news_id):
+    return str(news_id) in _session_favorite_news_ids(request)
+
+
+def _favorite_guide_ids(request):
+    if request.user.is_authenticated:
+        return {
+            str(guide_id)
+            for guide_id in GuideFavorite.objects.filter(user=request.user).values_list('guide_id', flat=True)
+        }
+    return _session_favorite_guide_ids(request)
+
+
+def _is_guide_favorited(request, guide_id):
+    return str(guide_id) in _favorite_guide_ids(request)
+
+
+def get_guides(request):
+    keyword = request.GET.get('search', '').strip()
+    destination = request.GET.get('destination', '').strip()
+    liked_guides = _liked_guide_ids(request)
+    favorite_guides = _favorite_guide_ids(request)
+
+    guides = Guide.objects.select_related('user').prefetch_related('comments', 'favorites').all()
+    if destination:
+        guides = guides.filter(destination__icontains=destination)
+    if keyword:
+        guides = guides.filter(
+            Q(destination__icontains=keyword) |
+            Q(title__icontains=keyword) |
+            Q(content__icontains=keyword)
+        )
+
+    guide_list = []
+    for guide in guides:
+        guide_list.append({
+            'id': guide.id,
+            'title': guide.title,
+            'destination': guide.destination,
+            'content': guide.content,
+            'author': guide.user.username,
+            'image_url': guide.image_url,
+            'likes': guide.likes,
+            'liked': str(guide.id) in liked_guides,
+            'favorited': str(guide.id) in favorite_guides,
+            'favorite_count': guide.favorites.count(),
+            'comment_count': guide.comments.count(),
+            'created_at': guide.created_at.strftime('%Y-%m-%d %H:%M')
+        })
+    return JsonResponse({'status': 'success', 'data': guide_list})
+
+
+def guide_detail(request, guide_id):
+    guide = get_object_or_404(Guide.objects.select_related('user'), id=guide_id)
+    comment_list = [
+        {
+            'author': comment.user.username,
+            'title': comment.title,
+            'content': comment.content,
+            'destination': comment.destination,
+            'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
+        }
+        for comment in guide.comments.select_related('user').all()
+    ]
+
+    data = {
+        'id': guide.id,
+        'title': guide.title,
+        'destination': guide.destination,
+        'content': guide.content,
+        'author': guide.user.username,
+        'image_url': guide.image_url,
+        'likes': guide.likes,
+        'liked': _is_guide_liked(request, guide.id),
+        'favorited': _is_guide_favorited(request, guide.id),
+        'favorite_count': guide.favorites.count(),
+        'created_at': guide.created_at.strftime('%Y-%m-%d %H:%M'),
+        'comments': comment_list
+    }
+    return JsonResponse({'status': 'success', 'data': data})
+
+
+@csrf_exempt
+def create_guide(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': '仅支持POST请求'}, status=405)
+
+    try:
+        data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
+        title = (data.get('title') or '').strip()
+        destination = (data.get('destination') or '').strip()
+        content = (data.get('content') or '').strip()
+
+        if not title or not destination or not content:
+            return JsonResponse({'status': 'fail', 'message': '标题、目的地和正文不能为空'}, status=400)
+
+        user = request.user if request.user.is_authenticated else User.objects.get_or_create(username='互动游客')[0]
+        new_guide = Guide.objects.create(
+            user=user,
+            title=title,
+            destination=destination,
+            content=content
+        )
+
+        return JsonResponse({'status': 'success', 'message': '发布成功', 'guide_id': new_guide.id})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@require_POST
+def like_guide(request, guide_id):
+    guide = get_object_or_404(Guide, id=guide_id)
+    guide_key = str(guide.id)
+    liked_guides = _liked_guide_ids(request)
+
+    if guide_key in liked_guides:
+        liked_guides.remove(guide_key)
+        guide.likes = max(guide.likes - 1, 0)
+        liked = False
+    else:
+        liked_guides.add(guide_key)
+        guide.likes += 1
+        liked = True
+
+    request.session['liked_guides'] = list(liked_guides)
+    request.session.modified = True
+    guide.save(update_fields=['likes'])
+    return JsonResponse({'status': 'success', 'likes': guide.likes, 'liked': liked})
+
+
+@csrf_exempt
+@require_POST
+def favorite_guide(request, guide_id):
+    guide = get_object_or_404(Guide, id=guide_id)
+
+    if request.user.is_authenticated:
+        favorite, created = GuideFavorite.objects.get_or_create(user=request.user, guide=guide)
+        favorited = created
+        if not created:
+            favorite.delete()
+            favorited = False
+    else:
+        guide_key = str(guide.id)
+        favorite_guides = _session_favorite_guide_ids(request)
+        if guide_key in favorite_guides:
+            favorite_guides.remove(guide_key)
+            favorited = False
+        else:
+            favorite_guides.add(guide_key)
+            favorited = True
+        request.session['favorite_guides'] = list(favorite_guides)
+        request.session.modified = True
+
+    return JsonResponse({
+        'status': 'success',
+        'favorited': favorited,
+        'favorite_count': guide.favorites.count()
+    })
+
+
+@csrf_exempt
+@require_POST
+def favorite_news(request, news_id):
+    news = get_object_or_404(TravelNews, id=news_id)
+    news_key = str(news.id)
+    favorite_news_ids = _session_favorite_news_ids(request)
+
+    if news_key in favorite_news_ids:
+        favorite_news_ids.remove(news_key)
+        favorited = False
+    else:
+        favorite_news_ids.add(news_key)
+        favorited = True
+
+    request.session['favorite_news'] = list(favorite_news_ids)
+    request.session.modified = True
+    return JsonResponse({'status': 'success', 'favorited': favorited})
+
+
+@csrf_exempt
+def add_guide_comment(request, guide_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'fail', 'message': '仅支持POST'}, status=405)
+
+    guide = get_object_or_404(Guide, id=guide_id)
+    data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
+    content = (data.get('content') or '').strip()
+    if not content:
+        return JsonResponse({'status': 'fail', 'message': '评论内容不能为空'}, status=400)
+
+    user = request.user if request.user.is_authenticated else User.objects.get_or_create(username='互动游客')[0]
+    comment = GuideComment.objects.create(
+        user=user,
+        guide=guide,
+        title=f"回复：{guide.title[:40]}",
+        destination=guide.destination,
+        content=content
+    )
+    return JsonResponse({
+        'status': 'success',
+        'message': '评论成功',
+        'comment': {
+            'author': comment.user.username,
+            'content': comment.content,
+            'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
+        }
+    })
+
+
+def user_register(request):
+    if request.method == 'POST':
+        data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
+        username = data.get('username')
+        password = data.get('password')
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'status': 'fail', 'message': '用户名已存在'})
+        User.objects.create_user(username=username, password=password)
+        return JsonResponse({'status': 'success', 'message': '注册成功'})
+    return JsonResponse({'status': 'fail', 'message': '仅支持POST'})
+
+
+def user_login(request):
+    if request.method == 'POST':
+        data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
+        user = authenticate(request, username=data.get('username'), password=data.get('password'))
+        if user is not None:
+            login(request, user)
+            return JsonResponse({'status': 'success', 'message': '登录成功'})
+        return JsonResponse({'status': 'fail', 'message': '账号或密码错误'})
+    return JsonResponse({'status': 'fail', 'message': '仅支持POST'})
+
+
+def api_user_logout(request):
+    logout(request)
+    return JsonResponse({'status': 'success', 'message': '已退出登录'})
+
+
+def search_flights(request):
+    destination = request.GET.get('destination', '')
+    flights = (
+        Flight.objects.filter(destination__icontains=destination).order_by('price')
+        if destination else Flight.objects.all().order_by('price')
+    )
+    data = [
+        {
+            'id': flight.id,
+            'flight_number': flight.flight_number,
+            'airline': flight.airline,
+            'departure': flight.departure,
+            'destination': flight.destination,
+            'price': float(flight.price),
+            'rating': flight.rating
+        }
+        for flight in flights
+    ]
+    return JsonResponse({'status': 'success', 'data': data})
+
+
+def search_hotels(request):
+    destination = request.GET.get('destination', '')
+    hotels = (
+        Hotel.objects.filter(destination__icontains=destination).order_by('price')
+        if destination else Hotel.objects.all().order_by('price')
+    )
+    data = [
+        {
+            'id': hotel.id,
+            'name': hotel.name,
+            'destination': hotel.destination,
+            'price': float(hotel.price),
+            'rating': hotel.rating,
+            'address': hotel.address
+        }
+        for hotel in hotels
+    ]
+    return JsonResponse({'status': 'success', 'data': data})
+
+
+def create_order(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'fail', 'message': '请先登录'}, status=401)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'fail', 'message': '仅支持POST'}, status=405)
+
+    data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
+    order = Order.objects.create(
+        user=request.user,
+        item_type=data.get('item_type'),
+        item_id=data.get('item_id'),
+        item_name=data.get('item_name'),
+        price=data.get('price')
+    )
+    return JsonResponse({'status': 'success', 'order_id': order.id})
+
+
+def my_orders(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'fail', 'message': '请先登录'}, status=401)
+    orders = Order.objects.filter(user=request.user).values()
+    return JsonResponse({'status': 'success', 'data': list(orders)})
+
+
+def home_page(request):
+    search_query = request.GET.get('search', '').strip()
+    guides = Guide.objects.select_related('user').prefetch_related('favorites').all()
+
+    if search_query:
+        guides = guides.filter(
+            Q(destination__icontains=search_query) |
+            Q(title__icontains=search_query) |
+            Q(content__icontains=search_query)
+        )
+    guides = guides.order_by('-likes', '-created_at')[:6]
+
+    color_palette = [
+        ("#FFF5F5", "#E53E3E"), ("#EBF8FF", "#3182CE"),
+        ("#F0FDF4", "#16A34A"), ("#FFFDF5", "#D97706"),
+        ("#F3E8FF", "#8B5CF6"), ("#ECEFEE", "#0D9488")
+    ]
+    city_color_map = {}
+    color_index = 0
+
+    for guide in guides:
+        city = guide.destination
+        if city not in city_color_map:
+            city_color_map[city] = color_palette[color_index % len(color_palette)]
+            color_index += 1
+        guide.bg_color = city_color_map[city][0]
+        guide.text_color = city_color_map[city][1]
+        guide.is_liked = _is_guide_liked(request, guide.id)
+        guide.is_favorited = _is_guide_favorited(request, guide.id)
+        guide.favorite_count = guide.favorites.count()
+
+    latest_news = TravelNews.objects.all().order_by('-views_count', '-created_at')[:3]
+    for news in latest_news:
+        news.is_favorited = _is_news_favorited(request, news.id)
+
+    favorite_ids = _favorite_guide_ids(request)
+    favorite_guides = Guide.objects.select_related('user').filter(id__in=favorite_ids).order_by('-created_at')
+
+    return render(request, 'index.html', {
+        'g_list': guides,
+        'favorite_guides': favorite_guides,
+        'news_list': latest_news
+    })
+
+
+def news_list(request):
+    all_news = TravelNews.objects.all()
+    for news in all_news:
+        news.is_favorited = _is_news_favorited(request, news.id)
+    return render(request, 'news_all_list.html', {'news_list': all_news})
+
+
+def news_detail(request, news_id):
+    news = get_object_or_404(TravelNews, id=news_id)
+    news.views_count += 1
+    news.save(update_fields=['views_count'])
+    news.is_favorited = _is_news_favorited(request, news.id)
+    return render(request, 'news_detail.html', {'news': news})
+
+
+def comments_page(request):
+    search_query = request.GET.get('search', '').strip()
+    guides = Guide.objects.select_related('user').prefetch_related('favorites').all().order_by('-created_at')
+
+    if search_query:
+        guides = guides.filter(
+            Q(destination__icontains=search_query) |
+            Q(title__icontains=search_query) |
+            Q(content__icontains=search_query) |
+            Q(user__username__icontains=search_query)
+        )
+
+    color_palette = [
+        ("#FFF5F5", "#E53E3E"), ("#EBF8FF", "#3182CE"),
+        ("#F0FDF4", "#16A34A"), ("#FFFDF5", "#D97706"),
+        ("#F3E8FF", "#8B5CF6"), ("#ECEFEE", "#0D9488")
+    ]
+    city_color_map = {}
+    color_index = 0
+
+    for guide in guides:
+        city = guide.destination
+        if city not in city_color_map:
+            city_color_map[city] = color_palette[color_index % len(color_palette)]
+            color_index += 1
+        guide.bg_color = city_color_map[city][0]
+        guide.text_color = city_color_map[city][1]
+        guide.is_liked = _is_guide_liked(request, guide.id)
+        guide.is_favorited = _is_guide_favorited(request, guide.id)
+        guide.favorite_count = guide.favorites.count()
+
+    return render(request, 'comments.html', {
+        'g_list': guides,
+        'search_query': search_query,
+    })
+
+
+def favorites_page(request):
+    favorite_guide_ids = _favorite_guide_ids(request)
+    favorite_news_ids = _session_favorite_news_ids(request)
+
+    favorite_guides = Guide.objects.select_related('user').filter(id__in=favorite_guide_ids).order_by('-created_at')
+    for guide in favorite_guides:
+        guide.is_liked = _is_guide_liked(request, guide.id)
+        guide.is_favorited = True
+        guide.favorite_count = guide.favorites.count()
+
+    favorite_news = TravelNews.objects.filter(id__in=favorite_news_ids).order_by('-created_at')
+    for news in favorite_news:
+        news.is_favorited = True
+
+    return render(request, 'favorites.html', {
+        'favorite_guides': favorite_guides,
+        'favorite_news': favorite_news,
+    })
+
+
+def news_all_hub(request):
+    all_stored_news = TravelNews.objects.all().order_by('-created_at')
+    for news in all_stored_news:
+        news.is_favorited = _is_news_favorited(request, news.id)
+    return render(request, 'news_all_list.html', {'news_list': all_stored_news})
