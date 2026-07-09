@@ -2,6 +2,7 @@ from django.shortcuts import render
 import json
 import os
 from pathlib import Path
+from urllib.parse import quote
 from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import httpx
@@ -35,6 +36,10 @@ def ai_assistant(request):
     return render(request, 'ai_assistant.html')
 
 
+def hotel_search(request):
+    return render(request, 'hotel_search.html')
+
+
 def create_deepseek_stream(api_key, prompt, ignore_system_proxy=False):
     http_client = None
     if ignore_system_proxy:
@@ -55,6 +60,130 @@ def create_deepseek_stream(api_key, prompt, ignore_system_proxy=False):
         reasoning_effort="high",
         extra_body={"thinking": {"type": "enabled"}}
     )
+
+
+def create_deepseek_completion(api_key, prompt, ignore_system_proxy=False):
+    http_client = None
+    if ignore_system_proxy:
+        http_client = httpx.Client(timeout=60.0, trust_env=False)
+
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.deepseek.com",
+        http_client=http_client,
+    )
+    return client.chat.completions.create(
+        model="deepseek-v4-pro",
+        messages=[
+            {"role": "system", "content": "你是酒店搜索助手。必须严格服从目标城市，只返回 JSON 数组，不要输出解释。"},
+            {"role": "user", "content": prompt}
+        ],
+        stream=False,
+        reasoning_effort="high",
+        extra_body={"thinking": {"type": "enabled"}}
+    )
+
+
+@csrf_exempt
+def hotel_ai_search(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': '仅支持 POST 请求'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, TypeError):
+        data = request.POST.dict()
+
+    def _s(v):
+        return str(v).strip() if v is not None else ''
+
+    city = _s(data.get('city')) or '上海'
+    check_in = _s(data.get('check_in'))
+    check_out = _s(data.get('check_out'))
+    guests = _s(data.get('guests'))
+    keyword = _s(data.get('keyword'))
+
+    api_key = get_deepseek_api_key()
+    if not api_key:
+        return JsonResponse({'error': '未配置 DEEPSEEK_API_KEY'}, status=400)
+
+    prompt = f"""
+目标城市只能是：{city}
+请为用户查找“{city}”本地的 12-18 家酒店候选。
+入住：{check_in or '未填写'}，退房：{check_out or '未填写'}，人数：{guests or '未填写'}，关键词：{keyword or '无'}。
+要求：
+1. 返回 JSON 数组，不要 markdown。
+2. 每项字段：name, area, price, rating, reviewCount, room, tags, reason, detailUrl, imageQuery。
+3. name 或 area 必须能看出属于“{city}”，禁止返回北京、上海、广州、深圳等其他城市酒店。
+4. detailUrl 必须是可访问的搜索/介绍网址，优先用酒店官网、Google/Bing搜索；不确定官网时用包含“{city}+酒店名”的 Bing 搜索网址。
+5. imageQuery 写适合搜索酒店图片的关键词，必须包含“{city}”。
+6. price 是数字，rating 是 4.1-4.9 数字，reviewCount 是数字，tags 是字符串数组。
+7. 如果无法确认真实酒店，也必须围绕“{city}”返回候选，不要使用其他城市示例。
+8. 禁止使用“??”“某城市”“目标城市”等占位文字，必须写出真实城市名“{city}”。
+"""
+
+    try:
+        try:
+            result = create_deepseek_completion(api_key, prompt)
+        except Exception:
+            result = create_deepseek_completion(api_key, prompt, ignore_system_proxy=True)
+        content = result.choices[0].message.content or '[]'
+        content = content.strip()
+        if content.startswith('```'):
+            content = content.strip('`')
+            content = content.replace('json', '', 1).strip()
+        start = content.find('[')
+        end = content.rfind(']')
+        if start != -1 and end != -1 and end > start:
+            content = content[start:end + 1]
+        hotels = json.loads(content)
+        if not isinstance(hotels, list):
+            hotels = []
+        hotels = clean_hotel_results(hotels, city)
+        return JsonResponse({'hotels': hotels})
+    except Exception as e:
+        return JsonResponse({
+            'error': 'AI 酒店查找失败',
+            'detail': str(e),
+        }, status=500)
+
+
+def clean_hotel_results(hotels, city):
+    wrong_city_words = [
+        '北京', '上海', '广州', '深圳', '杭州', '成都', '重庆', '西安', '南京', '武汉',
+        '天津', '苏州', '厦门', '青岛', '长沙', '郑州', '三亚', '哈尔滨'
+    ]
+    wrong_city_words = [word for word in wrong_city_words if word not in city]
+    cleaned = []
+    for item in hotels:
+        if not isinstance(item, dict):
+            continue
+        text = f"{item.get('name', '')} {item.get('area', '')} {item.get('detailUrl', '')}"
+        if any(word in text for word in wrong_city_words):
+            continue
+        name = str(item.get('name') or f'{city}精选酒店').strip()
+        area = str(item.get('area') or f'{city}市中心').strip()
+        name = name.replace('??', city).replace('某城市', city).replace('目标城市', city)
+        area = area.replace('??', city).replace('某城市', city).replace('目标城市', city)
+        if city not in name and city not in area:
+            area = f'{city} · {area}'
+        detail_url = str(item.get('detailUrl') or '').strip()
+        detail_url_has_placeholder = any(token in detail_url for token in ('??', '%3F', '%3f', '某城市', '目标城市'))
+        if (
+            not detail_url.startswith(('http://', 'https://'))
+            or any(word in detail_url for word in wrong_city_words)
+            or detail_url_has_placeholder
+        ):
+            detail_url = 'https://www.bing.com/search?q=' + quote(f'{city} {name} 酒店 官网')
+        image_query = str(item.get('imageQuery') or name).strip()
+        if city not in image_query:
+            image_query = f'{city} {image_query}'
+        item['name'] = name
+        item['area'] = area
+        item['detailUrl'] = detail_url
+        item['imageQuery'] = image_query
+        cleaned.append(item)
+    return cleaned[:20]
 
 
 @csrf_exempt

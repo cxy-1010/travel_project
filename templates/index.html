@@ -360,7 +360,7 @@
 
 														<div class="form-group" style="position: relative; margin-bottom: 20px;">
 															<input type="text" 
-																id="select_country" 
+																id="hotel_country" 
 																name="country" 
 																class="form-control" 
 																placeholder="输入您想去的国家" 
@@ -371,7 +371,7 @@
 
 														<div class="form-group" style="position: relative; margin-bottom: 20px;">
 															<input type="text" 
-																id="select_city" 
+																id="hotel_city" 
 																name="city" 
 																class="form-control" 
 																placeholder="输入目标城市" 
@@ -390,7 +390,7 @@
 														<h2>入住日期</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="check_in" class="form-control" data-toggle="datepicker" placeholder="12 -01 - 2026 ">
+																<input type="text" id="hotel_check_in" name="check_in" class="form-control" data-toggle="datepicker" placeholder="12 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
@@ -401,7 +401,7 @@
 														<h2>退房日期</h2>
 														<div class="travel-check-icon">
 															<form action="#">
-																<input type="text" name="check_out" class="form-control"  data-toggle="datepicker" placeholder="22 -01 - 2026 ">
+																<input type="text" id="hotel_check_out" name="check_out" class="form-control"  data-toggle="datepicker" placeholder="22 -01 - 2026 ">
 															</form>
 														</div><!-- /.travel-check-icon -->
 													</div><!--/.single-tab-select-box-->
@@ -411,9 +411,9 @@
 													<div class="single-tab-select-box">
 														<h2>房间数</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="hotel_rooms" class="form-control ">
 
-															  	<option value="default">1 间</option><!-- /.option-->
+															  	<option value="1">1 间</option><!-- /.option-->
 
 															  	<option value="2">2 间</option><!-- /.option-->
 
@@ -428,9 +428,9 @@
 													<div class="single-tab-select-box">
 														<h2>入住人数</h2>
 														<div class="travel-select-icon">
-															<select class="form-control ">
+															<select id="hotel_guests" class="form-control ">
 
-															  	<option value="default">1 人</option><!-- /.option-->
+															  	<option value="1">1 人</option><!-- /.option-->
 
 															  	<option value="2">2 人</option><!-- /.option-->
 
@@ -447,7 +447,7 @@
 												<div class="col-sm-5"></div><!--/.col-->
 												<div class="clo-sm-7">
 													<div class="about-btn travel-mrt-0 pull-right">
-														<button  class="about-view travel-btn">
+														<button id="hotel-search-open-btn" class="about-view travel-btn">
 															搜索酒店	
 														</button><!--/.travel-btn-->
 													</div><!--/.about-btn-->
@@ -1628,6 +1628,24 @@
 					statusText.text('出错了');
 					$('.ai-thinking-dots').hide();
 				});
+			});
+
+			$('#hotel-search-open-btn').on('click', function(e) {
+				e.preventDefault();
+				var params = new URLSearchParams({
+					country: $('#hotel_country').val() || '',
+					city: $('#hotel_city').val() || '',
+					check_in: $('#hotel_check_in').val() || '',
+					check_out: $('#hotel_check_out').val() || '',
+					rooms: $('#hotel_rooms').val() || '1',
+					guests: $('#hotel_guests').val() || '1',
+					keyword: ''
+				});
+				var hotelUrl = '/hotel-search/?' + params.toString();
+				var hotelWindow = window.open(hotelUrl, '_blank');
+				if (!hotelWindow) {
+					window.location.href = hotelUrl;
+				}
 			});
 			
 			// Close button
