@@ -50,6 +50,7 @@
 
 		<!--responsive.css-->
 		<link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
+		<link rel="stylesheet" href="{% static 'css/package_cards.css' %}" />
 		<link rel="stylesheet" href="{% static 'css/auth.css' %}" />
 
 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -697,6 +698,21 @@
 						  	<div class="filtr-container">
 						  		<div class="row">
 
+						  			{% for destination in hot_destinations %}
+						  			<div class="{{ destination.column_class }}">
+						  				<div class="filtr-item">
+											<img class="destination-cover" src="{{ destination.image_url }}" alt="{{ destination.name }}" loading="lazy" onerror="this.onerror=null;this.src='{% static destination.fallback_image %}';"/>
+											<div class="item-title">
+												<a href="#">
+													{{ destination.name }}
+												</a>
+												<p><span>{{ destination.routes }} 路线</span><span>{{ destination.spots }} 景点</span></p>
+											</div><!-- /.item-title -->
+										</div><!-- /.filtr-item -->
+						  			</div><!-- /.col -->
+						  			{% endfor %}
+						  			{% comment %}
+
 						  			<div class="col-md-6">
 						  				<div class="filtr-item">
 											<img src="{% static 'images/gallary/g1.jpg' %}" alt="portfolio image"/>
@@ -768,6 +784,7 @@
 											</div> <!-- /.item-title-->
 										</div><!-- /.filtr-item -->
 						  			</div><!-- /.col -->
+						  			{% endcomment %}
 
 						  		</div><!-- /.row -->
 
@@ -832,6 +849,47 @@
 				</div><!--/.gallery-header-->
 				<div class="packages-content">
 					<div class="row">
+
+						{% for package in travel_packages %}
+						<div class="col-md-4 col-sm-6">
+							<div class="single-package-item">
+								<img class="package-cover" src="{{ package.image_url }}" alt="{{ package.name }}" loading="lazy" onerror="this.onerror=null;this.src='{% static package.fallback_image %}';">
+								<div class="single-package-item-txt">
+									<h3>{{ package.name }} <span class="pull-right">{{ package.price }}</span></h3>
+									<div class="packages-para">
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> {{ package.duration }}
+											</span>
+											<i class="fa fa-angle-right"></i> {{ package.hotel }}
+										</p>
+										<p>
+											<span>
+												<i class="fa fa-angle-right"></i> {{ package.transport }}
+											</span>
+											<i class="fa fa-angle-right"></i> {{ package.meal }}
+										 </p>
+									</div><!--/.packages-para-->
+									<div class="packages-review">
+										<p>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<i class="fa fa-star"></i>
+											<span>{{ package.reviews }} 条好评</span>
+										</p>
+									</div><!--/.packages-review-->
+									<div class="about-btn">
+										<button class="about-view packages-btn">
+											立即预订
+										</button>
+									</div><!--/.about-btn-->
+								</div><!--/.single-package-item-txt-->
+							</div><!--/.single-package-item-->
+						</div><!--/.col-->
+						{% endfor %}
+						{% comment %}
 
 						<div class="col-md-4 col-sm-6">
 							<div class="single-package-item">
@@ -1066,6 +1124,7 @@
 							</div><!--/.single-package-item-->
 
 						</div><!--/.col-->
+						{% endcomment %}
 
 					</div><!--/.row-->
 				</div><!--/.packages-content-->

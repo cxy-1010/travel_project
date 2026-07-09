@@ -24,6 +24,134 @@ FLIGHT_SEARCH_CACHE = {}
 FLIGHT_SEARCH_CACHE_SECONDS = 15 * 60
 
 
+TRAVEL_PACKAGES = [
+    {
+        'name': '希腊圣托里尼火山海景 6 日',
+        'price': '¥8,999 起',
+        'image_url': 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=900&q=80',
+        'fallback_image': 'images/packages/p1.jpg',
+        'duration': '6 天 5 晚',
+        'hotel': '悬崖海景酒店',
+        'transport': '接送机 + 岛内用车',
+        'meal': '特色晚餐 + 酒庄体验',
+        'rating': 5,
+        'reviews': 2680,
+    },
+    {
+        'name': '日本京都古都文化 5 日',
+        'price': '¥6,499 起',
+        'image_url': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=900&q=80',
+        'fallback_image': 'images/packages/p2.jpg',
+        'duration': '5 天 4 晚',
+        'hotel': '市中心精选酒店',
+        'transport': '关西机场接送',
+        'meal': '茶道 + 和风料理',
+        'rating': 5,
+        'reviews': 2146,
+    },
+    {
+        'name': '巴厘岛海岸与乌布疗愈 6 日',
+        'price': '¥7,299 起',
+        'image_url': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=900&q=80',
+        'fallback_image': 'images/packages/p3.jpg',
+        'duration': '6 天 5 晚',
+        'hotel': '泳池度假酒店',
+        'transport': '专车环岛游',
+        'meal': '海景下午茶 + 当地餐',
+        'rating': 5,
+        'reviews': 3098,
+    },
+    {
+        'name': '瑞士少女峰全景列车 7 日',
+        'price': '¥16,800 起',
+        'image_url': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=80',
+        'fallback_image': 'images/packages/p4.jpg',
+        'duration': '7 天 6 晚',
+        'hotel': '湖区精品酒店',
+        'transport': '瑞士铁路通票',
+        'meal': '山景早餐 + 奶酪火锅',
+        'rating': 5,
+        'reviews': 1864,
+    },
+    {
+        'name': '巴黎艺术与塞纳河漫游 5 日',
+        'price': '¥9,699 起',
+        'image_url': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=900&q=80',
+        'fallback_image': 'images/packages/p5.jpg',
+        'duration': '5 天 4 晚',
+        'hotel': '左岸或歌剧院商圈',
+        'transport': '市区交通卡',
+        'meal': '法式甜点 + 塞纳河晚餐',
+        'rating': 5,
+        'reviews': 2410,
+    },
+    {
+        'name': '马尔代夫双人岛屿假期 6 日',
+        'price': '¥14,999 起',
+        'image_url': 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=900&q=80',
+        'fallback_image': 'images/packages/p6.jpg',
+        'duration': '6 天 4 晚',
+        'hotel': '沙屋/水屋可选',
+        'transport': '快艇或水飞接驳',
+        'meal': '早晚餐 + 浮潜体验',
+        'rating': 5,
+        'reviews': 3342,
+    },
+]
+
+
+HOT_DESTINATIONS = [
+    {
+        'name': '中国',
+        'image_url': 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=1200&q=80',
+        'fallback_image': 'images/gallary/g1.jpg',
+        'routes': 28,
+        'spots': 18,
+        'column_class': 'col-md-6',
+    },
+    {
+        'name': '委内瑞拉',
+        'image_url': 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80',
+        'fallback_image': 'images/gallary/g2.jpg',
+        'routes': 12,
+        'spots': 9,
+        'column_class': 'col-md-6',
+    },
+    {
+        'name': '巴西',
+        'image_url': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=900&q=80',
+        'fallback_image': 'images/gallary/g3.jpg',
+        'routes': 25,
+        'spots': 14,
+        'column_class': 'col-md-4',
+    },
+    {
+        'name': '澳大利亚',
+        'image_url': 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=900&q=80',
+        'fallback_image': 'images/gallary/g4.jpg',
+        'routes': 18,
+        'spots': 11,
+        'column_class': 'col-md-4',
+    },
+    {
+        'name': '荷兰',
+        'image_url': 'https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=900&q=80',
+        'fallback_image': 'images/gallary/g5.jpg',
+        'routes': 14,
+        'spots': 12,
+        'column_class': 'col-md-4',
+    },
+    {
+        'name': '土耳其',
+        'image_url': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1200&q=80',
+        'fallback_image': 'images/gallary/g6.jpg',
+        'routes': 16,
+        'spots': 8,
+        'column_class': 'col-md-8',
+    },
+]
+
+
 def get_deepseek_api_key():
     api_key = os.environ.get('DEEPSEEK_API_KEY')
     if api_key:
@@ -44,7 +172,14 @@ def get_deepseek_api_key():
 
 
 def index(request):
-    return render(request, 'index.html')
+    return render(
+        request,
+        'index.html',
+        {
+            'travel_packages': TRAVEL_PACKAGES,
+            'hot_destinations': HOT_DESTINATIONS,
+        },
+    )
 
 
 def ai_assistant(request):

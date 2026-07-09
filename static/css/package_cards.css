@@ -1,0 +1,15 @@
+.single-package-item .package-cover {
+    height: 240px;
+    object-fit: cover;
+}
+
+.filtr-container .filtr-item .destination-cover {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+}
+
+.col-md-6 .filtr-item .destination-cover,
+.col-md-8 .filtr-item .destination-cover {
+    height: 360px;
+}
