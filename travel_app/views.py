@@ -186,12 +186,13 @@ def get_deepseek_api_key():
 
 def index(request):
     travel_packages = get_featured_packages()
+    hot_destinations = enrich_destination_route_counts(HOT_DESTINATIONS)
     return render(
         request,
         'index.html',
         {
             'travel_packages': travel_packages,
-            'hot_destinations': HOT_DESTINATIONS,
+            'hot_destinations': hot_destinations,
         },
     )
 
@@ -289,6 +290,7 @@ def destination_packages(request, destination):
         }
 
     packages = get_destination_packages(selected_destination['name'])
+    selected_destination = {**selected_destination, 'routes': len(packages)}
     return render(
         request,
         'destination_packages.html',
@@ -297,6 +299,13 @@ def destination_packages(request, destination):
             'packages': packages,
         },
     )
+
+
+def enrich_destination_route_counts(destinations):
+    return [
+        {**destination, 'routes': len(get_destination_packages(destination['name']))}
+        for destination in destinations
+    ]
 
 
 def get_destination_packages(destination_name):

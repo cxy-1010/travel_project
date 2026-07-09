@@ -1,4 +1,5 @@
 {% extends 'auth_base.html' %}
+{% load static %}
 
 {% block title %}确认预订 - TourNest{% endblock %}
 {% block body_class %}profile-page{% endblock %}
@@ -9,7 +10,7 @@
 {% block content %}
     <div class="booking-layout">
         <article class="booking-package-card">
-            <img src="{{ package.image_url }}" alt="{{ package.name }}">
+            <img src="{% if package.image_url|slice:':4' == 'http' %}{{ package.image_url }}{% else %}{% static package.image_url %}{% endif %}" alt="{{ package.name }}">
             <div>
                 <h2>{{ package.name }}</h2>
                 <p class="booking-price">{{ package.price }}</p>
