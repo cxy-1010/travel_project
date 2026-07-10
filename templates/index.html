@@ -51,7 +51,7 @@
 
 		<!--responsive.css-->
 		<link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
-		<link rel="stylesheet" href="{% static 'css/package_cards.css' %}?v=package-layout-4" />
+		<link rel="stylesheet" href="{% static 'css/package_cards.css' %}?v=package-layout-7" />
 		<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=button-fix-3" />
 
 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -815,7 +815,7 @@
 				<div class="packages-content">
 					<div class="row">
 
-						{% for package in travel_packages %}
+						{% for package in travel_packages|slice:":6" %}
 						<div class="col-md-4 col-sm-6">
 							<div class="single-package-item">
 								<img class="package-cover" src="{% if package.image_url|slice:':4' == 'http' %}{{ package.image_url }}{% else %}{% static package.image_url %}{% endif %}" alt="{{ package.name }}" loading="lazy" onerror="this.onerror=null;this.src='{% static package.fallback_image %}';">

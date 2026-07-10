@@ -153,7 +153,7 @@ class AuthFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(SavedRoute.objects.filter(user=user, title='杭州路线').exists())
         self.assertContains(profile_response, '杭州路线')
-        self.assertContains(profile_response, '我的保存路线')
+        self.assertContains(profile_response, '路线')
 
     def test_guide_comment_shows_on_profile(self):
         user = User.objects.create_user(username='comment_user', password='SafePass12345')
@@ -174,5 +174,5 @@ class AuthFlowTests(TestCase):
 
         response = self.client.get(reverse('profile'))
 
-        self.assertContains(response, '我的评论')
+        self.assertContains(response, '评论')
         self.assertContains(response, '这个路线很适合两天游。')

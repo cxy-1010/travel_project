@@ -31,6 +31,9 @@
 	var chatForm = document.getElementById('chat-form');
 	var chatMessage = document.getElementById('chat-message');
 	var saveRouteBtn = document.getElementById('save-route-btn');
+	var destinationMap = document.getElementById('destination-map');
+	var introLink = document.getElementById('intro-link');
+	var activeMapQuery = '';
 
 	setupPage();
 	generateRoute('');
@@ -63,12 +66,19 @@
 		saveRoute(buildHotelPayload(event.target), event.target);
 	});
 
+	responseContent.addEventListener('click', function (event) {
+		var target = event.target.closest('.map-pin-btn');
+		if (!target) return;
+		event.preventDefault();
+		var query = target.dataset.mapQuery || target.textContent;
+		focusMap(query);
+	});
+
 	function setupPage() {
 		routeTitle.textContent = buildTitle();
 		routeSubtitle.textContent = buildSubtitle();
 		document.getElementById('trip-summary').innerHTML = buildSummary(trip);
-		document.getElementById('destination-map').src = 'https://www.google.com/maps?q=' + encodeURIComponent(destination) + '&output=embed';
-		document.getElementById('intro-link').href = 'https://zh.wikipedia.org/wiki/Special:Search?search=' + encodeURIComponent(destination);
+		focusMap(destination, true);
 	}
 
 	function buildTitle() {
@@ -195,6 +205,16 @@
 			return;
 		}
 		responseContent.innerHTML = renderRoute(routeText, tab);
+	}
+
+	function focusMap(query, silent) {
+		var cleanQuery = cleanMapQuery(query);
+		if (!cleanQuery) cleanQuery = destination;
+		if (cleanQuery === activeMapQuery && !silent) return;
+		activeMapQuery = cleanQuery;
+		destinationMap.src = 'https://www.google.com/maps?q=' + encodeURIComponent(cleanQuery) + '&output=embed';
+		introLink.href = 'https://zh.wikipedia.org/wiki/Special:Search?search=' + encodeURIComponent(cleanQuery);
+		introLink.textContent = cleanQuery === destination ? '目的地介绍' : '正在查看：' + cleanQuery;
 	}
 
 	function renderPending() {
@@ -327,7 +347,13 @@
 	function renderRoute(text, tab) {
 		var source = tab && tab !== 'overview' ? getDayText(text, tab) : text;
 		var html = escapeHtml(source);
-		html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a class="spot-link" href="$2" target="_blank" rel="noopener">$1</a>');
+		html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, function (match, label, url) {
+			var query = buildMapQueryFromLabel(label);
+			return [
+				'<a class="spot-link" href="' + url + '" target="_blank" rel="noopener">景点介绍</a>',
+				'<button type="button" class="map-pin-btn" data-map-query="' + escapeHtml(query) + '" title="在地图查看 ' + escapeHtml(label) + '"><i class="fa fa-map-marker"></i></button>'
+			].join('');
+		});
 		html = html.replace(/^###\s*(.+)$/gm, '<h4>$1</h4>');
 		html = html.replace(/^##\s*(.+)$/gm, '<h3>$1</h3>');
 		html = html.replace(/^#\s*(.+)$/gm, '<h3>$1</h3>');
@@ -339,6 +365,28 @@
 		html = html.replace(/\n{2,}/g, '</p><p>');
 		html = html.replace(/\n/g, '<br>');
 		return '<p>' + html + '</p>';
+	}
+
+	function buildMapQueryFromLabel(label) {
+		var cleanLabel = decodeHtml(label)
+			.replace(/景点介绍/g, '')
+			.replace(/\s+/g, ' ')
+			.trim();
+		if (!cleanLabel) return destination;
+		return (destination !== '目的地' && cleanLabel.indexOf(destination) === -1) ? destination + ' ' + cleanLabel : cleanLabel;
+	}
+
+	function cleanMapQuery(query) {
+		return String(query || '')
+			.replace(/\s+/g, ' ')
+			.replace(/定位地图/g, '')
+			.trim();
+	}
+
+	function decodeHtml(value) {
+		var textarea = document.createElement('textarea');
+		textarea.innerHTML = value;
+		return textarea.value;
 	}
 
 	function extractDaySections(text) {
