@@ -46,6 +46,72 @@
         {% endif %}
     </div>
 
+    <div class="profile-bookings">
+        <div class="profile-section-head">
+            <h2>我的保存路线</h2>
+            <a href="{% url 'ai_assistant' %}">继续规划</a>
+        </div>
+        {% if saved_routes %}
+            <div class="profile-route-grid">
+                {% for route in saved_routes %}
+                    <article class="profile-route-card">
+                        <div class="profile-route-head">
+                            <h3>{{ route.title }}</h3>
+                            <span>{{ route.created_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        <p class="profile-route-meta">
+                            {% if route.destination %}<span><i class="fa fa-map-marker"></i> {{ route.destination }}</span>{% endif %}
+                            {% if route.check_in %}<span><i class="fa fa-calendar"></i> {{ route.check_in|date:"Y-m-d" }}</span>{% endif %}
+                            {% if route.days %}<span>{{ route.days }} 天</span>{% endif %}
+                            {% if route.people %}<span>{{ route.people }} 人</span>{% endif %}
+                            {% if route.budget %}<span>预算 {{ route.budget }}</span>{% endif %}
+                        </p>
+                        {% if route.selected_item %}
+                            <div class="profile-route-item">
+                                <strong>已加入行程：{{ route.selected_item.name }}</strong>
+                                <span>{{ route.selected_item.area }} · 约 {{ route.selected_item.price }} 元/晚</span>
+                            </div>
+                        {% endif %}
+                        {% if route.content %}
+                            <p class="profile-route-content">{{ route.content|striptags|truncatechars:180 }}</p>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="profile-empty-booking">暂无保存路线。您可以在搜索后的 AI 路线规划页点击“保存路线”或“加入行程”。</p>
+        {% endif %}
+    </div>
+
+    <div class="profile-bookings">
+        <div class="profile-section-head">
+            <h2>我的评论</h2>
+            <a href="{% url 'comments' %}">去评论社区</a>
+        </div>
+        {% if my_comments %}
+            <div class="profile-comment-list">
+                {% for comment in my_comments %}
+                    <article class="profile-comment-card">
+                        <div class="profile-comment-head">
+                            <h3>
+                                {% if comment.guide %}
+                                    <a href="{% url 'comments' %}#guide-{{ comment.guide.id }}">{{ comment.guide.title }}</a>
+                                {% else %}
+                                    {{ comment.title }}
+                                {% endif %}
+                            </h3>
+                            <span>{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        <p class="profile-comment-destination">{{ comment.destination }}</p>
+                        <p>{{ comment.content }}</p>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="profile-empty-booking">暂无评论。您在评论社区发布的攻略评论会显示在这里。</p>
+        {% endif %}
+    </div>
+
     <form class="auth-form" method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
         {% if form.non_field_errors %}

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -34,6 +36,7 @@ from .models import (
     GuideFavorite,
     Hotel,
     Order,
+    SavedRoute,
     TravelBooking,
     TravelNews,
     TravelPackage,
@@ -722,7 +725,76 @@ def profile(request):
         form = ProfileForm(instance=user_profile, user=request.user)
 
     bookings = TravelBooking.objects.filter(user=request.user)[:4]
-    return render(request, 'profile.html', {'form': form, 'profile': user_profile, 'bookings': bookings})
+    saved_routes = SavedRoute.objects.filter(user=request.user)[:4]
+    my_comments = GuideComment.objects.select_related('guide').filter(user=request.user)[:6]
+    return render(request, 'profile.html', {
+        'form': form,
+        'profile': user_profile,
+        'bookings': bookings,
+        'saved_routes': saved_routes,
+        'my_comments': my_comments,
+    })
+
+
+def _parse_positive_int(value):
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return None
+    return number if number > 0 else None
+
+
+def _parse_optional_date(value):
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, '%Y-%m-%d').date()
+    except (TypeError, ValueError):
+        return None
+
+
+@csrf_exempt
+@require_POST
+def save_route(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'fail', 'message': '请先登录后再保存到个人中心'}, status=401)
+
+    try:
+        data = json.loads(request.body.decode('utf-8') or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'fail', 'message': '保存内容格式不正确'}, status=400)
+
+    title = (data.get('title') or '').strip()
+    content = (data.get('content') or '').strip()
+    country = (data.get('country') or '').strip()
+    city = (data.get('city') or '').strip()
+    destination = (data.get('destination') or city or country or '我的路线').strip()
+    selected_item = data.get('selected_item')
+
+    if not title:
+        title = f'{destination}路线'
+    if not content and not selected_item:
+        return JsonResponse({'status': 'fail', 'message': '请先生成路线或加入行程项目'}, status=400)
+
+    route = SavedRoute.objects.create(
+        user=request.user,
+        title=title[:200],
+        country=country[:100],
+        city=city[:100],
+        destination=destination[:120],
+        check_in=_parse_optional_date(data.get('check_in')),
+        check_out=_parse_optional_date(data.get('check_out')),
+        days=_parse_positive_int(data.get('days')),
+        people=_parse_positive_int(data.get('people')),
+        budget=(data.get('budget') or '').strip()[:80],
+        content=content,
+        selected_item=selected_item if isinstance(selected_item, dict) else None,
+    )
+    return JsonResponse({
+        'status': 'success',
+        'message': '已保存到个人中心',
+        'route_id': route.id,
+    })
 
 
 def create_deepseek_stream(api_key, prompt, ignore_system_proxy=False):

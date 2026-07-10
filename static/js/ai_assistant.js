@@ -30,6 +30,7 @@
 	var chatLog = document.getElementById('chat-log');
 	var chatForm = document.getElementById('chat-form');
 	var chatMessage = document.getElementById('chat-message');
+	var saveRouteBtn = document.getElementById('save-route-btn');
 
 	setupPage();
 	generateRoute('');
@@ -53,15 +54,13 @@
 		generateRoute('请重新生成一版更合理的路线。');
 	});
 
-	document.getElementById('save-route-btn').addEventListener('click', function () {
-		addChat('assistant', '路线已保存在当前页面，您可以继续修改或选择住宿。');
+	saveRouteBtn.addEventListener('click', function () {
+		saveRoute(null, saveRouteBtn);
 	});
 
 	document.addEventListener('click', function (event) {
 		if (!event.target.classList.contains('save-hotel-btn')) return;
-		event.target.textContent = '已加入';
-		event.target.disabled = true;
-		addChat('assistant', '已把这家住宿加入当前行程草稿。');
+		saveRoute(buildHotelPayload(event.target), event.target);
 	});
 
 	function setupPage() {
@@ -95,6 +94,8 @@
 		reasoningCard.style.display = 'none';
 		responseEl.style.display = 'block';
 		responseContent.innerHTML = '';
+		saveRouteBtn.disabled = false;
+		saveRouteBtn.innerHTML = '<i class="fa fa-download"></i> 保存路线';
 		setRouteTabs([]);
 		assistantStatus.textContent = message ? '正在按你的要求改路线' : '深度思考中';
 		if (message) addChat('assistant', '收到，我会基于当前路线重新调整。');
@@ -246,9 +247,59 @@
 			'<div class="hotel-card-head"><div><h4>' + escapeHtml(hotel.name) + '</h4><p><i class="fa fa-map-marker"></i> ' + escapeHtml(hotel.area) + '</p></div><strong>约 ' + hotel.price + ' 元/晚</strong></div>',
 			'<div class="hotel-tags">' + hotel.tags.map(function (tag) { return '<span>' + escapeHtml(tag) + '</span>'; }).join('') + '</div>',
 			'<p class="hotel-reason">' + escapeHtml(hotel.reason) + '</p>',
-			'<div class="hotel-actions"><button type="button" class="save-hotel-btn">加入行程</button></div>',
+			'<div class="hotel-actions"><button type="button" class="save-hotel-btn" data-name="' + escapeHtml(hotel.name) + '" data-area="' + escapeHtml(hotel.area) + '" data-price="' + hotel.price + '" data-tags="' + escapeHtml(hotel.tags.join('、')) + '" data-reason="' + escapeHtml(hotel.reason) + '">加入行程</button></div>',
 			'</article>'
 		].join('');
+	}
+
+	function buildHotelPayload(button) {
+		return {
+			type: 'hotel',
+			name: button.dataset.name || '',
+			area: button.dataset.area || '',
+			price: button.dataset.price || '',
+			tags: button.dataset.tags || '',
+			reason: button.dataset.reason || ''
+		};
+	}
+
+	function saveRoute(selectedItem, button) {
+		if (!routeText && !selectedItem) {
+			addChat('assistant', '请先生成路线，再保存到个人中心。');
+			return;
+		}
+
+		var originalText = button.textContent;
+		button.disabled = true;
+		button.textContent = '保存中...';
+
+		fetch('/api/routes/save/', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(Object.assign({}, trip, {
+				title: buildTitle(),
+				destination: destination,
+				content: routeText,
+				selected_item: selectedItem
+			}))
+		}).then(function (response) {
+			return response.json().then(function (result) {
+				if (!response.ok || result.status !== 'success') {
+					throw new Error(result.message || '保存失败');
+				}
+				button.textContent = selectedItem ? '已加入' : '已保存';
+				addChat('assistant', selectedItem ? '已加入行程并保存到个人中心。' : '路线已保存到个人中心。');
+			});
+		}).catch(function (err) {
+			button.disabled = false;
+			button.textContent = originalText;
+			if (err.message.indexOf('请先登录') !== -1) {
+				addChat('assistant', '请先登录，然后我就能把路线保存到你的个人中心。');
+				window.location.href = '/login/?next=' + encodeURIComponent(window.location.pathname + window.location.search);
+				return;
+			}
+			addChat('assistant', err.message || '保存失败，请稍后再试。');
+		});
 	}
 
 	function addChat(role, text) {

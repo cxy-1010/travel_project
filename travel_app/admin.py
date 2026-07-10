@@ -8,6 +8,7 @@ from .models import (
     GuideFavorite,
     Hotel,
     Order,
+    SavedRoute,
     TravelBooking,
     TravelNews,
     TravelPackage,
@@ -35,6 +36,13 @@ class TravelBookingAdmin(admin.ModelAdmin):
     list_display = ('user', 'package_name', 'destination', 'travelers', 'start_date', 'status', 'booked_at')
     list_filter = ('status', 'destination', 'booked_at')
     search_fields = ('user__username', 'user__email', 'package_name', 'destination', 'contact_phone')
+
+
+@admin.register(SavedRoute)
+class SavedRouteAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'destination', 'days', 'people', 'updated_at')
+    search_fields = ('title', 'destination', 'city', 'country', 'content', 'user__username')
+    list_filter = ('destination', 'created_at')
 
 
 @admin.register(EmailVerificationCode)

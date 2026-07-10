@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import UserProfile
+from .models import Guide, GuideComment, SavedRoute, UserProfile
 
 
 class AuthFlowTests(TestCase):
@@ -128,3 +128,51 @@ class AuthFlowTests(TestCase):
         self.assertContains(home_response, reverse('profile'))
         self.assertEqual(profile_response.status_code, 200)
         self.assertTrue(UserProfile.objects.filter(user=user).exists())
+
+    def test_save_route_requires_login(self):
+        response = self.client.post(
+            reverse('save_route'),
+            data='{"title":"杭州路线","destination":"杭州","content":"第1天 西湖"}',
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertFalse(SavedRoute.objects.exists())
+
+    def test_saved_route_shows_on_profile(self):
+        user = User.objects.create_user(username='route_user', password='SafePass12345')
+        self.client.login(username='route_user', password='SafePass12345')
+
+        response = self.client.post(
+            reverse('save_route'),
+            data='{"title":"杭州路线","destination":"杭州","days":"3","people":"2","content":"第1天 西湖"}',
+            content_type='application/json',
+        )
+        profile_response = self.client.get(reverse('profile'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(SavedRoute.objects.filter(user=user, title='杭州路线').exists())
+        self.assertContains(profile_response, '杭州路线')
+        self.assertContains(profile_response, '我的保存路线')
+
+    def test_guide_comment_shows_on_profile(self):
+        user = User.objects.create_user(username='comment_user', password='SafePass12345')
+        guide = Guide.objects.create(
+            user=user,
+            title='上海周末攻略',
+            destination='上海',
+            content='外滩和武康路',
+        )
+        GuideComment.objects.create(
+            user=user,
+            guide=guide,
+            title='回复：上海周末攻略',
+            destination='上海',
+            content='这个路线很适合两天游。',
+        )
+        self.client.login(username='comment_user', password='SafePass12345')
+
+        response = self.client.get(reverse('profile'))
+
+        self.assertContains(response, '我的评论')
+        self.assertContains(response, '这个路线很适合两天游。')

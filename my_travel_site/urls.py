@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/logout/', views.api_user_logout),
     path('api/search/flights/', views.search_flights),
     path('api/search/hotels/', views.search_hotels),
+    path('api/routes/save/', views.save_route, name='save_route'),
     path('api/order/create/', views.create_order),
     path('api/order/my/', views.my_orders),
     path('api/guides/', views.get_guides),

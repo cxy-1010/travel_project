@@ -95,6 +95,29 @@ class TravelBooking(models.Model):
         return f'{self.user.username} - {self.package_name}'
 
 
+class SavedRoute(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_routes')
+    title = models.CharField('路线标题', max_length=200)
+    country = models.CharField('国家/地区', max_length=100, blank=True)
+    city = models.CharField('城市', max_length=100, blank=True)
+    destination = models.CharField('目的地', max_length=120, blank=True)
+    check_in = models.DateField('出发日期', blank=True, null=True)
+    check_out = models.DateField('返回日期', blank=True, null=True)
+    days = models.PositiveIntegerField('行程天数', blank=True, null=True)
+    people = models.PositiveIntegerField('出行人数', blank=True, null=True)
+    budget = models.CharField('预算', max_length=80, blank=True)
+    content = models.TextField('路线内容', blank=True)
+    selected_item = models.JSONField('加入行程项目', blank=True, null=True)
+    created_at = models.DateTimeField('保存时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f'{self.user.username} - {self.title}'
+
+
 class EmailVerificationCode(models.Model):
     email = models.EmailField('邮箱地址', db_index=True)
     code = models.CharField('验证码', max_length=6)
