@@ -36,6 +36,8 @@ urlpatterns = [
     path('api/guides/<int:guide_id>/like/', views.like_guide),
     path('api/guides/<int:guide_id>/favorite/', views.favorite_guide),
     path('api/guides/<int:guide_id>/comment/', views.add_guide_comment),
+    path('api/external-guides/', views.external_guides),
+    path('api/proxy-image/', views.proxy_image),
     path('api/news/<int:news_id>/favorite/', views.favorite_news),
     path('login/', views.UserLoginView.as_view(), name='login'),
     path('register/', views.register, name='register'),

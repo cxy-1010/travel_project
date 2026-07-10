@@ -1118,6 +1118,9 @@
 					{% if g_list %}
 						{% for g in g_list %}
 						<div class="custom-guide-card" data-guide-card="{{ g.id }}">
+							{% if g.image_url %}
+							<img class="guide-card-image" src="{{ g.image_url }}" alt="{{ g.title }}" loading="lazy">
+							{% endif %}
 							<div>
 								<span class="quote-icon-wrap"><i class="fa fa-map-signs"></i></span>
 								<h3 class="card-guide-title">{{ g.title }}</h3>
@@ -1155,6 +1158,9 @@
 					{% for g in g_list %}
 					<div class="item">
 						<div class="custom-guide-card">
+							{% if g.image_url %}
+							<img class="guide-card-image" src="{{ g.image_url }}" alt="{{ g.title }}" loading="lazy">
+							{% endif %}
 							<div>
 								<span class="quote-icon-wrap"><i class="fa fa-map-signs"></i></span>
 								<h3 class="card-guide-title">{{ g.title }}</h3>
@@ -1210,14 +1216,16 @@
 								带你领略全球最新的风土人情与第一手行业资讯
 							</p>
 						</div><!--/.gallery-header-->
-						<div class="blog-content">
+						<div class="blog-content" id="external-guides">
 							<div class="row">
 
 								<div class="col-sm-4 col-md-4">
-									<div class="thumbnail">
-										<h2>探索足迹 <span>15 十一月 2025</span></h2>
+									<div class="thumbnail external-guide-card">
+										<h2>站外社区攻略 <span data-guide-source>社区攻略</span></h2>
 										<div class="thumbnail-img">
-											<img src="{% static 'images/blog/b1.jpg' %}" alt="blog-img">
+											<a data-guide-link href="https://you.ctrip.com/travels/151/3991282.html" target="_blank" rel="noopener noreferrer">
+												<img data-guide-image data-fallback="{% static 'images/blog/b1.jpg' %}" src="{% static 'images/blog/b1.jpg' %}" alt="去零下20度的哈尔滨" onerror="this.onerror=null;this.src='{% static 'images/blog/b1.jpg' %}';">
+											</a>
 											<div class="thumbnail-img-overlay"></div><!--/.thumbnail-img-overlay-->
 										
 										</div><!--/.thumbnail-img-->
@@ -1225,14 +1233,14 @@
 										<div class="caption">
 											<div class="blog-txt">
 												<h3>
-													<a href="#">
-														漫步布拉格：温和的气候、绝赞的传统美食与古老历史建筑的完美交融
+													<a data-guide-title data-guide-link href="https://you.ctrip.com/travels/151/3991282.html" target="_blank" rel="noopener noreferrer">
+														去零下20度的哈尔滨
 													</a>
 												</h3>
-												<p>
-													捷克的秋天别有一番风味。在查理大桥看日落，去品尝街头香脆的肉桂卷……
+												<p data-guide-summary>
+													来自社区旅友的路线灵感：上午看故宫和景山，下午留给胡同、咖啡馆和老城散步。
 												</p>
-												<a href="#">阅读全文</a>
+												<a data-guide-link href="https://you.ctrip.com/travels/151/3991282.html" target="_blank" rel="noopener noreferrer">阅读全文</a>
 											</div><!--/.blog-txt-->
 										</div><!--/.caption-->
 									</div><!--/.thumbnail-->
@@ -1240,24 +1248,26 @@
 								</div><!--/.col-->
 
 								<div class="col-sm-4 col-md-4">
-									<div class="thumbnail">
-										<h2>探索足迹 <span>15 十一月 2025</span></h2>
+									<div class="thumbnail external-guide-card">
+										<h2>站外社区攻略 <span data-guide-source>社区攻略</span></h2>
 										<div class="thumbnail-img">
-											<img src="{% static 'images/blog/b2.jpg' %}" alt="blog-img">
+											<a data-guide-link href="https://you.ctrip.com/travels/chongqing158/4122894.html" target="_blank" rel="noopener noreferrer">
+												<img data-guide-image data-fallback="{% static 'images/blog/b2.jpg' %}" src="{% static 'images/blog/b2.jpg' %}" alt="重庆3天游" onerror="this.onerror=null;this.src='{% static 'images/blog/b2.jpg' %}';">
+											</a>
 											<div class="thumbnail-img-overlay"></div><!--/.thumbnail-img-overlay-->
 										
 										</div><!--/.thumbnail-img-->
 										<div class="caption">
 											<div class="blog-txt">
 												<h3>
-													<a href="#">
-														不可错过的印度奇幻色彩之旅：探寻泰姬陵背后的浪漫与绝美落日
+													<a data-guide-title data-guide-link href="https://you.ctrip.com/travels/chongqing158/4122894.html" target="_blank" rel="noopener noreferrer">
+														重庆3天游
 													</a>
 												</h3>
-												<p>
-													古老的文明在恒河畔延绵不绝。为你奉上最全面的避坑旅游安全指南与打卡攻略。
+												<p data-guide-summary>
+													其他用户推荐的慢旅行玩法：避开正午暴晒，沿洱海分段骑行，把日落留给下午。
 												</p>
-												<a href="#">阅读全文</a>
+												<a data-guide-link href="https://you.ctrip.com/travels/chongqing158/4122894.html" target="_blank" rel="noopener noreferrer">阅读全文</a>
 											</div><!--/.blog-txt-->
 										</div><!--/.caption-->
 									</div><!--/.thumbnail-->
@@ -1265,20 +1275,22 @@
 								</div><!--/.col-->
 
 								<div class="col-sm-4 col-md-4">
-									<div class="thumbnail">
-										<h2>探索足迹 <span>15 十一月 2025</span></h2>
+									<div class="thumbnail external-guide-card">
+										<h2>站外社区攻略 <span data-guide-source>社区攻略</span></h2>
 										<div class="thumbnail-img">
-											<img src="{% static 'images/blog/b3.jpg' %}" alt="blog-img">
+											<a data-guide-link href="https://you.ctrip.com/travels/paris308/4010970.html" target="_blank" rel="noopener noreferrer">
+												<img data-guide-image data-fallback="{% static 'images/blog/b3.jpg' %}" src="{% static 'images/blog/b3.jpg' %}" alt="梦巴黎" onerror="this.onerror=null;this.src='{% static 'images/blog/b3.jpg' %}';">
+											</a>
 											<div class="thumbnail-img-overlay"></div><!--/.thumbnail-img-overlay-->
 										
 										</div><!--/.thumbnail-img-->
 										<div class="caption">
 											<div class="blog-txt">
-												<h3><a href="#">此生必去：全球10大宛如天堂的野生自然景观目的地</a></h3>
-												<p>
-													远离喧嚣的钢铁森林，向着广袤的大草原、纯净的冰川和热带雨林出发吧。
+												<h3><a data-guide-title data-guide-link href="https://you.ctrip.com/travels/paris308/4010970.html" target="_blank" rel="noopener noreferrer">梦巴黎</a></h3>
+												<p data-guide-summary>
+													社区旅友分享的城市攻略：街边小馆、公园茶馆和夜晚散步，比赶景点更有记忆点。
 												</p>
-												<a href="#">阅读全文</a>
+												<a data-guide-link href="https://you.ctrip.com/travels/paris308/4010970.html" target="_blank" rel="noopener noreferrer">阅读全文</a>
 											</div><!--/.blog-txt-->
 										</div><!--/.caption-->
 									</div><!--/.thumbnail-->
@@ -1447,6 +1459,7 @@
 			<div class="review-modal-panel">
 				<button type="button" class="review-modal-close" onclick="closeReviewModal()">&times;</button>
 				<h3 id="modal-title">评价详情</h3>
+				<img id="modal-image" class="review-modal-image" alt="" style="display: none;">
 				<p id="modal-content"></p>
 				<div class="review-modal-meta">
 					<span id="modal-author"></span>
@@ -1473,6 +1486,8 @@
 					<input type="text" name="title" required placeholder="如：震撼人心的神华之旅">
 					<label>目的地城市</label>
 					<input type="text" name="destination" required placeholder="如：北京、拉萨、大理">
+					<label>旅行图片链接</label>
+					<input type="url" name="image_url" placeholder="粘贴图片 URL，如 https://...">
 					<label>评价正文</label>
 					<textarea name="content" required rows="4" placeholder="写下这一刻您的真实感悟与游玩建议..."></textarea>
 					<button type="submit" class="guide-submit-btn">立即发布评价</button>
@@ -1570,6 +1585,13 @@
 				padding: 34px 25px;
 				transition: all 0.35s ease;
 			}
+			.guide-card-image {
+				aspect-ratio: 16 / 9;
+				border-radius: 12px;
+				margin: -14px 0 18px;
+				object-fit: cover;
+				width: 100%;
+			}
 			#guide-carousel .owl-item.center .custom-guide-card {
 				border-color: rgba(0, 123, 255, 0.2);
 				box-shadow: 0 24px 48px rgba(0, 123, 255, 0.2);
@@ -1625,6 +1647,8 @@
 				display: flex;
 				gap: 8px;
 				margin-top: 14px;
+				position: relative;
+				z-index: 20;
 			}
 			.guide-action-btn {
 				background: #eff6ff;
@@ -1636,7 +1660,9 @@
 				font-weight: 800;
 				line-height: 1;
 				padding: 8px 12px;
+				position: relative;
 				transition: all 0.2s ease;
+				z-index: 21;
 			}
 			.guide-action-btn:hover,
 			.guide-like-btn.is-liked {
@@ -1731,6 +1757,14 @@
 				overflow-y: auto;
 				white-space: pre-wrap;
 			}
+			.review-modal-image {
+				aspect-ratio: 16 / 9;
+				border-radius: 12px;
+				margin: 0 0 16px;
+				max-height: 260px;
+				object-fit: cover;
+				width: 100%;
+			}
 			.review-modal-meta {
 				border-top: 1px solid #e2e8f0;
 				color: #64748b;
@@ -1783,6 +1817,14 @@
 			}
 			.guide-submit-btn {
 				border-radius: 12px;
+				width: 100%;
+			}
+			.external-guide-card a[data-guide-link] {
+				cursor: pointer;
+			}
+			.external-guide-card [data-guide-image] {
+				height: 220px;
+				object-fit: cover;
 				width: 100%;
 			}
 		</style>
@@ -1859,6 +1901,16 @@
 					document.getElementById('modal-content').innerText = guide.content;
 					document.getElementById('modal-author').innerText = "作者：" + guide.author;
 					document.getElementById('modal-destination').innerText = "目的地：" + guide.destination;
+					const modalImage = document.getElementById('modal-image');
+					if (guide.image_url) {
+						modalImage.src = guide.image_url;
+						modalImage.alt = guide.title;
+						modalImage.style.display = 'block';
+					} else {
+						modalImage.removeAttribute('src');
+						modalImage.alt = '';
+						modalImage.style.display = 'none';
+					}
 					renderModalComments(guide.comments);
 					document.getElementById('modal-comment-input').value = '';
 					document.getElementById('review-modal').style.display = 'flex';
@@ -1889,14 +1941,54 @@
 			document.addEventListener('click', function(event) {
 				const likeButton = event.target.closest('.guide-like-btn');
 				if (likeButton) {
+					event.preventDefault();
 					likeGuide(likeButton.dataset.guideId, likeButton);
 					return;
 				}
 				const detailButton = event.target.closest('.guide-detail-btn');
 				if (detailButton) {
+					event.preventDefault();
 					openReviewModalById(detailButton.dataset.guideId);
 				}
 			});
+
+			async function loadExternalGuides() {
+				const cards = document.querySelectorAll('.external-guide-card');
+				if (!cards.length) return;
+				try {
+					const response = await fetch('/api/external-guides/');
+					const result = await response.json();
+					if (result.status !== 'success' || !Array.isArray(result.data)) return;
+					result.data.forEach((guide, index) => {
+						const card = cards[index];
+						if (!card || !guide) return;
+						card.querySelectorAll('[data-guide-link]').forEach(link => {
+							link.href = guide.url || '#';
+							link.target = '_blank';
+							link.rel = 'noopener noreferrer';
+						});
+						const title = card.querySelector('[data-guide-title]');
+						if (title) title.innerText = guide.title || '外部旅行攻略';
+						const summary = card.querySelector('[data-guide-summary]');
+						if (summary) summary.innerText = guide.summary || '点击阅读全文，查看完整旅行攻略。';
+						const source = card.querySelector('[data-guide-source]');
+						if (source) source.innerText = guide.source || '外部攻略';
+						const image = card.querySelector('[data-guide-image]');
+						if (image && guide.image_url) {
+							image.src = guide.image_url;
+							image.alt = guide.title || '外部旅行攻略';
+							image.onerror = function() {
+								this.onerror = null;
+								this.src = this.dataset.fallback || this.src;
+							};
+						}
+					});
+				} catch (error) {
+					console.warn('外部攻略加载失败，已保留本地备用链接。', error);
+				}
+			}
+
+			loadExternalGuides();
 
 			document.getElementById('modal-comment-form').addEventListener('submit', async function(event) {
 				event.preventDefault();
@@ -1936,7 +2028,8 @@
 					body: JSON.stringify({
 						title: form.querySelector('[name=title]').value,
 						destination: form.querySelector('[name=destination]').value,
-						content: form.querySelector('[name=content]').value
+						content: form.querySelector('[name=content]').value,
+						image_url: form.querySelector('[name=image_url]').value
 					})
 				})
 				.then(response => response.json())

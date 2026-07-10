@@ -15,10 +15,11 @@ from django.db.models import Q
 import json
 import os
 import random
+import re
 import time
 from pathlib import Path
-from urllib.parse import quote
-from django.http import StreamingHttpResponse, JsonResponse
+from urllib.parse import quote, unquote
+from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import httpx
@@ -44,6 +45,30 @@ HOTEL_SEARCH_CACHE = {}
 HOTEL_SEARCH_CACHE_SECONDS = 15 * 60
 FLIGHT_SEARCH_CACHE = {}
 FLIGHT_SEARCH_CACHE_SECONDS = 15 * 60
+EXTERNAL_GUIDE_CACHE = {}
+EXTERNAL_GUIDE_CACHE_SECONDS = 30 * 60
+
+
+CTRIP_EXTERNAL_GUIDES = [
+    {
+        'url': 'https://you.ctrip.com/travels/151/3991282.html',
+        'fallback_title': '去零下20度的哈尔滨，绝对是你在冬天里做过最疯狂的事！',
+        'fallback_summary': '携程攻略社区游记，分享哈尔滨冬季旅行心得、行程路线、景点和保暖建议。',
+        'fallback_image': 'https://dimg04.c-ctrip.com/images/0106y120008d3ca6x9C5A_W_640_400_Q90.jpg?proc=autoorient',
+    },
+    {
+        'url': 'https://you.ctrip.com/travels/chongqing158/4122894.html',
+        'fallback_title': '重庆3天游',
+        'fallback_summary': '携程攻略社区游记，记录重庆三天旅行路线、山城步道、美食和夜景体验。',
+        'fallback_image': 'https://dimg04.c-ctrip.com/images/1mf5h12000cuy98yv8F5F_W_640_400_Q90.jpg?proc=autoorient',
+    },
+    {
+        'url': 'https://you.ctrip.com/travels/paris308/4010970.html',
+        'fallback_title': '梦巴黎 - 2021年的浪漫开端',
+        'fallback_summary': '携程攻略社区游记，来自真实旅行者的巴黎路线、城市漫步和景点体验分享。',
+        'fallback_image': 'https://dimg04.c-ctrip.com/images/0101v120008o8utfqA84C_W_640_400_Q90.jpg?proc=autoorient',
+    },
+]
 
 
 TRAVEL_PACKAGES = [
@@ -1353,6 +1378,7 @@ def create_guide(request):
             title = (data.get('title') or '').strip()
             destination = (data.get('destination') or '').strip()
             content = (data.get('content') or '').strip()
+            image_url = (data.get('image_url') or '').strip()
 
             if not title or not destination or not content:
                 return JsonResponse({'status': 'fail', 'message': '标题、目的地和正文不能为空'}, status=400)
@@ -1363,7 +1389,8 @@ def create_guide(request):
                 user=user,
                 title=title,
                 destination=destination,
-                content=content
+                content=content,
+                image_url=image_url
             )
             
             return JsonResponse({
@@ -1635,6 +1662,90 @@ def news_detail(request, news_id):
     news.save(update_fields=['views_count'])
     news.is_favorited = _is_news_favorited(request, news.id)
     return render(request, 'news_detail.html', {'news': news})
+
+
+def _proxy_image_url(image_url):
+    return f'/api/proxy-image/?url={quote(image_url, safe="")}'
+
+
+def fetch_external_guides(limit=3):
+    cache_key = 'ctrip_external_guides'
+    cached = EXTERNAL_GUIDE_CACHE.get(cache_key)
+    now = time.time()
+    if cached and now - cached['time'] < EXTERNAL_GUIDE_CACHE_SECONDS:
+        return cached['data']
+
+    guides = []
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://you.ctrip.com/',
+    }
+    with httpx.Client(timeout=12, follow_redirects=True, headers=headers) as client:
+        for item in CTRIP_EXTERNAL_GUIDES[:limit]:
+            title = item['fallback_title']
+            summary = item['fallback_summary']
+            image_url = item['fallback_image']
+            try:
+                response = client.get(item['url'])
+                response.raise_for_status()
+                html = response.text
+                title_match = re.search(r'<title>(.*?)</title>', html, re.S | re.I)
+                if title_match:
+                    title = re.sub(r'\s+', ' ', title_match.group(1)).strip()
+                    title = re.sub(r'\s*-\s*.*?【携程攻略】$', '', title)
+                summary_match = re.search(r'<meta name="description" content="([^"]+)"', html, re.I)
+                if summary_match:
+                    summary = summary_match.group(1).strip()
+                image_match = re.search(
+                    r'(?:src|data-original|data-src)=["\'](https?://dimg[^"\']+\.(?:jpg|jpeg|png|webp)[^"\']*)["\']',
+                    html,
+                    re.I,
+                )
+                if image_match:
+                    image_url = image_match.group(1)
+            except (httpx.HTTPError, ValueError):
+                pass
+
+            guides.append({
+                'title': title,
+                'summary': summary[:120] + ('...' if len(summary) > 120 else ''),
+                'image_url': _proxy_image_url(image_url),
+                'url': item['url'],
+                'source': '携程攻略社区',
+            })
+
+    EXTERNAL_GUIDE_CACHE[cache_key] = {'time': now, 'data': guides}
+    return guides
+
+
+def external_guides(request):
+    return JsonResponse({
+        'status': 'success',
+        'data': fetch_external_guides(),
+    })
+
+
+def proxy_image(request):
+    image_url = unquote(request.GET.get('url', '')).strip()
+    if not image_url.startswith(('https://dimg', 'https://images.unsplash.com/', 'https://pages.c-ctrip.com/')):
+        return JsonResponse({'status': 'error', 'message': '不支持的图片地址'}, status=400)
+
+    try:
+        response = httpx.get(
+            image_url,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://you.ctrip.com/',
+            },
+            timeout=12,
+            follow_redirects=True,
+        )
+        response.raise_for_status()
+    except httpx.HTTPError:
+        return JsonResponse({'status': 'error', 'message': '图片读取失败'}, status=502)
+
+    content_type = response.headers.get('content-type', 'image/jpeg')
+    return HttpResponse(response.content, content_type=content_type)
 
 
 def comments_page(request):

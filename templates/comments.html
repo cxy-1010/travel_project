@@ -96,7 +96,15 @@
             box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
             padding: 22px;
+        }
+        .comment-card-image {
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+            margin: -4px 0 16px;
+            object-fit: cover;
+            width: 100%;
         }
         .tag {
             border-radius: 999px;
@@ -210,6 +218,14 @@
             overflow-y: auto;
             white-space: pre-wrap;
         }
+        .modal-image {
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+            margin: 16px 0 0;
+            max-height: 260px;
+            object-fit: cover;
+            width: 100%;
+        }
         .modal-comments {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -264,6 +280,9 @@
             <div class="grid">
                 {% for g in g_list %}
                     <article class="comment-card" data-guide-card="{{ g.id }}" data-guide-title="{{ g.title }}" data-guide-destination="{{ g.destination }}">
+                        {% if g.image_url %}
+                            <img class="comment-card-image" src="{{ g.image_url }}" alt="{{ g.title }}" loading="lazy">
+                        {% endif %}
                         <span class="tag" style="background: {{ g.bg_color }}; color: {{ g.text_color }}; border: 1px solid {{ g.text_color }};">{{ g.destination }}</span>
                         <h3>{{ g.title }}</h3>
                         <p>{{ g.content|truncatechars:180 }}</p>
@@ -298,6 +317,7 @@
         <div class="modal-card">
             <button type="button" class="modal-close" onclick="closeReviewModal()">&times;</button>
             <h3 id="modal-title">评价详情</h3>
+            <img id="modal-image" class="modal-image" alt="" style="display: none;">
             <div id="modal-content" class="modal-content"></div>
             <div class="meta">
                 <span id="modal-author"></span>
@@ -351,6 +371,16 @@
                 document.getElementById('modal-content').innerText = guide.content;
                 document.getElementById('modal-author').innerText = "作者：" + guide.author;
                 document.getElementById('modal-destination').innerText = "目的地：" + guide.destination;
+                const modalImage = document.getElementById('modal-image');
+                if (guide.image_url) {
+                    modalImage.src = guide.image_url;
+                    modalImage.alt = guide.title;
+                    modalImage.style.display = 'block';
+                } else {
+                    modalImage.removeAttribute('src');
+                    modalImage.alt = '';
+                    modalImage.style.display = 'none';
+                }
                 renderModalComments(guide.comments);
                 document.getElementById('modal-comment-input').value = '';
                 document.getElementById('review-modal').style.display = 'flex';
