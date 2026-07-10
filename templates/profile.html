@@ -8,128 +8,220 @@
 {% block heading %}查看与编辑个人信息{% endblock %}
 
 {% block content %}
-    <div class="profile-summary">
-        <div class="profile-avatar">
-            {% if profile.avatar %}
-                <img src="{{ profile.avatar.url }}" alt="{{ user.username }} 的头像">
+    <div class="profile-dashboard">
+        <div class="profile-summary">
+            <div class="profile-avatar">
+                {% if profile.avatar %}
+                    <img src="{{ profile.avatar.url }}" alt="{{ user.username }} 的头像">
+                {% else %}
+                    <i class="fa fa-user-circle"></i>
+                {% endif %}
+            </div>
+            <div>
+                <h2>{{ user.username }}</h2>
+                <p>注册时间：{{ user.date_joined|date:"Y-m-d H:i" }}</p>
+                <p>上次登录：{{ user.last_login|date:"Y-m-d H:i"|default:"暂无记录" }}</p>
+            </div>
+        </div>
+
+        <form class="auth-form profile-edit-form" method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <div class="profile-section-head">
+                <h2>资料编辑</h2>
+                <a href="{% url 'index' %}">返回首页</a>
+            </div>
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+            <div class="profile-form-grid">
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                            <p class="auth-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="auth-submit" type="submit">
+                <i class="fa fa-save"></i>
+                保存修改
+            </button>
+        </form>
+
+        <div class="profile-bookings">
+            <div class="profile-section-head">
+                <h2>旅游套餐</h2>
+                <a href="{% url 'my_bookings' %}">查看全部</a>
+            </div>
+            {% if bookings %}
+                <div class="profile-booking-grid">
+                    {% for booking in bookings %}
+                        <a class="profile-booking-card" href="{% url 'booking_detail' booking.id %}">
+                            <img src="{% if booking.image_url|slice:':4' == 'http' %}{{ booking.image_url }}{% else %}{% static booking.image_url %}{% endif %}" alt="{{ booking.package_name }}">
+                            <div>
+                                <h3>{{ booking.package_name }}</h3>
+                                <p>{{ booking.price }} · {{ booking.travelers }} 人</p>
+                                <span>{{ booking.get_status_display }}</span>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
             {% else %}
-                <i class="fa fa-user-circle"></i>
+                <p class="profile-empty-booking">暂无已预订套餐。你可以从首页热门套餐点击“立即预订”。</p>
             {% endif %}
         </div>
-        <div>
-            <h2>{{ user.username }}</h2>
-            <p>注册时间：{{ user.date_joined|date:"Y-m-d H:i" }}</p>
-            <p>上次登录：{{ user.last_login|date:"Y-m-d H:i"|default:"暂无记录" }}</p>
-        </div>
-    </div>
 
-    <div class="profile-bookings">
-        <div class="profile-section-head">
-            <h2>已预订的旅游套餐</h2>
-            <a href="{% url 'my_bookings' %}">查看全部</a>
-        </div>
-        {% if bookings %}
-            <div class="profile-booking-grid">
-                {% for booking in bookings %}
-                    <a class="profile-booking-card" href="{% url 'booking_detail' booking.id %}">
-                        <img src="{% if booking.image_url|slice:':4' == 'http' %}{{ booking.image_url }}{% else %}{% static booking.image_url %}{% endif %}" alt="{{ booking.package_name }}">
-                        <div>
-                            <h3>{{ booking.package_name }}</h3>
-                            <p>{{ booking.price }} · {{ booking.travelers }} 人</p>
-                            <span>{{ booking.get_status_display }}</span>
-                        </div>
-                    </a>
-                {% endfor %}
+        <div class="profile-bookings">
+            <div class="profile-section-head">
+                <h2>行程</h2>
+                <a href="{% url 'ai_assistant' %}">继续添加</a>
             </div>
-        {% else %}
-            <p class="profile-empty-booking">暂无已预订套餐。您可以从首页热门套餐点击“立即预订”。</p>
-        {% endif %}
-    </div>
-
-    <div class="profile-bookings">
-        <div class="profile-section-head">
-            <h2>我的保存路线</h2>
-            <a href="{% url 'ai_assistant' %}">继续规划</a>
-        </div>
-        {% if saved_routes %}
-            <div class="profile-route-grid">
-                {% for route in saved_routes %}
-                    <article class="profile-route-card">
-                        <div class="profile-route-head">
-                            <h3>{{ route.title }}</h3>
-                            <span>{{ route.created_at|date:"Y-m-d H:i" }}</span>
-                        </div>
-                        <p class="profile-route-meta">
-                            {% if route.destination %}<span><i class="fa fa-map-marker"></i> {{ route.destination }}</span>{% endif %}
-                            {% if route.check_in %}<span><i class="fa fa-calendar"></i> {{ route.check_in|date:"Y-m-d" }}</span>{% endif %}
-                            {% if route.days %}<span>{{ route.days }} 天</span>{% endif %}
-                            {% if route.people %}<span>{{ route.people }} 人</span>{% endif %}
-                            {% if route.budget %}<span>预算 {{ route.budget }}</span>{% endif %}
-                        </p>
-                        {% if route.selected_item %}
-                            <div class="profile-route-item">
-                                <strong>已加入行程：{{ route.selected_item.name }}</strong>
-                                <span>{{ route.selected_item.area }} · 约 {{ route.selected_item.price }} 元/晚</span>
+            {% if itinerary_items %}
+                <div class="profile-route-grid">
+                    {% for route in itinerary_items %}
+                        <article class="profile-route-card">
+                            <div class="profile-route-head">
+                                <h3>{{ route.selected_item.name|default:route.title }}</h3>
+                                <span>{{ route.created_at|date:"Y-m-d H:i" }}</span>
                             </div>
-                        {% endif %}
-                        {% if route.content %}
-                            <p class="profile-route-content">{{ route.content|striptags|truncatechars:180 }}</p>
-                        {% endif %}
-                    </article>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="profile-empty-booking">暂无保存路线。您可以在搜索后的 AI 路线规划页点击“保存路线”或“加入行程”。</p>
-        {% endif %}
-    </div>
-
-    <div class="profile-bookings">
-        <div class="profile-section-head">
-            <h2>我的评论</h2>
-            <a href="{% url 'comments' %}">去评论社区</a>
+                            <p class="profile-route-meta">
+                                {% if route.destination %}<span><i class="fa fa-map-marker"></i> {{ route.destination }}</span>{% endif %}
+                                {% if route.check_in %}<span><i class="fa fa-calendar"></i> {{ route.check_in|date:"Y-m-d" }}</span>{% endif %}
+                                {% if route.days %}<span>{{ route.days }} 天</span>{% endif %}
+                                {% if route.people %}<span>{{ route.people }} 人</span>{% endif %}
+                            </p>
+                            <div class="profile-route-item">
+                                {% if route.selected_item.area %}<strong>{{ route.selected_item.area }}</strong>{% endif %}
+                                <span>
+                                    {% if route.selected_item.price %}约 {{ route.selected_item.price }} 元/晚{% endif %}
+                                    {% if route.selected_item.tags %} · {{ route.selected_item.tags }}{% endif %}
+                                </span>
+                                {% if route.selected_item.reason %}<span>{{ route.selected_item.reason }}</span>{% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="profile-empty-booking">暂无单独添加的行程。你可以在 AI 路线规划页点击“加入行程”。</p>
+            {% endif %}
         </div>
-        {% if my_comments %}
-            <div class="profile-comment-list">
-                {% for comment in my_comments %}
-                    <article class="profile-comment-card">
-                        <div class="profile-comment-head">
-                            <h3>
-                                {% if comment.guide %}
-                                    <a href="{% url 'comments' %}#guide-{{ comment.guide.id }}">{{ comment.guide.title }}</a>
-                                {% else %}
-                                    {{ comment.title }}
-                                {% endif %}
-                            </h3>
-                            <span>{{ comment.created_at|date:"Y-m-d H:i" }}</span>
-                        </div>
-                        <p class="profile-comment-destination">{{ comment.destination }}</p>
-                        <p>{{ comment.content }}</p>
-                    </article>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="profile-empty-booking">暂无评论。您在评论社区发布的攻略评论会显示在这里。</p>
-        {% endif %}
-    </div>
 
-    <form class="auth-form" method="post" enctype="multipart/form-data" novalidate>
-        {% csrf_token %}
-        {% if form.non_field_errors %}
-            <div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>
-        {% endif %}
-        {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% for error in field.errors %}
-                    <p class="auth-error">{{ error }}</p>
-                {% endfor %}
+        <div class="profile-bookings">
+            <div class="profile-section-head">
+                <h2>路线</h2>
+                <a href="{% url 'ai_assistant' %}">继续规划</a>
             </div>
-        {% endfor %}
-        <button class="auth-submit" type="submit">
-            <i class="fa fa-save"></i>
-            保存修改
-        </button>
-        <p class="auth-switch"><a href="{% url 'index' %}">返回首页</a></p>
-    </form>
+            {% if saved_routes %}
+                <div class="profile-route-grid">
+                    {% for route in saved_routes %}
+                        <article class="profile-route-card">
+                            <div class="profile-route-head">
+                                <h3>{{ route.title }}</h3>
+                                <span>{{ route.created_at|date:"Y-m-d H:i" }}</span>
+                            </div>
+                            <p class="profile-route-meta">
+                                {% if route.destination %}<span><i class="fa fa-map-marker"></i> {{ route.destination }}</span>{% endif %}
+                                {% if route.check_in %}<span><i class="fa fa-calendar"></i> {{ route.check_in|date:"Y-m-d" }}</span>{% endif %}
+                                {% if route.days %}<span>{{ route.days }} 天</span>{% endif %}
+                                {% if route.people %}<span>{{ route.people }} 人</span>{% endif %}
+                                {% if route.budget %}<span>预算 {{ route.budget }}</span>{% endif %}
+                            </p>
+                            {% if route.content %}
+                                <p class="profile-route-content">{{ route.content|striptags|truncatechars:180 }}</p>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="profile-empty-booking">暂无保存路线。你可以在 AI 路线规划页点击“保存路线”。</p>
+            {% endif %}
+        </div>
+
+        <div class="profile-bookings">
+            <div class="profile-section-head">
+                <h2>发送的帖子</h2>
+                <a href="{% url 'comments' %}">去发布</a>
+            </div>
+            {% if my_guides %}
+                <div class="profile-guide-grid">
+                    {% for guide in my_guides %}
+                        <article class="profile-guide-card">
+                            {% if guide.image_url %}
+                                <img src="{{ guide.image_url }}" alt="{{ guide.title }}">
+                            {% endif %}
+                            <div>
+                                <div class="profile-comment-head">
+                                    <h3><a href="{% url 'comments' %}#guide-{{ guide.id }}">{{ guide.title }}</a></h3>
+                                    <span>{{ guide.created_at|date:"Y-m-d H:i" }}</span>
+                                </div>
+                                <p class="profile-comment-destination">{{ guide.destination }} · {{ guide.likes }} 赞</p>
+                                <p>{{ guide.content|truncatechars:110 }}</p>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="profile-empty-booking">暂无发送的帖子。你可以在首页评论交流社区发布旅行体验。</p>
+            {% endif %}
+        </div>
+
+        <div class="profile-bookings">
+            <div class="profile-section-head">
+                <h2>评论</h2>
+                <a href="{% url 'comments' %}">去评论社区</a>
+            </div>
+            {% if my_comments %}
+                <div class="profile-comment-list">
+                    {% for comment in my_comments %}
+                        <article class="profile-comment-card">
+                            <div class="profile-comment-head">
+                                <h3>
+                                    {% if comment.guide %}
+                                        <a href="{% url 'comments' %}#guide-{{ comment.guide.id }}">{{ comment.guide.title }}</a>
+                                    {% else %}
+                                        {{ comment.title }}
+                                    {% endif %}
+                                </h3>
+                                <span>{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                            </div>
+                            <p class="profile-comment-destination">{{ comment.destination }}</p>
+                            <p>{{ comment.content }}</p>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="profile-empty-booking">暂无评论。你在评论社区发布的攻略评论会显示在这里。</p>
+            {% endif %}
+        </div>
+
+        <div class="profile-bookings">
+            <div class="profile-section-head">
+                <h2>收藏的帖子</h2>
+                <a href="{% url 'favorites' %}">查看全部</a>
+            </div>
+            {% if favorite_guides %}
+                <div class="profile-guide-grid">
+                    {% for guide in favorite_guides %}
+                        <article class="profile-guide-card">
+                            {% if guide.image_url %}
+                                <img src="{{ guide.image_url }}" alt="{{ guide.title }}">
+                            {% endif %}
+                            <div>
+                                <div class="profile-comment-head">
+                                    <h3><a href="{% url 'comments' %}#guide-{{ guide.id }}">{{ guide.title }}</a></h3>
+                                    <span>{{ guide.created_at|date:"Y-m-d" }}</span>
+                                </div>
+                                <p class="profile-comment-destination">{{ guide.destination }} · {{ guide.user.username }}</p>
+                                <p>{{ guide.content|truncatechars:110 }}</p>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="profile-empty-booking">暂无收藏帖子。你可以在首页或评论社区点击“收藏”。</p>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}

@@ -51,7 +51,7 @@
 
 		<!--responsive.css-->
 		<link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
-		<link rel="stylesheet" href="{% static 'css/package_cards.css' %}?v=button-fix-3" />
+		<link rel="stylesheet" href="{% static 'css/package_cards.css' %}?v=package-layout-4" />
 		<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=button-fix-3" />
 
 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -820,7 +820,10 @@
 							<div class="single-package-item">
 								<img class="package-cover" src="{% if package.image_url|slice:':4' == 'http' %}{{ package.image_url }}{% else %}{% static package.image_url %}{% endif %}" alt="{{ package.name }}" loading="lazy" onerror="this.onerror=null;this.src='{% static package.fallback_image %}';">
 								<div class="single-package-item-txt">
-									<h3>{{ package.name }} <span class="pull-right">{{ package.price }}</span></h3>
+									<h3>
+										<span class="package-name">{{ package.name }}</span>
+										<span class="package-price">{{ package.price }}</span>
+									</h3>
 									<div class="packages-para">
 										<p>
 											<span>
@@ -1139,6 +1142,9 @@
 									<button type="button" class="guide-action-btn guide-like-btn {% if g.is_liked %}is-liked{% endif %}" data-guide-id="{{ g.id }}" aria-pressed="{% if g.is_liked %}true{% else %}false{% endif %}">
 										<i class="fa fa-thumbs-up"></i><span class="like-label">{% if g.is_liked %}已赞{% else %}点赞{% endif %}</span> <span class="like-count">{{ g.likes }}</span>
 									</button>
+									<button type="button" class="guide-action-btn guide-favorite-btn {% if g.is_favorited %}is-favorited{% endif %}" data-guide-id="{{ g.id }}">
+										<i class="fa fa-star"></i><span class="favorite-label">{% if g.is_favorited %}已收藏{% else %}收藏{% endif %}</span>
+									</button>
 									<button type="button" class="guide-action-btn guide-detail-btn" data-guide-id="{{ g.id }}">
 										<i class="fa fa-comments"></i>详情
 									</button>
@@ -1178,6 +1184,9 @@
 								<div class="guide-actions">
 									<button type="button" class="guide-action-btn guide-like-btn {% if g.is_liked %}is-liked{% endif %}" data-guide-id="{{ g.id }}" aria-pressed="{% if g.is_liked %}true{% else %}false{% endif %}">
 										<i class="fa fa-thumbs-up"></i><span class="like-label">{% if g.is_liked %}已赞{% else %}点赞{% endif %}</span> <span class="like-count">{{ g.likes }}</span>
+									</button>
+									<button type="button" class="guide-action-btn guide-favorite-btn {% if g.is_favorited %}is-favorited{% endif %}" data-guide-id="{{ g.id }}">
+										<i class="fa fa-star"></i><span class="favorite-label">{% if g.is_favorited %}已收藏{% else %}收藏{% endif %}</span>
 									</button>
 									<button type="button" class="guide-action-btn guide-detail-btn" data-guide-id="{{ g.id }}">
 										<i class="fa fa-comments"></i>详情
@@ -1645,6 +1654,7 @@
 			}
 			.guide-actions {
 				display: flex;
+				flex-wrap: wrap;
 				gap: 8px;
 				margin-top: 14px;
 				position: relative;
@@ -1665,7 +1675,8 @@
 				z-index: 21;
 			}
 			.guide-action-btn:hover,
-			.guide-like-btn.is-liked {
+			.guide-like-btn.is-liked,
+			.guide-favorite-btn.is-favorited {
 				background: #2563eb;
 				border-color: #2563eb;
 				color: #fff;
@@ -1694,17 +1705,45 @@
 				text-align: center;
 			}
 			.guide-more-link {
+				align-items: center;
 				background: #fff;
 				border: 2px solid #007bff;
 				border-radius: 999px;
+				box-sizing: border-box;
 				color: #007bff;
-				font-size: 15px;
+				display: inline-flex!important;
+				font-size: 15px!important;
 				font-weight: 800;
-				padding: 12px 30px;
+				height: 48px!important;
+				justify-content: center;
+				line-height: 48px!important;
+				min-width: 168px!important;
+				padding: 0 30px!important;
+				position: relative;
+				text-decoration: none;
+				top: 0!important;
+				transform: none!important;
+				transition: background .2s ease, border-color .2s ease, color .2s ease;
+				vertical-align: top;
 			}
-			.guide-more-link:hover {
+			.guide-more-link:hover,
+			.guide-more-link:focus,
+			.guide-more-link:active {
 				background: #007bff;
+				border-color: #007bff;
 				color: #fff;
+				display: inline-flex!important;
+				font-size: 15px!important;
+				height: 48px!important;
+				line-height: 48px!important;
+				min-width: 168px!important;
+				padding: 0 30px!important;
+				top: 0!important;
+				transform: none!important;
+			}
+			.guide-more-link:before,
+			.guide-more-link:after {
+				display: none!important;
 			}
 			.review-modal {
 				align-items: center;
@@ -1938,11 +1977,33 @@
 				}
 			}
 
+			async function favoriteGuide(guideId, button) {
+				try {
+					const response = await fetch(`/api/guides/${guideId}/favorite/`, { method: 'POST' });
+					const result = await response.json();
+					if (result.status === 'success') {
+						document.querySelectorAll(`.guide-favorite-btn[data-guide-id="${guideId}"]`).forEach(btn => {
+							const label = btn.querySelector('.favorite-label');
+							if (label) label.innerText = result.favorited ? '已收藏' : '收藏';
+							btn.classList.toggle('is-favorited', result.favorited);
+						});
+					}
+				} catch (error) {
+					alert('收藏失败，请稍后重试');
+				}
+			}
+
 			document.addEventListener('click', function(event) {
 				const likeButton = event.target.closest('.guide-like-btn');
 				if (likeButton) {
 					event.preventDefault();
 					likeGuide(likeButton.dataset.guideId, likeButton);
+					return;
+				}
+				const favoriteButton = event.target.closest('.guide-favorite-btn');
+				if (favoriteButton) {
+					event.preventDefault();
+					favoriteGuide(favoriteButton.dataset.guideId, favoriteButton);
 					return;
 				}
 				const detailButton = event.target.closest('.guide-detail-btn');

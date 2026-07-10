@@ -725,13 +725,19 @@ def profile(request):
         form = ProfileForm(instance=user_profile, user=request.user)
 
     bookings = TravelBooking.objects.filter(user=request.user)[:4]
-    saved_routes = SavedRoute.objects.filter(user=request.user)[:4]
+    saved_routes = SavedRoute.objects.filter(user=request.user, selected_item__isnull=True)[:4]
+    itinerary_items = SavedRoute.objects.filter(user=request.user, selected_item__isnull=False)[:4]
+    favorite_guides = Guide.objects.select_related('user').filter(favorites__user=request.user).order_by('-favorites__created_at')[:4]
+    my_guides = Guide.objects.filter(user=request.user).order_by('-created_at')[:4]
     my_comments = GuideComment.objects.select_related('guide').filter(user=request.user)[:6]
     return render(request, 'profile.html', {
         'form': form,
         'profile': user_profile,
         'bookings': bookings,
         'saved_routes': saved_routes,
+        'itinerary_items': itinerary_items,
+        'favorite_guides': favorite_guides,
+        'my_guides': my_guides,
         'my_comments': my_comments,
     })
 
