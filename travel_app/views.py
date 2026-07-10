@@ -1275,6 +1275,7 @@ def _is_guide_favorited(request, guide_id):
     return str(guide_id) in _favorite_guide_ids(request)
 
 
+# 1. 获取攻略列表（所有人可见，支持按目的地过滤）
 def get_guides(request):
     keyword = request.GET.get('search', '').strip()
     destination = request.GET.get('destination', '').strip()
@@ -1292,26 +1293,28 @@ def get_guides(request):
         )
 
     guide_list = []
-    for guide in guides:
+    for g in guides:
         guide_list.append({
-            'id': guide.id,
-            'title': guide.title,
-            'destination': guide.destination,
-            'content': guide.content,
-            'author': guide.user.username,
-            'image_url': guide.image_url,
-            'likes': guide.likes,
-            'liked': str(guide.id) in liked_guides,
-            'favorited': str(guide.id) in favorite_guides,
-            'favorite_count': guide.favorites.count(),
-            'comment_count': guide.comments.count(),
-            'created_at': guide.created_at.strftime('%Y-%m-%d %H:%M')
+            'id': g.id,
+            'title': g.title,
+            'destination': g.destination,
+            'content': g.content,
+            'author': g.user.username,
+            'image_url': g.image_url,
+            'likes': g.likes,
+            'liked': str(g.id) in liked_guides,
+            'favorited': str(g.id) in favorite_guides,
+            'favorite_count': g.favorites.count(),
+            'comment_count': g.comments.count(),
+            'created_at': g.created_at.strftime('%Y-%m-%d %H:%M')
         })
     return JsonResponse({'status': 'success', 'data': guide_list})
 
 
+# 2. 查看攻略详情与该攻略下的所有评论
 def guide_detail(request, guide_id):
     guide = get_object_or_404(Guide.objects.select_related('user'), id=guide_id)
+        
     comment_list = [
         {
             'author': comment.user.username,
@@ -1322,6 +1325,7 @@ def guide_detail(request, guide_id):
         }
         for comment in guide.comments.select_related('user').all()
     ]
+    
 
     data = {
         'id': guide.id,
@@ -1340,33 +1344,40 @@ def guide_detail(request, guide_id):
     return JsonResponse({'status': 'success', 'data': data})
 
 
+# 3. 发布新攻略（必须登录）
 @csrf_exempt
 def create_guide(request):
-    if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': '仅支持POST请求'}, status=405)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
+            title = (data.get('title') or '').strip()
+            destination = (data.get('destination') or '').strip()
+            content = (data.get('content') or '').strip()
 
-    try:
-        data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
-        title = (data.get('title') or '').strip()
-        destination = (data.get('destination') or '').strip()
-        content = (data.get('content') or '').strip()
+            if not title or not destination or not content:
+                return JsonResponse({'status': 'fail', 'message': '标题、目的地和正文不能为空'}, status=400)
+            
+            user = request.user if request.user.is_authenticated else User.objects.get_or_create(username='互动游客')[0]
+            
+            new_guide = Guide.objects.create(
+                user=user,
+                title=title,
+                destination=destination,
+                content=content
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': '发布成功',
+                'guide_id': new_guide.id
+            })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+            
+    return JsonResponse({'status': 'error', 'message': '仅支持POST请求'}, status=405)
 
-        if not title or not destination or not content:
-            return JsonResponse({'status': 'fail', 'message': '标题、目的地和正文不能为空'}, status=400)
 
-        user = request.user if request.user.is_authenticated else User.objects.get_or_create(username='互动游客')[0]
-        new_guide = Guide.objects.create(
-            user=user,
-            title=title,
-            destination=destination,
-            content=content
-        )
-
-        return JsonResponse({'status': 'success', 'message': '发布成功', 'guide_id': new_guide.id})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
-
+# 4. 给攻略点赞（所有人/登录用户均可，简单实现机制）
 @csrf_exempt
 @require_POST
 def like_guide(request, guide_id):
@@ -1424,48 +1435,53 @@ def favorite_guide(request, guide_id):
 def favorite_news(request, news_id):
     news = get_object_or_404(TravelNews, id=news_id)
     news_key = str(news.id)
-    favorite_news_ids = _session_favorite_news_ids(request)
+    favorite_news = _session_favorite_news_ids(request)
 
-    if news_key in favorite_news_ids:
-        favorite_news_ids.remove(news_key)
+    if news_key in favorite_news:
+        favorite_news.remove(news_key)
         favorited = False
     else:
-        favorite_news_ids.add(news_key)
+        favorite_news.add(news_key)
         favorited = True
 
-    request.session['favorite_news'] = list(favorite_news_ids)
+    request.session['favorite_news'] = list(favorite_news)
     request.session.modified = True
-    return JsonResponse({'status': 'success', 'favorited': favorited})
-
-
-@csrf_exempt
-def add_guide_comment(request, guide_id):
-    if request.method != 'POST':
-        return JsonResponse({'status': 'fail', 'message': '仅支持POST'}, status=405)
-
-    guide = get_object_or_404(Guide, id=guide_id)
-    data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
-    content = (data.get('content') or '').strip()
-    if not content:
-        return JsonResponse({'status': 'fail', 'message': '评论内容不能为空'}, status=400)
-
-    user = request.user if request.user.is_authenticated else User.objects.get_or_create(username='互动游客')[0]
-    comment = GuideComment.objects.create(
-        user=user,
-        guide=guide,
-        title=f"回复：{guide.title[:40]}",
-        destination=guide.destination,
-        content=content
-    )
     return JsonResponse({
         'status': 'success',
-        'message': '评论成功',
-        'comment': {
-            'author': comment.user.username,
-            'content': comment.content,
-            'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
-        }
+        'favorited': favorited
     })
+
+
+# 5. 发表攻略评论（必须登录）
+@csrf_exempt
+def add_guide_comment(request, guide_id):
+    if request.method == 'POST':
+        guide = get_object_or_404(Guide, id=guide_id)
+            
+        data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
+        content = (data.get('content') or '').strip()
+        if not content:
+            return JsonResponse({'status': 'fail', 'message': '评论内容不能为空'}, status=400)
+
+        user = request.user if request.user.is_authenticated else User.objects.get_or_create(username='互动游客')[0]
+        comment = GuideComment.objects.create(
+            user=user,
+            guide=guide,
+            title=f"回复：{guide.title[:40]}",
+            destination=guide.destination,
+            content=content
+        )
+        return JsonResponse({
+            'status': 'success',
+            'message': '评论成功',
+            'comment': {
+                'author': comment.user.username,
+                'content': comment.content,
+                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
+            }
+        })
+    return JsonResponse({'status': 'fail', 'message': '仅支持POST'}, status=405)
+    
 
 
 def user_register(request):
