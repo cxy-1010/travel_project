@@ -52,7 +52,7 @@
 		<!--responsive.css-->
 		<link rel="stylesheet" href="{% static 'css/responsive.css' %}" />
 		<link rel="stylesheet" href="{% static 'css/package_cards.css' %}?v=package-layout-7" />
-		<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=button-fix-3" />
+		<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=auth-bg-rgb-2" />
 
 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -1121,9 +1121,7 @@
 					{% if g_list %}
 						{% for g in g_list %}
 						<div class="custom-guide-card" data-guide-card="{{ g.id }}">
-							{% if g.image_url %}
-							<img class="guide-card-image" src="{{ g.image_url }}" alt="{{ g.title }}" loading="lazy">
-							{% endif %}
+							<img class="guide-card-image" src="{{ g.display_image_url }}" data-fallback-src="{{ g.fallback_image_url }}" alt="{{ g.title }}">
 							<div>
 								<span class="quote-icon-wrap"><i class="fa fa-map-signs"></i></span>
 								<h3 class="card-guide-title">{{ g.title }}</h3>
@@ -1148,6 +1146,11 @@
 									<button type="button" class="guide-action-btn guide-detail-btn" data-guide-id="{{ g.id }}">
 										<i class="fa fa-comments"></i>详情
 									</button>
+									{% if g.can_delete %}
+									<button type="button" class="guide-action-btn guide-delete-btn" data-guide-id="{{ g.id }}">
+										<i class="fa fa-trash"></i>删除
+									</button>
+									{% endif %}
 								</div>
 							</div>
 						</div>
@@ -1163,10 +1166,8 @@
 				<div class="owl-carousel owl-theme" id="guide-carousel">
 					{% for g in g_list %}
 					<div class="item">
-						<div class="custom-guide-card">
-							{% if g.image_url %}
-							<img class="guide-card-image" src="{{ g.image_url }}" alt="{{ g.title }}" loading="lazy">
-							{% endif %}
+						<div class="custom-guide-card" data-guide-card="{{ g.id }}">
+							<img class="guide-card-image" src="{{ g.display_image_url }}" data-fallback-src="{{ g.fallback_image_url }}" alt="{{ g.title }}">
 							<div>
 								<span class="quote-icon-wrap"><i class="fa fa-map-signs"></i></span>
 								<h3 class="card-guide-title">{{ g.title }}</h3>
@@ -1191,6 +1192,11 @@
 									<button type="button" class="guide-action-btn guide-detail-btn" data-guide-id="{{ g.id }}">
 										<i class="fa fa-comments"></i>详情
 									</button>
+									{% if g.can_delete %}
+									<button type="button" class="guide-action-btn guide-delete-btn" data-guide-id="{{ g.id }}">
+										<i class="fa fa-trash"></i>删除
+									</button>
+									{% endif %}
 								</div>
 							</div>
 						</div>
@@ -1474,6 +1480,11 @@
 					<span id="modal-author"></span>
 					<span id="modal-destination"></span>
 				</div>
+				<div id="modal-guide-actions" class="guide-actions" style="display:none;">
+					<button type="button" class="guide-action-btn guide-delete-btn" id="modal-guide-delete-btn">
+						<i class="fa fa-trash"></i>删除
+					</button>
+				</div>
 				<div class="review-modal-comments">
 					<h4>互动评论</h4>
 					<div id="modal-comments"></div>
@@ -1600,6 +1611,17 @@
 				margin: -14px 0 18px;
 				object-fit: cover;
 				width: 100%;
+			}
+			.guide-community .owl-carousel .owl-item img.guide-card-image,
+			.guide-search-results img.guide-card-image {
+				aspect-ratio: 16 / 9;
+				border-radius: 12px !important;
+				display: block;
+				height: auto !important;
+				margin: -14px 0 18px;
+				max-height: none !important;
+				object-fit: cover;
+				width: 100% !important;
 			}
 			#guide-carousel .owl-item.center .custom-guide-card {
 				border-color: rgba(0, 123, 255, 0.2);
@@ -1920,7 +1942,10 @@
 				}
 				box.innerHTML = comments.map(comment => `
 					<div style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-						<div style="font-weight: 700; color:#334155;">${escapeHtml(comment.author || '游客')} <span style="font-weight:400; color:#94a3b8;">${escapeHtml(comment.created_at || '')}</span></div>
+						<div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+							<div style="font-weight: 700; color:#334155;">${escapeHtml(comment.author || '游客')} <span style="font-weight:400; color:#94a3b8;">${escapeHtml(comment.created_at || '')}</span></div>
+							${comment.can_delete ? `<button type="button" class="guide-action-btn comment-delete-btn" data-comment-id="${comment.id}"><i class="fa fa-trash"></i>删除</button>` : ''}
+						</div>
 						<div style="margin-top: 4px;">${escapeHtml(comment.content)}</div>
 					</div>
 				`).join('');
@@ -1943,12 +1968,22 @@
 					const modalImage = document.getElementById('modal-image');
 					if (guide.image_url) {
 						modalImage.src = guide.image_url;
+						modalImage.dataset.fallbackSrc = guide.fallback_image_url || '';
 						modalImage.alt = guide.title;
 						modalImage.style.display = 'block';
 					} else {
 						modalImage.removeAttribute('src');
 						modalImage.alt = '';
 						modalImage.style.display = 'none';
+					}
+					const modalActions = document.getElementById('modal-guide-actions');
+					const modalDeleteButton = document.getElementById('modal-guide-delete-btn');
+					if (guide.can_delete) {
+						modalDeleteButton.dataset.guideId = guide.id;
+						modalActions.style.display = 'flex';
+					} else {
+						modalDeleteButton.removeAttribute('data-guide-id');
+						modalActions.style.display = 'none';
 					}
 					renderModalComments(guide.comments);
 					document.getElementById('modal-comment-input').value = '';
@@ -1993,6 +2028,40 @@
 				}
 			}
 
+			async function deleteGuide(guideId) {
+				if (!guideId || !confirm('确定删除这条评论吗？')) return;
+				try {
+					const response = await fetch(`/api/guides/${guideId}/delete/`, { method: 'POST' });
+					const result = await response.json();
+					if (result.status === 'success') {
+						document.querySelectorAll(`[data-guide-card="${guideId}"]`).forEach(card => {
+							const item = card.closest('.item');
+							(item || card).remove();
+						});
+						closeReviewModal();
+						return;
+					}
+					alert(result.message || '删除失败');
+				} catch (error) {
+					alert('删除失败，请稍后重试');
+				}
+			}
+
+			async function deleteGuideComment(commentId) {
+				if (!commentId || !confirm('确定删除这条回复吗？')) return;
+				try {
+					const response = await fetch(`/api/guide-comments/${commentId}/delete/`, { method: 'POST' });
+					const result = await response.json();
+					if (result.status === 'success') {
+						openReviewModalById(currentModalGuideId);
+						return;
+					}
+					alert(result.message || '删除失败');
+				} catch (error) {
+					alert('删除失败，请稍后重试');
+				}
+			}
+
 			document.addEventListener('click', function(event) {
 				const likeButton = event.target.closest('.guide-like-btn');
 				if (likeButton) {
@@ -2010,6 +2079,18 @@
 				if (detailButton) {
 					event.preventDefault();
 					openReviewModalById(detailButton.dataset.guideId);
+					return;
+				}
+				const deleteButton = event.target.closest('.guide-delete-btn');
+				if (deleteButton) {
+					event.preventDefault();
+					deleteGuide(deleteButton.dataset.guideId);
+					return;
+				}
+				const commentDeleteButton = event.target.closest('.comment-delete-btn');
+				if (commentDeleteButton) {
+					event.preventDefault();
+					deleteGuideComment(commentDeleteButton.dataset.commentId);
 				}
 			});
 
@@ -2050,6 +2131,16 @@
 			}
 
 			loadExternalGuides();
+
+			document.addEventListener('error', function(event) {
+				const image = event.target;
+				if (!image.matches('img[data-fallback-src]')) return;
+				const fallbackSrc = image.dataset.fallbackSrc;
+				if (fallbackSrc && image.dataset.fallbackApplied !== 'true') {
+					image.dataset.fallbackApplied = 'true';
+					image.src = fallbackSrc;
+				}
+			}, true);
 
 			document.getElementById('modal-comment-form').addEventListener('submit', async function(event) {
 				event.preventDefault();

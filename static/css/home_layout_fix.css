@@ -1,10 +1,25 @@
 /* Home page visual polish overrides */
+.top-area,
+.sticky-wrapper {
+    z-index: 1000;
+}
+
+.header-area {
+    z-index: 1001;
+}
+
+.is-sticky .header-area,
+.header-area:after {
+    background: rgba(77, 78, 84, 0.96);
+}
+
 .about-us {
     min-height: 1060px;
 }
 
 .about-us-content {
     margin: -125px 0 0 0;
+    z-index: 1;
 }
 
 .about-us .about-btn {

@@ -50,6 +50,48 @@ FLIGHT_SEARCH_CACHE = {}
 FLIGHT_SEARCH_CACHE_SECONDS = 15 * 60
 EXTERNAL_GUIDE_CACHE = {}
 EXTERNAL_GUIDE_CACHE_SECONDS = 30 * 60
+GUIDE_FALLBACK_IMAGES = [
+    'images/packages/brazil-iguazu-falls.jpg',
+    'images/packages/egypt-cairo-nile.jpg',
+    'images/packages/netherlands-belgium-villages.jpg',
+]
+
+
+def _static_url(path):
+    path = (path or '').strip().lstrip('/')
+    return f'{settings.STATIC_URL}{path}'
+
+
+def _guide_fallback_image_url(guide):
+    image_index = (getattr(guide, 'id', 0) or 0) % len(GUIDE_FALLBACK_IMAGES)
+    return _static_url(GUIDE_FALLBACK_IMAGES[image_index])
+
+
+def _guide_display_image_url(guide):
+    image_url = (getattr(guide, 'image_url', '') or '').strip()
+    fallback_url = _guide_fallback_image_url(guide)
+
+    if not image_url:
+        return fallback_url
+
+    # Remote guide images are often blocked, redirected, or slow. Use local assets for stable cards.
+    if image_url.startswith(('http://', 'https://')):
+        return fallback_url
+
+    if image_url.startswith(('http://', 'https://', settings.STATIC_URL, settings.MEDIA_URL, '/')):
+        return image_url
+
+    return _static_url(image_url)
+
+
+def _can_manage_user_content(request, owner):
+    if not request.user.is_authenticated:
+        return False
+    return request.user.is_staff or request.user.is_superuser or owner_id(owner) == request.user.id
+
+
+def owner_id(owner):
+    return getattr(owner, 'id', None)
 
 
 CTRIP_EXTERNAL_GUIDES = [
@@ -263,6 +305,9 @@ def index(request):
             guide.is_liked = _is_guide_liked(request, guide.id)
             guide.is_favorited = _is_guide_favorited(request, guide.id)
             guide.favorite_count = guide.favorites.count()
+            guide.display_image_url = _guide_display_image_url(guide)
+            guide.fallback_image_url = _guide_fallback_image_url(guide)
+            guide.can_delete = _can_manage_user_content(request, guide.user)
 
         latest_news = list(TravelNews.objects.all().order_by('-views_count', '-created_at')[:3])
         for news in latest_news:
@@ -1403,12 +1448,14 @@ def get_guides(request):
             'destination': g.destination,
             'content': g.content,
             'author': g.user.username,
-            'image_url': g.image_url,
+            'image_url': _guide_display_image_url(g),
+            'fallback_image_url': _guide_fallback_image_url(g),
             'likes': g.likes,
             'liked': str(g.id) in liked_guides,
             'favorited': str(g.id) in favorite_guides,
             'favorite_count': g.favorites.count(),
             'comment_count': g.comments.count(),
+            'can_delete': _can_manage_user_content(request, g.user),
             'created_at': g.created_at.strftime('%Y-%m-%d %H:%M')
         })
     return JsonResponse({'status': 'success', 'data': guide_list})
@@ -1420,11 +1467,13 @@ def guide_detail(request, guide_id):
         
     comment_list = [
         {
+            'id': comment.id,
             'author': comment.user.username,
             'title': comment.title,
             'content': comment.content,
             'destination': comment.destination,
-            'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
+            'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M'),
+            'can_delete': _can_manage_user_content(request, comment.user),
         }
         for comment in guide.comments.select_related('user').all()
     ]
@@ -1436,11 +1485,13 @@ def guide_detail(request, guide_id):
         'destination': guide.destination,
         'content': guide.content,
         'author': guide.user.username,
-        'image_url': guide.image_url,
+        'image_url': _guide_display_image_url(guide),
+        'fallback_image_url': _guide_fallback_image_url(guide),
         'likes': guide.likes,
         'liked': _is_guide_liked(request, guide.id),
         'favorited': _is_guide_favorited(request, guide.id),
         'favorite_count': guide.favorites.count(),
+        'can_delete': _can_manage_user_content(request, guide.user),
         'created_at': guide.created_at.strftime('%Y-%m-%d %H:%M'),
         'comments': comment_list
     }
@@ -1537,6 +1588,18 @@ def favorite_guide(request, guide_id):
 
 @csrf_exempt
 @require_POST
+def delete_guide(request, guide_id):
+    guide = get_object_or_404(Guide.objects.select_related('user'), id=guide_id)
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'fail', 'message': '请先登录后再删除'}, status=401)
+    if not _can_manage_user_content(request, guide.user):
+        return JsonResponse({'status': 'fail', 'message': '只能删除自己发布的评论'}, status=403)
+    guide.delete()
+    return JsonResponse({'status': 'success'})
+
+
+@csrf_exempt
+@require_POST
 def favorite_news(request, news_id):
     news = get_object_or_404(TravelNews, id=news_id)
     news_key = str(news.id)
@@ -1580,12 +1643,26 @@ def add_guide_comment(request, guide_id):
             'status': 'success',
             'message': '评论成功',
             'comment': {
+                'id': comment.id,
                 'author': comment.user.username,
                 'content': comment.content,
-                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
+                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M'),
+                'can_delete': True,
             }
         })
     return JsonResponse({'status': 'fail', 'message': '仅支持POST'}, status=405)
+
+
+@csrf_exempt
+@require_POST
+def delete_guide_comment(request, comment_id):
+    comment = get_object_or_404(GuideComment.objects.select_related('user'), id=comment_id)
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'fail', 'message': '请先登录后再删除'}, status=401)
+    if not _can_manage_user_content(request, comment.user):
+        return JsonResponse({'status': 'fail', 'message': '只能删除自己发布的评论'}, status=403)
+    comment.delete()
+    return JsonResponse({'status': 'success'})
     
 
 
@@ -1712,6 +1789,9 @@ def home_page(request):
         guide.is_liked = _is_guide_liked(request, guide.id)
         guide.is_favorited = _is_guide_favorited(request, guide.id)
         guide.favorite_count = guide.favorites.count()
+        guide.display_image_url = _guide_display_image_url(guide)
+        guide.fallback_image_url = _guide_fallback_image_url(guide)
+        guide.can_delete = _can_manage_user_content(request, guide.user)
 
     latest_news = TravelNews.objects.all().order_by('-views_count', '-created_at')[:3]
     for news in latest_news:
@@ -1856,6 +1936,9 @@ def comments_page(request):
         guide.is_liked = _is_guide_liked(request, guide.id)
         guide.is_favorited = _is_guide_favorited(request, guide.id)
         guide.favorite_count = guide.favorites.count()
+        guide.display_image_url = _guide_display_image_url(guide)
+        guide.fallback_image_url = _guide_fallback_image_url(guide)
+        guide.can_delete = _can_manage_user_content(request, guide.user)
 
     return render(request, 'comments.html', {
         'g_list': guides,

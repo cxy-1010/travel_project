@@ -477,11 +477,11 @@ body {
 	position: absolute;
 	z-index: 2;
 	top: 24px;
-	left: 32px;
-	right: 32px;
+	right: 24px;
 	display: flex;
+	flex-direction: column;
 	gap: 12px;
-	overflow-x: auto;
+	align-items: flex-end;
 }
 .map-tools button,
 .map-float a {
@@ -495,6 +495,10 @@ body {
 	box-shadow: 0 4px 16px rgba(15, 23, 42, 0.16);
 	text-decoration: none;
 	white-space: nowrap;
+}
+.map-tools button {
+	min-width: 104px;
+	text-align: left;
 }
 .map-tools i {
 	margin-right: 6px;
@@ -539,5 +543,15 @@ body {
 	.ai-sidebar,
 	.route-panel {
 		min-height: 70vh;
+	}
+	.map-tools {
+		left: 14px;
+		right: 14px;
+		flex-direction: row;
+		align-items: center;
+		overflow-x: auto;
+	}
+	.map-tools button {
+		min-width: auto;
 	}
 }

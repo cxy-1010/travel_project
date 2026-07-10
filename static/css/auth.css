@@ -45,9 +45,26 @@
     border: 1px solid rgba(255,255,255,.8);
 }
 
-.auth-page {
+.auth-page,
+.auth-page body {
     min-height: 100%;
-    background: url(../images/home/banner.jpg) no-repeat center;
+}
+
+.auth-page {
+    background: #0f4f74;
+}
+
+.auth-shell {
+    background: linear-gradient(135deg, rgba(5, 38, 58, .58), rgba(0, 122, 207, .36)),
+        url(../images/packages/egypt-cairo-nile.jpg) center center / cover no-repeat fixed;
+}
+
+.auth-page:before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: #0f4f74 url(../images/packages/egypt-cairo-nile.jpg) center center / cover no-repeat;
     background-size: cover;
 }
 
@@ -57,7 +74,6 @@
     align-items: center;
     justify-content: center;
     padding: 48px 16px;
-    background: rgba(0,122,207,.45);
 }
 
 .auth-panel {
