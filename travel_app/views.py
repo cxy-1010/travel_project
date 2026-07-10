@@ -74,7 +74,7 @@ def _guide_display_image_url(guide):
     if not image_url:
         return fallback_url
 
-    # Remote guide images are often blocked, redirected, or slow. Use local assets for stable cards.
+    # 远程攻略图片经常被拦截、重定向或加载较慢，因此使用本地资源保证卡片稳定显示。
     if image_url.startswith(('http://', 'https://')):
         return fallback_url
 
@@ -348,7 +348,7 @@ def get_featured_packages(limit=6):
     if not packages:
         return TRAVEL_PACKAGES[:limit]
 
-    # Rotate homepage packages automatically by hour, no manual switching needed.
+    # 首页套餐按小时自动轮换，无需手动切换。
     current_time = timezone.localtime()
     rotation_index = current_time.toordinal() * 24 + current_time.hour
     start = rotation_index % len(packages)

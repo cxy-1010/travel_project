@@ -165,7 +165,7 @@
 								showError(data.content);
 							}
 						} catch (err) {
-							// Ignore partial stream lines.
+							// 忽略不完整的流式响应行。
 						}
 					});
 

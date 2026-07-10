@@ -6,28 +6,28 @@ $(document).ready(function(){
 
         /*==================================
 
-* Author        : "ThemeSine"
+* 作者          : "ThemeSine"
 
-* Template Name : Travel HTML Template
+* 模板名称      : Travel HTML 模板
 
-* Version       : 1.0
+* 版本          : 1.0
 
 ==================================== */
 
 
-        /*=========== TABLE OF CONTENTS ===========
+        /*=========== 目录 ===========
 
-1. Scroll To Top
-2. Range js
-3. Countdown timer
-4. owl carousel
-5. datepicker
-6. Smooth Scroll spy
-7. Animation support
+1. 返回顶部
+2. 范围滑块脚本
+3. 倒计时
+4. Owl 轮播图
+5. 日期选择器
+6. 平滑滚动监听
+7. 动画支持
 ======================================*/
     
 
-    // 1. Scroll To Top 
+    // 1. 返回顶部 
 
 		$(window).on('scroll',function () {
 
@@ -55,7 +55,7 @@ $(document).ready(function(){
 
 		});
 
-    // 2. range js
+    // 2. 范围滑块脚本
         
         $( "#slider-range" ).slider({
             range: true,
@@ -70,7 +70,7 @@ $(document).ready(function(){
         " - $" + $( "#slider-range" ).slider( "values", 1 ) );
         
         
-        // Quantity Buttons Shop
+        // 商品数量按钮
     
         $(".qtyplus").on("click", function(){
         var b = $(this).parents(".quantity-form").find("input.qty"),
@@ -86,7 +86,7 @@ $(document).ready(function(){
         });
 
 
-    // 3.Countdown timer 
+    // 3. 倒计时
         
         function makeTimer() {
 
@@ -116,9 +116,9 @@ $(document).ready(function(){
         
         setInterval(function() { makeTimer(); }, 1000);
 
-    // 4. owl carousel
+    // 4. Owl 轮播图
     
-        // i. #testimonial-carousel
+        // i. 用户评价轮播图
     
         
         var owl=$('#testemonial-carousel');
@@ -130,8 +130,8 @@ $(document).ready(function(){
             autoplay:true,
             smartSpeed:1000,
             
-            //nav:false,
-            //navText:["<i class='fa fa-angle-left'></i>","<i class='fa fa-angle-right'></i>"],
+            // 导航按钮：关闭
+            // 导航按钮文本：["<i class='fa fa-angle-left'></i>","<i class='fa fa-angle-right'></i>"]
             
             dots:true,
             autoplayHoverPause:true,
@@ -155,10 +155,10 @@ $(document).ready(function(){
             
         });
 
-    // 5. datepicker
+    // 5. 日期选择器
             $('[data-toggle="datepicker"]').datepicker();
 
-    // 6. Smooth Scroll spy
+    // 6. 平滑滚动监听
         
         $('.header-area').sticky({
            topSpacing:0
@@ -179,7 +179,7 @@ $(document).ready(function(){
             offset:0
         });
 
-    // 7.animation support
+    // 7. 动画支持
 
         $(window).load(function(){
 

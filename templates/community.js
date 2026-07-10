@@ -1,5 +1,5 @@
 // ========================================================
-// 组员4（攻略+社区）专用前端联调脚本 - community.js
+// 组员4（攻略+社区）专用前端联调脚本
 // ========================================================
 
 async function loadCommunityGuides() {
@@ -10,7 +10,7 @@ async function loadCommunityGuides() {
             const container = document.getElementById('guide-list-container') || document.getElementById('testemonial-carousel');
             if (!container) return;
             
-            // 如果原本已经有了 owl-carousel 实例，先销毁它以便重新加载数据
+            // 如果原本已经有了 Owl 轮播图实例，先销毁它以便重新加载数据
             const $carousel = jQuery(container);
             if ($carousel.data('owl.carousel')) {
                 $carousel.owlCarousel('destroy');
