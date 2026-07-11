@@ -1,4 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import logging
+import math
+import secrets
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -9,6 +12,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -16,7 +20,6 @@ from django.db.utils import OperationalError, ProgrammingError
 from django.db.models import Q
 import json
 import os
-import random
 import re
 import time
 from pathlib import Path
@@ -50,11 +53,16 @@ FLIGHT_SEARCH_CACHE = {}
 FLIGHT_SEARCH_CACHE_SECONDS = 15 * 60
 EXTERNAL_GUIDE_CACHE = {}
 EXTERNAL_GUIDE_CACHE_SECONDS = 30 * 60
+EMAIL_CODE_COOLDOWN_SECONDS = 60
 GUIDE_FALLBACK_IMAGES = [
     'images/packages/brazil-iguazu-falls.jpg',
     'images/packages/egypt-cairo-nile.jpg',
     'images/packages/netherlands-belgium-villages.jpg',
 ]
+
+
+class EmailCodeDeliveryError(Exception):
+    pass
 
 
 def _static_url(path):
@@ -693,6 +701,20 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 
+def _email_code_retry_after(verification):
+    elapsed = max(0.0, (timezone.now() - verification.created_at).total_seconds())
+    return max(0, math.ceil(EMAIL_CODE_COOLDOWN_SECONDS - elapsed))
+
+
+def _email_code_cooldown_response(retry_after):
+    response = JsonResponse({
+        'error': f'验证码发送太频繁，请 {retry_after} 秒后再试',
+        'retry_after': retry_after,
+    }, status=429)
+    response['Retry-After'] = str(retry_after)
+    return response
+
+
 @csrf_exempt
 def send_email_code(request):
     if request.method != 'POST':
@@ -715,32 +737,64 @@ def send_email_code(request):
     if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
         return JsonResponse({'error': '邮件服务未配置，请检查 EMAIL_HOST_USER 和 EMAIL_HOST_PASSWORD'}, status=500)
 
-    latest = EmailVerificationCode.objects.filter(email=email, purpose='register').order_by('-created_at').first()
-    if latest and (timezone.now() - latest.created_at).total_seconds() < 60:
-        return JsonResponse({'error': '验证码发送太频繁，请 60 秒后再试'}, status=429)
-
-    code = f'{random.randint(0, 999999):06d}'
-    verification = EmailVerificationCode.objects.create(
-        email=email,
-        code=code,
-        purpose='register',
-        expires_at=EmailVerificationCode.default_expires_at(),
-    )
-
+    code = f'{secrets.randbelow(1_000_000):06d}'
     try:
-        send_mail(
-            subject='TourNest 注册邮箱验证码',
-            message=f'您的 TourNest 注册验证码是：{code}。验证码 10 分钟内有效，请勿泄露给他人。',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-    except Exception as exc:
-        print(f'Email verification send failed: {exc}')
-        verification.delete()
-        return JsonResponse({'error': '验证码发送失败，请检查 QQ 邮箱授权码或稍后重试'}, status=500)
+        with transaction.atomic():
+            latest = EmailVerificationCode.objects.select_for_update().filter(
+                email=email,
+                purpose='register',
+                is_used=False,
+            ).order_by('-created_at').first()
+            retry_after = _email_code_retry_after(latest) if latest else 0
+            if retry_after:
+                return _email_code_cooldown_response(retry_after)
+            if latest:
+                latest.is_used = True
+                latest.save(update_fields=['is_used'])
+            verification = EmailVerificationCode.objects.create(
+                email=email,
+                code=code,
+                purpose='register',
+                expires_at=EmailVerificationCode.default_expires_at(),
+            )
+            try:
+                sent_count = send_mail(
+                    subject='TourNest 注册邮箱验证码',
+                    message=f'您的 TourNest 注册验证码是：{code}。验证码 10 分钟内有效，请勿泄露给他人。',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+                if sent_count != 1:
+                    raise RuntimeError('Email backend did not send the verification message')
+            except Exception as exc:
+                raise EmailCodeDeliveryError from exc
 
-    return JsonResponse({'message': '验证码已发送，请查收邮箱', 'expires_in': 600})
+            sent_at = timezone.now()
+            verification.created_at = sent_at
+            verification.expires_at = sent_at + timedelta(minutes=10)
+            verification.save(update_fields=['created_at', 'expires_at'])
+    except EmailCodeDeliveryError:
+        logging.getLogger(__name__).exception('Email verification send failed')
+        return JsonResponse({'error': '验证码发送失败，请稍后重试'}, status=503)
+    except OperationalError as exc:
+        if 'locked' in str(exc).lower():
+            return _email_code_cooldown_response(1)
+        raise
+    except IntegrityError:
+        latest = EmailVerificationCode.objects.filter(
+            email=email,
+            purpose='register',
+            is_used=False,
+        ).order_by('-created_at').first()
+        retry_after = _email_code_retry_after(latest) if latest else 1
+        return _email_code_cooldown_response(max(1, retry_after))
+
+    return JsonResponse({
+        'message': '验证码已发送，请查收邮箱',
+        'expires_in': 600,
+        'retry_after': _email_code_retry_after(verification),
+    })
 
 
 def user_logout(request):

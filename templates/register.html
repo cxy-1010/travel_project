@@ -42,8 +42,8 @@
         var button = document.getElementById('send-email-code-btn');
         var emailInput = document.getElementById('id_email');
         var message = document.getElementById('email-code-message');
-        var secondsLeft = 0;
         var timer = null;
+        var isSending = false;
 
         function setMessage(text, isError) {
             message.textContent = text || '';
@@ -51,11 +51,11 @@
         }
 
         function startCountdown(seconds) {
-            secondsLeft = seconds;
+            var deadline = Date.now() + (Math.max(1, Number(seconds) || 60) * 1000);
+            window.clearInterval(timer);
             button.disabled = true;
-            button.textContent = secondsLeft + '秒后重发';
-            timer = window.setInterval(function() {
-                secondsLeft -= 1;
+            function updateCountdown() {
+                var secondsLeft = Math.ceil((deadline - Date.now()) / 1000);
                 if (secondsLeft <= 0) {
                     window.clearInterval(timer);
                     button.disabled = false;
@@ -63,16 +63,22 @@
                     return;
                 }
                 button.textContent = secondsLeft + '秒后重发';
-            }, 1000);
+            }
+            updateCountdown();
+            timer = window.setInterval(updateCountdown, 250);
         }
 
         button.addEventListener('click', function() {
+            if (isSending) {
+                return;
+            }
             var email = (emailInput.value || '').trim();
             if (!email) {
                 setMessage('请先填写邮箱地址。', true);
                 emailInput.focus();
                 return;
             }
+            isSending = true;
             button.disabled = true;
             button.textContent = '发送中...';
             setMessage('', false);
@@ -84,19 +90,35 @@
                 },
                 body: JSON.stringify({email: email})
             }).then(function(response) {
-                return response.json().then(function(data) {
+                return response.json().catch(function() {
+                    return {};
+                }).then(function(data) {
                     if (!response.ok) {
-                        throw new Error(data.error || '验证码发送失败');
+                        var error = new Error(data.error || '验证码发送失败，请稍后重试');
+                        error.retryAfter = Number(data.retry_after || response.headers.get('Retry-After')) || 0;
+                        throw error;
                     }
                     return data;
                 });
             }).then(function(data) {
                 setMessage(data.message || '验证码已发送，请查收邮箱。', false);
-                startCountdown(60);
+                var retryAfter = Number(data.retry_after);
+                if (retryAfter > 0) {
+                    startCountdown(retryAfter);
+                } else {
+                    button.disabled = false;
+                    button.textContent = '发送验证码';
+                }
             }).catch(function(error) {
                 setMessage(error.message, true);
-                button.disabled = false;
-                button.textContent = '发送验证码';
+                if (error.retryAfter) {
+                    startCountdown(error.retryAfter);
+                } else {
+                    button.disabled = false;
+                    button.textContent = '发送验证码';
+                }
+            }).finally(function() {
+                isSending = false;
             });
         });
     })();

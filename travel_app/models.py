@@ -128,6 +128,13 @@ class EmailVerificationCode(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['email', 'purpose'],
+                condition=models.Q(is_used=False),
+                name='uniq_unused_email_purpose',
+            ),
+        ]
 
     def is_expired(self):
         return timezone.now() > self.expires_at

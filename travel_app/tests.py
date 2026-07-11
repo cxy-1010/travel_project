@@ -1,8 +1,14 @@
-from django.contrib.auth.models import User
-from django.test import TestCase
-from django.urls import reverse
+from datetime import timedelta
+from threading import Event, Thread
+from unittest.mock import patch
 
-from .models import Guide, GuideComment, SavedRoute, UserProfile
+from django.contrib.auth.models import User
+from django.db import IntegrityError, transaction
+from django.test import Client, TestCase, TransactionTestCase, override_settings
+from django.urls import reverse
+from django.utils import timezone
+
+from .models import EmailVerificationCode, Guide, GuideComment, SavedRoute, UserProfile
 
 
 class AuthFlowTests(TestCase):
@@ -176,3 +182,167 @@ class AuthFlowTests(TestCase):
 
         self.assertContains(response, '评论')
         self.assertContains(response, '这个路线很适合两天游。')
+
+
+@override_settings(
+    EMAIL_HOST_USER='sender@qq.com',
+    EMAIL_HOST_PASSWORD='qq-auth-code',
+    DEFAULT_FROM_EMAIL='sender@qq.com',
+)
+class EmailVerificationCodeTests(TestCase):
+    endpoint = 'send_email_code'
+
+    @patch('travel_app.views.send_mail', return_value=1)
+    def test_send_email_code_saves_code_and_returns_cooldown(self, send_mail_mock):
+        response = self.client.post(
+            reverse(self.endpoint),
+            {'email': 'traveler@example.com'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['retry_after'], 60)
+        verification = EmailVerificationCode.objects.get(email='traveler@example.com')
+        self.assertRegex(verification.code, r'^\d{6}$')
+        self.assertAlmostEqual(
+            (verification.expires_at - verification.created_at).total_seconds(),
+            600,
+            delta=0.1,
+        )
+        send_mail_mock.assert_called_once()
+
+    @patch('travel_app.views.send_mail')
+    def test_send_email_code_returns_remaining_cooldown_without_sending(self, send_mail_mock):
+        EmailVerificationCode.objects.create(
+            email='traveler@example.com',
+            code='123456',
+            purpose='register',
+            expires_at=EmailVerificationCode.default_expires_at(),
+        )
+
+        response = self.client.post(
+            reverse(self.endpoint),
+            {'email': 'traveler@example.com'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 429)
+        self.assertGreaterEqual(response.json()['retry_after'], 59)
+        self.assertEqual(response['Retry-After'], str(response.json()['retry_after']))
+        send_mail_mock.assert_not_called()
+
+    @patch('travel_app.views.send_mail', return_value=1)
+    def test_send_email_code_allows_retry_after_sixty_seconds(self, send_mail_mock):
+        verification = EmailVerificationCode.objects.create(
+            email='traveler@example.com',
+            code='123456',
+            purpose='register',
+            expires_at=EmailVerificationCode.default_expires_at(),
+        )
+        EmailVerificationCode.objects.filter(pk=verification.pk).update(
+            created_at=timezone.now() - timedelta(seconds=61),
+        )
+
+        response = self.client.post(
+            reverse(self.endpoint),
+            {'email': 'traveler@example.com'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(EmailVerificationCode.objects.filter(email='traveler@example.com').count(), 2)
+        verification.refresh_from_db()
+        self.assertTrue(verification.is_used)
+        self.assertEqual(
+            EmailVerificationCode.objects.filter(email='traveler@example.com', is_used=False).count(),
+            1,
+        )
+        send_mail_mock.assert_called_once()
+
+    @patch('travel_app.views.send_mail', side_effect=TimeoutError)
+    def test_send_email_code_timeout_returns_quick_failure_without_stale_code(self, send_mail_mock):
+        response = self.client.post(
+            reverse(self.endpoint),
+            {'email': 'traveler@example.com'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()['error'], '验证码发送失败，请稍后重试')
+        self.assertFalse(EmailVerificationCode.objects.filter(email='traveler@example.com').exists())
+        send_mail_mock.assert_called_once()
+
+    def test_database_allows_only_one_unused_code_per_email_and_purpose(self):
+        EmailVerificationCode.objects.create(
+            email='traveler@example.com',
+            code='123456',
+            purpose='register',
+            expires_at=EmailVerificationCode.default_expires_at(),
+        )
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                EmailVerificationCode.objects.create(
+                    email='traveler@example.com',
+                    code='654321',
+                    purpose='register',
+                    expires_at=EmailVerificationCode.default_expires_at(),
+                )
+
+
+@override_settings(
+    EMAIL_HOST_USER='sender@qq.com',
+    EMAIL_HOST_PASSWORD='qq-auth-code',
+    DEFAULT_FROM_EMAIL='sender@qq.com',
+)
+class EmailVerificationConcurrencyTests(TransactionTestCase):
+    @patch('travel_app.views.send_mail')
+    def test_concurrent_request_does_not_send_a_second_code(self, send_mail_mock):
+        send_started = Event()
+        release_send = Event()
+        first_responses = []
+        first_errors = []
+
+        def slow_send(*args, **kwargs):
+            send_started.set()
+            release_send.wait(timeout=5)
+            return 1
+
+        def send_first_request():
+            try:
+                first_responses.append(Client().post(
+                    reverse('send_email_code'),
+                    {'email': 'traveler@example.com'},
+                    content_type='application/json',
+                ))
+            except Exception as exc:
+                first_errors.append(exc)
+
+        send_mail_mock.side_effect = slow_send
+        first_thread = Thread(target=send_first_request)
+        first_thread.start()
+        self.assertTrue(send_started.wait(timeout=5))
+
+        try:
+            second_response = Client().post(
+                reverse('send_email_code'),
+                {'email': 'traveler@example.com'},
+                content_type='application/json',
+            )
+        finally:
+            release_send.set()
+            first_thread.join(timeout=5)
+
+        self.assertFalse(first_thread.is_alive())
+        self.assertFalse(first_errors)
+        self.assertEqual(first_responses[0].status_code, 200)
+        self.assertEqual(second_response.status_code, 429)
+        self.assertEqual(send_mail_mock.call_count, 1)
+        self.assertEqual(
+            EmailVerificationCode.objects.filter(
+                email='traveler@example.com',
+                purpose='register',
+                is_used=False,
+            ).count(),
+            1,
+        )
